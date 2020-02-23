@@ -1,0 +1,14 @@
+{
+  "AUTHOR": "BeryJu",
+  "SHORT": "Lookup Info on Intel's ARK Database",
+  "DESCRIPTION": "Lookup Info on Intel's ARK Database",
+  "DISABLED": false,
+  "NAME": "ark",
+  "TAGS": [
+    "ark",
+    "intel",
+    "search",
+    "lookup"
+  ],
+  "INSTALL_MSG": "Usage: `[p]ark <query> <field_to_display>`"
+}
