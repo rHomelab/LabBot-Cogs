@@ -1,5 +1,6 @@
 """discord red-bot purge"""
-from redbot.core import commands
+from redbot.core import commands, Config
+from datetime import datetime, timedelta
 
 
 class PurgeCog(commands.Cog):
@@ -7,6 +8,18 @@ class PurgeCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.settings = Config.get_conf(self, identifier=489182828)
+
+        default_guild_settings = {
+            "purge_excludedusers": [],
+            "purge_limit": 5,
+            "purge_schedule": "",
+            "purge_count": 0,
+            "purge_lastrun": 0,
+            "purge_enabled": False
+        }
+
+        self.settings.register_guild(**default_guild_settings)
 
     async def get_purgeable_users(self, guild):
         """
@@ -18,10 +31,14 @@ class PurgeCog(commands.Cog):
             # If user has a role other than @everyone, they're safe
             roles = [role for role in member.roles
                      if guild.default_role != role]
-            if len(roles) != 0:
+            if len(roles) > 0:
                 continue
 
-            # TODO Check if user is over the unverified limit
+            # If user is not older than the limit, they're safe
+            timelimit = await self.settings.guild(guild).purge_limit()
+            cutoff_date = datetime.utcnow() - timedelta(days=timelimit)
+            if member.joined_at > cutoff_date:
+                continue
 
             members.append(member)
 
@@ -65,7 +82,8 @@ class PurgeCog(commands.Cog):
 
     @_purge.command("setlimit")
     async def purge_setlimit(self, ctx: commands.Context):
-        """Sets the number of days a user can remain in the server with no roles before being purged.
+        """Sets the number of days a user can remain in the server with no
+        roles before being purged.
 
         Example:
         - `[p]purge setlimit <days>`
@@ -75,7 +93,8 @@ class PurgeCog(commands.Cog):
     @_purge.command("schedule")
     async def purge_schedule(self, ctx: commands.Context):
         """Sets how often the bot should purge users.
-        Accepts cron syntax. For instance `30 02 */2 * *` would be every 2 days at 02:30.
+        Accepts cron syntax. For instance `30 02 */2 * *` would be every 2
+        days at 02:30.
 
         Example:
         - `[p]purge schedule <cron schedule>`
