@@ -111,7 +111,8 @@ class PurgeCog(commands.Cog):
         Example:
         - `[p]purge enable`
         """
-        pass
+        await self.settings.guild(ctx.guild).purge_enabled.set(True)
+        await ctx.send("Enabled the purge task.")
 
     @_purge.command("disable")
     async def purge_disable(self, ctx: commands.Context):
@@ -120,7 +121,8 @@ class PurgeCog(commands.Cog):
         Example:
         - `[p]purge disable`
         """
-        pass
+        await self.settings.guild(ctx.guild).purge_enabled.set(False)
+        await ctx.send("Disabled the purge task.")
 
     @_purge.command("status")
     async def purge_status(self, ctx: commands.Context):
