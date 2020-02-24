@@ -82,14 +82,15 @@ class PurgeCog(commands.Cog):
         pass
 
     @_purge.command("setlimit")
-    async def purge_setlimit(self, ctx: commands.Context):
+    async def purge_setlimit(self, ctx: commands.Context, limit: int):
         """Sets the number of days a user can remain in the server with no
         roles before being purged.
 
         Example:
         - `[p]purge setlimit <days>`
         """
-        pass
+        await self.settings.guild(ctx.guild).purge_limit.set(limit)
+        await ctx.send(f"Set the new limit to {limit} days.")
 
     @_purge.command("schedule")
     async def purge_schedule(self, ctx: commands.Context):
