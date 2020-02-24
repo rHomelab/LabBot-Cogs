@@ -8,6 +8,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
 - [Cog Summaries](#cog-summaries)
 - [Cog Documentation](#cog-documentation)
   - [Cog 1](#cog1)
+  - [Purge](#purge)
 - [License](#license)
 
 ## Authors
@@ -42,3 +43,15 @@ This cog will purge users that hold no roles as a way to combat accounts being c
 All code in this repository is licensed under the [GNU General Public License version 3](https://github.com/tigattack/LabBot/blob/master/LICENSE).
 
 Copyright (c) 2018-2020 tigattack, contributors and original authors.
+
+## Contributing
+
+### Setting up Flake8 pre-commit hook
+
+This will reject the commit unless the code passes flake8 standards.
+
+```bash
+pip install flake8
+flake8 --install-hook git
+git config --bool flake8.strict true
+```
