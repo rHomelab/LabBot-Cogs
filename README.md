@@ -25,12 +25,17 @@ This is a joint project involving any of the Homelab Discord server admins & mod
 ## Cog Summaries
 
 - **Cog 1:** Summary of cog 1.
+- **[Purge](#purge):** This will purge users based on criteria.
 
 ## Cog Documentation
 
 ### Cog 1
 
 In-depth documentation/explanation of Cog 1, what it can do, what it can't do, and, if necessary, what it's used for.
+
+### Purge
+
+This cog will purge users that hold no roles as a way to combat accounts being created and left in an un-verified state.
 
 ## License
 
