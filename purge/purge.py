@@ -34,7 +34,7 @@ class PurgeCog(commands.Cog):
 
     @_purge.command("execute")
     async def purge_execute(self, ctx: commands.Context):
-        """Performs a execution on who to purge.
+        """Executes a purge.
         Users will be **kicked** if they haven't verified.
 
         Example:
@@ -44,7 +44,7 @@ class PurgeCog(commands.Cog):
 
     @_purge.command("simulate")
     async def purge_simulate(self, ctx: commands.Context):
-        """Performs a simulation on who to purge.
+        """Simulates a purge.
         Users will be **detected** if they haven't verified.
 
         Example:
@@ -56,7 +56,7 @@ class PurgeCog(commands.Cog):
 
     @_purge.command("exclude")
     async def purge_exclude_user(self, ctx: commands.Context):
-        """Excludes a user from being detected by the purge.
+        """Excludes an otherwise eligible user from the purge.
 
         Example:
         - `[p]purge exclude <user>`
@@ -65,26 +65,27 @@ class PurgeCog(commands.Cog):
 
     @_purge.command("setlimit")
     async def purge_setlimit(self, ctx: commands.Context):
-        """Sets the limit of days to retain users.
+        """Sets the number of days a user can remain in the server with no roles before being purged.
 
         Example:
         - `[p]purge setlimit <days>`
         """
         pass
 
-    @_purge.command("runevery")
-    async def purge_runevery(self, ctx: commands.Context):
+    @_purge.command("schedule")
+    async def purge_schedule(self, ctx: commands.Context):
         """Sets how often the bot should purge users.
+        Accepts cron syntax. For instance `30 02 */2 * *` would be every 2 days at 02:30.
 
         Example:
-        - `[p]purge runevery <minutes>`
+        - `[p]purge schedule <cron schedule>`
+        - `[p]purge schedule 30 02 */2 * *`
         """
         pass
 
     @_purge.command("enable")
     async def purge_enable(self, ctx: commands.Context):
-        """Enables the bot.
-        The bot will be enabled if this command is run.
+        """Enables automated purges based on the schedule.
 
         Example:
         - `[p]purge enable`
@@ -93,8 +94,7 @@ class PurgeCog(commands.Cog):
 
     @_purge.command("disable")
     async def purge_disable(self, ctx: commands.Context):
-        """Disables the bot.
-        The bot will be disabled if this command is run.
+        """Disables automated purges based on the schedule.
 
         Example:
         - `[p]purge disable`
