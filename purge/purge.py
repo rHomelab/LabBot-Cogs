@@ -1,4 +1,5 @@
 """discord red-bot purge"""
+import discord
 from redbot.core import commands, Config
 from datetime import datetime, timedelta
 
@@ -130,4 +131,13 @@ class PurgeCog(commands.Cog):
         Example:
         - `[p]purge status`
         """
-        pass
+        purge_count = await self.settings.guild(ctx.guild).purge_count()
+
+        data = discord.Embed(colour=(await ctx.embed_colour()))
+        data.add_field(name="Purged", value=f"{purge_count}")
+
+        try:
+            await ctx.send(embed=data)
+        except discord.Forbidden:
+            await ctx.send("I need the `Embed links` permission to " +
+                           "send a purge status.")
