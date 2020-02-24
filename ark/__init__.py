@@ -1,5 +1,5 @@
-from .ark import ArkCog
+from .ark import ARKCog
 
 
 def setup(bot):
-    bot.add_cog(ArkCog())
+    bot.add_cog(ARKCog(bot))
