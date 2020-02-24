@@ -42,6 +42,10 @@ This cog will allow users to prove they're not a bot by having to read rules and
 
 This cog will purge users that hold no roles as a way to combat accounts being created and left in an un-verified state.
 
+### Purge
+
+This cog will purge users that hold no roles as a way to combat accounts being created and left in an un-verified state.
+
 ## License
 
 All code in this repository is licensed under the [GNU General Public License version 3](https://github.com/tigattack/LabBot/blob/master/LICENSE).
