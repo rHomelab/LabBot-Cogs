@@ -8,12 +8,24 @@ class PurgeCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    def get_purgeable_users(self):
+    async def get_purgeable_users(self, guild):
         """
         Gets users to purge.
         In addition, performs checks for excluded users.
         """
-        return []
+        members = []
+        for member in guild.members:
+            # If user has a role other than @everyone, they're safe
+            roles = [role for role in member.roles
+                     if guild.default_role != role]
+            if len(roles) != 0:
+                continue
+
+            # TODO Check if user is over the unverified limit
+
+            members.append(member)
+
+        return members
 
     @commands.group(name="purge")
     @commands.guild_only()
@@ -38,7 +50,9 @@ class PurgeCog(commands.Cog):
         Example:
         - `[p]purge simulate`
         """
-        pass
+        users = await self.get_purgeable_users(ctx.guild)
+
+        await ctx.send(f"Found {len(users)} to purge.")
 
     @_purge.command("exclude")
     async def purge_exclude_user(self, ctx: commands.Context):
