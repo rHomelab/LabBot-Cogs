@@ -77,8 +77,3 @@ class ARKCog(commands.Cog):
         for field in fields:
             embed.add_field(name=field, value=cpu_data[field])
         await ctx.send(embed=embed)
-
-
-def setup(bot):
-    """setup"""
-    bot.add_cog(ARKCog(bot))
