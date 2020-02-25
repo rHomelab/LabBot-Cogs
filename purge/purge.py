@@ -3,6 +3,8 @@ import asyncio
 import discord
 from redbot.core import commands, Config
 from datetime import datetime, timedelta
+from croniter import croniter
+from croniter.croniter import CroniterError
 
 
 class PurgeCog(commands.Cog):
@@ -30,6 +32,15 @@ class PurgeCog(commands.Cog):
     def cog_unload(self):
         self.purge_task.cancel()
 
+    async def set_crontab(self, guild, crontab):
+        try:
+            print(crontab)
+            croniter(crontab)
+            await self.settings.guild(guild).purge_schedule.set(crontab)
+            return crontab
+        except CroniterError:
+            return False
+
     async def check_purgeable_users(self):
         while self == self.bot.get_cog("PurgeCog"):
             for guild in self.bot.guilds:
@@ -38,9 +49,21 @@ class PurgeCog(commands.Cog):
                 if not enabled:
                     continue
 
+                # Is it time to run?
+                cur_epoch = datetime.utcnow()
+                last_run = await self.settings.guild(guild).purge_lastrun()
+                crontab = await self.settings.guild(guild).purge_schedule()
+                cron_check = croniter(crontab, last_run)
+                next_execution_date = cron_check.get_next(datetime)
+
+                if next_execution_date > cur_epoch:
+                    # It's not scheduled to run yet
+                    continue
+
                 # Set the last run
-                cur_epoch = datetime.utcnow().timestamp()
-                await self.settings.guild(guild).purge_lastrun.set(cur_epoch)
+                await self.settings.guild(guild).purge_lastrun.set(
+                                                    cur_epoch.timestamp()
+                                                )
 
                 # Only run if kick_members permission is given
                 if not guild.me.guild_permissions.kick_members:
@@ -155,7 +178,7 @@ class PurgeCog(commands.Cog):
         await ctx.send(f"Set the new minimum age to {minage} days.")
 
     @_purge.command("schedule")
-    async def purge_schedule(self, ctx: commands.Context):
+    async def purge_schedule(self, ctx: commands.Context, schedule: str):
         """Sets how often the bot should purge users.
         Accepts cron syntax. For instance `30 02 */2 * *` would be every 2
         days at 02:30.
@@ -164,7 +187,8 @@ class PurgeCog(commands.Cog):
         - `[p]purge schedule "<cron schedule>"`
         - `[p]purge schedule "30 02 */2 * *"`
         """
-        pass
+        new_shedule = await self.set_crontab(ctx.guild, schedule)
+        await ctx.send(f"Set the schedule to `{new_shedule}`.")
 
     @_purge.command("enable")
     async def purge_enable(self, ctx: commands.Context):
@@ -200,6 +224,7 @@ class PurgeCog(commands.Cog):
         purge_enabled = await self.settings.guild(ctx.guild).purge_enabled()
         purge_minage = await self.settings.guild(ctx.guild).purge_minage()
         purge_last_run = await self.settings.guild(ctx.guild).purge_lastrun()
+        purge_schedule = await self.settings.guild(ctx.guild).purge_schedule()
 
         last_run = datetime.utcfromtimestamp(purge_last_run)
         last_run_friendly = last_run.strftime("%Y-%m-%d %H:%M:%SZ")
@@ -209,6 +234,15 @@ class PurgeCog(commands.Cog):
         data.add_field(name="Enabled", value=f"{purge_enabled}")
         data.add_field(name="Min Age", value=f"{purge_minage}")
         data.add_field(name="Last Run", value=f"{last_run_friendly}")
+        if purge_schedule is not None:
+            next_date = croniter(
+                            purge_schedule,
+                            purge_last_run
+                        ).get_next(datetime)
+            next_run_friendly = next_date.strftime("%Y-%m-%d %H:%M:%SZ")
+
+            data.add_field(name="Next Run", value=f"{next_run_friendly}")
+        data.add_field(name="Schedule", value=f"`{purge_schedule}`")
 
         try:
             await ctx.send(embed=data)
