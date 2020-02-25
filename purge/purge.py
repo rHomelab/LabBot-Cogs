@@ -99,8 +99,8 @@ class PurgeCog(commands.Cog):
         days at 02:30.
 
         Example:
-        - `[p]purge schedule <cron schedule>`
-        - `[p]purge schedule 30 02 */2 * *`
+        - `[p]purge schedule "<cron schedule>"`
+        - `[p]purge schedule "30 02 */2 * *"`
         """
         pass
 
@@ -135,9 +135,11 @@ class PurgeCog(commands.Cog):
         - `[p]purge status`
         """
         purge_count = await self.settings.guild(ctx.guild).purge_count()
+        purge_enabled = await self.settings.guild(ctx.guild).purge_enabled()
 
         data = discord.Embed(colour=(await ctx.embed_colour()))
         data.add_field(name="Purged", value=f"{purge_count}")
+        data.add_field(name="Enabled", value=f"{purge_enabled}")
 
         try:
             await ctx.send(embed=data)
