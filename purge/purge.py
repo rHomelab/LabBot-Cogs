@@ -38,6 +38,10 @@ class PurgeCog(commands.Cog):
                 if not enabled:
                     continue
 
+                # Set the last run
+                cur_epoch = datetime.utcnow().timestamp()
+                await self.settings.guild(guild).purge_lastrun.set(cur_epoch)
+
                 # Only run if kick_members permission is given
                 if not guild.me.guild_permissions.kick_members:
                     continue
@@ -195,11 +199,16 @@ class PurgeCog(commands.Cog):
         purge_count = await self.settings.guild(ctx.guild).purge_count()
         purge_enabled = await self.settings.guild(ctx.guild).purge_enabled()
         purge_minage = await self.settings.guild(ctx.guild).purge_minage()
+        purge_last_run = await self.settings.guild(ctx.guild).purge_lastrun()
+
+        last_run = datetime.utcfromtimestamp(purge_last_run)
+        last_run_friendly = last_run.strftime("%Y-%m-%d %H:%M:%SZ")
 
         data = discord.Embed(colour=(await ctx.embed_colour()))
         data.add_field(name="Purged", value=f"{purge_count}")
         data.add_field(name="Enabled", value=f"{purge_enabled}")
         data.add_field(name="Min Age", value=f"{purge_minage}")
+        data.add_field(name="Last Run", value=f"{last_run_friendly}")
 
         try:
             await ctx.send(embed=data)
