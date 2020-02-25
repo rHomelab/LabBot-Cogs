@@ -96,13 +96,26 @@ class PurgeCog(commands.Cog):
         await ctx.send(f"Found {len(users)} to purge.")
 
     @_purge.command("exclude")
-    async def purge_exclude_user(self, ctx: commands.Context):
+    async def purge_exclude_user(self,
+                                 ctx: commands.Context,
+                                 user: discord.Member):
         """Excludes an otherwise eligible user from the purge.
 
         Example:
         - `[p]purge exclude <user>`
         """
-        pass
+        guild = ctx.guild
+        added = False
+        # Get excluded users list
+        async with self.settings.guild(guild).purge_excludedusers() as li:
+            if user and user.id not in li:
+                li.append(user.id)
+                added = True
+
+        if added:
+            await ctx.send("That user is now safe from pruning!")
+        else:
+            await ctx.send("That user is already safe from pruning!")
 
     @_purge.command("setlimit")
     async def purge_setlimit(self, ctx: commands.Context, limit: int):
