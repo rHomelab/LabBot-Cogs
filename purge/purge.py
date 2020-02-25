@@ -1,4 +1,5 @@
 """discord red-bot purge"""
+import asyncio
 import discord
 from redbot.core import commands, Config
 from datetime import datetime, timedelta
@@ -21,6 +22,28 @@ class PurgeCog(commands.Cog):
         }
 
         self.settings.register_guild(**default_guild_settings)
+
+        self.purge_task = self.bot.loop.create_task(
+                              self.check_purgeable_users()
+                          )
+
+    def cog_unload(self):
+        self.purge_task.cancel()
+
+    async def check_purgeable_users(self):
+        while self == self.bot.get_cog("PurgeCog"):
+            for guild in self.bot.guilds:
+                # Only run if enabled
+                enabled = await self.settings.guild(guild).purge_enabled()
+                if not enabled:
+                    continue
+
+                # Only run if kick_members permission is given
+                if not guild.me.guild_permissions.kick_members:
+                    continue
+
+                # TODO Get and purge users
+            await asyncio.sleep(60)
 
     async def get_purgeable_users(self, guild):
         """
