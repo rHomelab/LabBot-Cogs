@@ -117,6 +117,28 @@ class PurgeCog(commands.Cog):
         else:
             await ctx.send("That user is already safe from pruning!")
 
+    @_purge.command("include")
+    async def purge_include_user(self,
+                                 ctx: commands.Context,
+                                 user: discord.Member):
+        """Includes a possibly-eligible user in the purge checks.
+
+        Example:
+        - `[p]purge include <user>`
+        """
+        guild = ctx.guild
+        removed = False
+        # Get excluded users list
+        async with self.settings.guild(guild).purge_excludedusers() as li:
+            if user and user.id in li:
+                li.remove(user.id)
+                removed = True
+
+        if removed:
+            await ctx.send("That user is no longer safe from pruning!")
+        else:
+            await ctx.send("That user is already not safe from pruning!")
+
     @_purge.command("setlimit")
     async def purge_setlimit(self, ctx: commands.Context, limit: int):
         """Sets the number of days a user can remain in the server with no
