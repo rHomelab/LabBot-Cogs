@@ -1,0 +1,12 @@
+{
+    "AUTHOR": "Sneezey",
+    "SHORT": "Purge inactive, non-roled users",
+    "DESCRIPTION": "Remove users without a role after a certain amount of time",
+    "DISABLED": false,
+    "NAME": "purge",
+    "TAGS": [
+      "purge",
+      "inactive"
+    ],
+    "INSTALL_MSG": "Usage: `[p]purge`"
+  }
