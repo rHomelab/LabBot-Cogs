@@ -20,7 +20,8 @@ class PurgeCog(commands.Cog):
             "purge_schedule": "0 */6 * * *",
             "purge_count": 0,
             "purge_lastrun": None,
-            "purge_enabled": False
+            "purge_enabled": False,
+            "purge_logchannel": None
         }
 
         self.settings.register_guild(**default_guild_settings)
@@ -34,7 +35,6 @@ class PurgeCog(commands.Cog):
 
     async def set_crontab(self, guild, crontab):
         try:
-            print(crontab)
             croniter(crontab)
             await self.settings.guild(guild).purge_schedule.set(crontab)
             return crontab
@@ -52,6 +52,7 @@ class PurgeCog(commands.Cog):
                 # Is it time to run?
                 cur_epoch = datetime.utcnow()
                 last_run = await self.settings.guild(guild).purge_lastrun()
+                last_run = last_run or 0
                 crontab = await self.settings.guild(guild).purge_schedule()
                 cron_check = croniter(crontab, last_run)
                 next_execution_date = cron_check.get_next(datetime)
@@ -69,8 +70,50 @@ class PurgeCog(commands.Cog):
                 if not guild.me.guild_permissions.kick_members:
                     continue
 
-                # TODO Get and purge users
+                channel = await self.settings.guild(guild).purge_logchannel()
+                output = guild.get_channel(channel)
+                if output is None:
+                    # The log channel no longer exists
+                    continue
+
+                users = await self.get_purgeable_users(guild)
+
+                users_kicked = ""
+
+                for user in users:
+                    result = await self._purge_user(user)
+                    if not result:
+                        pass
+                    new_list = (users_kicked +
+                                "\n" +
+                                await self._get_safe_username(user))
+                    if len(new_list) > 2048:
+                        break
+                    users_kicked = new_list
+
+                data = discord.Embed(color=discord.Color.orange())
+                data.title = f"Purge Loop - Purged {len(users)}"
+                data.description = users_kicked
+
+                try:
+                    await output.send(embed=data)
+                except discord.Forbidden:
+                    await output.send("I need the `Embed links` permission " +
+                                      "to send a purge board.")
+
             await asyncio.sleep(60)
+
+    async def _get_safe_username(self, user: discord.Member):
+        replaced_name = user.name.replace('`', "")
+        return f"{replaced_name}#{user.discriminator}"
+
+    async def _purge_user(self, user: discord.Member):
+        try:
+            # Kick the user from the server and log it
+            await user.kick()
+            return True
+        except (discord.HTTPException, discord.Forbidden):
+            return False
 
     async def get_purgeable_users(self, guild):
         """
@@ -105,6 +148,19 @@ class PurgeCog(commands.Cog):
     async def _purge(self, ctx: commands.Context):
         pass
 
+    @_purge.command("logchannel")
+    async def purge_logchannel(self,
+                               ctx: commands.Context,
+                               channel: discord.TextChannel):
+        """Logs details of purging to this channel.
+        The bot must have permission to write to this channel.
+
+        Example:
+        - `[p]purge logchannel #<channel>`
+        """
+        await self.settings.guild(ctx.guild).purge_logchannel.set(channel.id)
+        await ctx.send("Purge log channel set.")
+
     @_purge.command("execute")
     async def purge_execute(self, ctx: commands.Context):
         """Executes a purge.
@@ -130,7 +186,9 @@ class PurgeCog(commands.Cog):
         data.description = ""
 
         for user in users:
-            new_desc = f"{data.description}\n{user.name}#{user.discriminator}"
+            new_desc = (data.description +
+                        "\n" +
+                        await self._get_safe_username(user))
             if len(new_desc) > 2048:
                 break
             data.description = new_desc
@@ -210,7 +268,10 @@ class PurgeCog(commands.Cog):
         - `[p]purge schedule "30 02 */2 * *"`
         """
         new_shedule = await self.set_crontab(ctx.guild, schedule)
-        await ctx.send(f"Set the schedule to `{new_shedule}`.")
+        if not new_shedule:
+            await ctx.send(f"The schedule given was invalid.")
+        else:
+            await ctx.send(f"Set the schedule to `{new_shedule}`.")
 
     @_purge.command("enable")
     async def purge_enable(self, ctx: commands.Context):
@@ -247,11 +308,22 @@ class PurgeCog(commands.Cog):
         purge_minage = await self.settings.guild(ctx.guild).purge_minage()
         purge_last_run = await self.settings.guild(ctx.guild).purge_lastrun()
         purge_schedule = await self.settings.guild(ctx.guild).purge_schedule()
+        purge_log = await self.settings.guild(ctx.guild).purge_logchannel()
 
         data = discord.Embed(colour=(await ctx.embed_colour()))
         data.add_field(name="Purged", value=f"{purge_count}")
         data.add_field(name="Enabled", value=f"{purge_enabled}")
         data.add_field(name="Min Age", value=f"{purge_minage} days")
+        if purge_log is None:
+            purge_log = "Not set"
+        else:
+            logchannel = ctx.guild.get_channel(purge_log)
+            if logchannel is None:
+                purge_log = "Not set"
+            else:
+                purge_log = f"#{logchannel.name}"
+
+        data.add_field(name="Log Channel", value=purge_log)
 
         last_run_friendly = "Never"
         if purge_last_run is not None:
@@ -259,10 +331,13 @@ class PurgeCog(commands.Cog):
             last_run_friendly = last_run.strftime("%Y-%m-%d %H:%M:%SZ")
         data.add_field(name="Last Run", value=f"{last_run_friendly}")
 
-        if purge_schedule is not None and purge_last_run is not None:
+        if (
+               purge_last_run is not None or
+               purge_enabled
+           ) and purge_schedule is not None:
             next_date = croniter(
                             purge_schedule,
-                            purge_last_run
+                            purge_last_run or datetime.utcnow()
                         ).get_next(datetime)
             next_run_friendly = next_date.strftime("%Y-%m-%d %H:%M:%SZ")
 
