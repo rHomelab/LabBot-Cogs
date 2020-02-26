@@ -76,24 +76,11 @@ class PurgeCog(commands.Cog):
                     # The log channel no longer exists
                     continue
 
-                users = await self.get_purgeable_users(guild)
+                data = await self._purge_users(guild, "Scheduled")
 
-                users_kicked = ""
-
-                for user in users:
-                    result = await self._purge_user(user)
-                    if not result:
-                        pass
-                    new_list = (users_kicked +
-                                "\n" +
-                                await self._get_safe_username(user))
-                    if len(new_list) > 2048:
-                        break
-                    users_kicked = new_list
-
-                data = discord.Embed(color=discord.Color.orange())
-                data.title = f"Purge Loop - Purged {len(users)}"
-                data.description = users_kicked
+                if not data:
+                    # No users purged
+                    continue
 
                 try:
                     await output.send(embed=data)
@@ -102,6 +89,31 @@ class PurgeCog(commands.Cog):
                                       "to send a purge board.")
 
             await asyncio.sleep(60)
+
+    async def _purge_users(self, guild: discord.Guild, title: str):
+        users = await self.get_purgeable_users(guild)
+
+        if len(users) == 0:
+            return None
+
+        users_kicked = ""
+
+        for user in users:
+            result = await self._purge_user(user)
+            if not result:
+                pass
+            new_list = (users_kicked +
+                        "\n" +
+                        await self._get_safe_username(user))
+            if len(new_list) > 2048:
+                break
+            users_kicked = new_list
+
+        data = discord.Embed(color=discord.Color.orange())
+        data.title = f"{title} Purge - Purged {len(users)}"
+        data.description = users_kicked
+
+        return data
 
     async def _get_safe_username(self, user: discord.Member):
         replaced_name = user.name.replace('`', "")
@@ -169,7 +181,17 @@ class PurgeCog(commands.Cog):
         Example:
         - `[p]purge execute`
         """
-        pass
+        data = await self._purge_users(ctx.guild, "Manual")
+
+        if data is None:
+            await ctx.send("No users to purge.")
+            return
+
+        try:
+            await ctx.send(embed=data)
+        except discord.Forbidden:
+            await ctx.send("I need the `Embed links` permission to send " +
+                           "a purge board.")
 
     @_purge.command("simulate")
     async def purge_simulate(self, ctx: commands.Context):
