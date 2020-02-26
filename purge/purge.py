@@ -17,9 +17,9 @@ class PurgeCog(commands.Cog):
         default_guild_settings = {
             "purge_excludedusers": [],
             "purge_minage": 5,
-            "purge_schedule": "",
+            "purge_schedule": "0 */6 * * *",
             "purge_count": 0,
-            "purge_lastrun": 0,
+            "purge_lastrun": None,
             "purge_enabled": False
         }
 
@@ -174,6 +174,9 @@ class PurgeCog(commands.Cog):
         Example:
         - `[p]purge setminage <days>`
         """
+        if minage < 0:
+            await ctx.send(f"Cannot set the minimum age to 0 days or less")
+
         await self.settings.guild(ctx.guild).purge_minage.set(minage)
         await ctx.send(f"Set the new minimum age to {minage} days.")
 
@@ -226,15 +229,18 @@ class PurgeCog(commands.Cog):
         purge_last_run = await self.settings.guild(ctx.guild).purge_lastrun()
         purge_schedule = await self.settings.guild(ctx.guild).purge_schedule()
 
-        last_run = datetime.utcfromtimestamp(purge_last_run)
-        last_run_friendly = last_run.strftime("%Y-%m-%d %H:%M:%SZ")
-
         data = discord.Embed(colour=(await ctx.embed_colour()))
         data.add_field(name="Purged", value=f"{purge_count}")
         data.add_field(name="Enabled", value=f"{purge_enabled}")
-        data.add_field(name="Min Age", value=f"{purge_minage}")
+        data.add_field(name="Min Age", value=f"{purge_minage} days")
+
+        last_run_friendly = "Never"
+        if purge_last_run is not None:
+            last_run = datetime.utcfromtimestamp(purge_last_run)
+            last_run_friendly = last_run.strftime("%Y-%m-%d %H:%M:%SZ")
         data.add_field(name="Last Run", value=f"{last_run_friendly}")
-        if purge_schedule is not None:
+
+        if purge_schedule is not None and purge_last_run is not None:
             next_date = croniter(
                             purge_schedule,
                             purge_last_run
@@ -242,7 +248,9 @@ class PurgeCog(commands.Cog):
             next_run_friendly = next_date.strftime("%Y-%m-%d %H:%M:%SZ")
 
             data.add_field(name="Next Run", value=f"{next_run_friendly}")
-        data.add_field(name="Schedule", value=f"`{purge_schedule}`")
+
+        if purge_schedule is not None:
+            data.add_field(name="Schedule", value=f"`{purge_schedule}`")
 
         try:
             await ctx.send(embed=data)
