@@ -125,7 +125,21 @@ class PurgeCog(commands.Cog):
         """
         users = await self.get_purgeable_users(ctx.guild)
 
-        await ctx.send(f"Found {len(users)} to purge.")
+        data = discord.Embed(colour=(await ctx.embed_colour()))
+        data.title = f"Purge Simulation - Found {len(users)}"
+        data.description = ""
+
+        for user in users:
+            new_desc = f"{data.description}\n{user.name}#{user.discriminator}"
+            if len(new_desc) > 2048:
+                break
+            data.description = new_desc
+
+        try:
+            await ctx.send(embed=data)
+        except discord.Forbidden:
+            await ctx.send("I need the `Embed links` permission to " +
+                           "send a purge simulation board.")
 
     @_purge.command("exclude")
     async def purge_exclude_user(self,
