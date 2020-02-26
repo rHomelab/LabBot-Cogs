@@ -69,13 +69,25 @@ class VerificationCog(commands.Cog):
         Example:
         - `[p]verify status`
         """
-        verify_message = await self.settings.guild(ctx.guild).verify_message()
-        verify_message = verify_message.replace('`', '')
-        verify_count = await self.settings.guild(ctx.guild).verify_count()
-
         data = discord.Embed(colour=(await ctx.embed_colour()))
-        data.add_field(name="Verified", value=f"{verify_count} users")
-        data.add_field(name="Message", value=f"`{verify_message}`")
+
+        count = await self.settings.guild(ctx.guild).verify_count()
+        data.add_field(name="Verified", value=f"{count} users")
+
+        role_id = await self.settings.guild(ctx.guild).verify_role()
+        if role_id is not None:
+            role = ctx.guild.get_role(role_id)
+            data.add_field(name="Role", value=f"@{role.name}")
+
+        channel_id = await self.settings.guild(ctx.guild).verify_channel()
+        if channel_id is not None:
+            channel = ctx.guild.get_channel(channel_id)
+
+            data.add_field(name="Channel", value=f"#{channel.name}")
+
+        message = await self.settings.guild(ctx.guild).verify_message()
+        message = message.replace('`', '')
+        data.add_field(name="Message", value=f"`{message}`")
 
         try:
             await ctx.send(embed=data)
