@@ -8,6 +8,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
 - [Cog Summaries](#cog-summaries)
 - [Cog Documentation](#cog-documentation)
   - [Cog 1](#cog1)
+  - [Verify](#verify)
 - [License](#license)
 
 ## Authors
@@ -25,12 +26,17 @@ This is a joint project involving any of the Homelab Discord server admins & mod
 ## Cog Summaries
 
 - **Cog 1:** Summary of cog 1.
+- **[Verify](#verify):** Allows users to verify themselves
 
 ## Cog Documentation
 
 ### Cog 1
 
 In-depth documentation/explanation of Cog 1, what it can do, what it can't do, and, if necessary, what it's used for.
+
+### Verify
+
+This cog will allow users to prove their not a bot by having to read rules and complete an action. They will then be given the verified role if they can complete this.
 
 ## License
 
