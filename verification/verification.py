@@ -13,7 +13,8 @@ class VerificationCog(commands.Cog):
         default_guild_settings = {
             "verify_message": "I agree",
             "verify_count": 0,
-            "verify_role": None
+            "verify_role": None,
+            "verify_channel": None
         }
 
         self.settings.register_guild(**default_guild_settings)
@@ -44,6 +45,19 @@ class VerificationCog(commands.Cog):
         """
         await self.settings.guild(ctx.guild).verify_role.set(role.id)
         await ctx.send(f"Verify role set to `{role.name}`")
+
+    @_verify.command("channel")
+    async def verify_channel(self,
+                             ctx: commands.Context,
+                             channel: discord.TextChannel):
+        """Sets the channel to post the message in to get the role
+
+        Example:
+        - `[p]verify channel <channel>`
+        - `[p]verify channel #welcome`
+        """
+        await self.settings.guild(ctx.guild).verify_channel.set(channel.id)
+        await ctx.send(f"Verify message channel set to `{channel.name}`")
 
     @_verify.command("status")
     async def verify_status(self, ctx: commands.Context):
