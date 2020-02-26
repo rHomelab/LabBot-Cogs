@@ -1,7 +1,7 @@
 """discord red-bot purge"""
 import asyncio
 import discord
-from redbot.core import commands, Config
+from redbot.core import checks, commands, Config
 from datetime import datetime, timedelta
 from croniter import croniter
 from croniter.croniter import CroniterError
@@ -157,6 +157,7 @@ class PurgeCog(commands.Cog):
 
     @commands.group(name="purge")
     @commands.guild_only()
+    @checks.admin_or_permissions(manage_guild=True)
     async def _purge(self, ctx: commands.Context):
         pass
 
