@@ -35,6 +35,16 @@ class VerificationCog(commands.Cog):
         await self.settings.guild(ctx.guild).verify_message.set(message)
         await ctx.send("Verify message set.")
 
+    @_verify.command("role")
+    async def verify_role(self, ctx: commands.Context, role: discord.Role):
+        """Sets the verified role
+
+        Example:
+        - `[p]verify role "<role id>"`
+        """
+        await self.settings.guild(ctx.guild).verify_role.set(role.id)
+        await ctx.send(f"Verify role set to `{role.name}`")
+
     @_verify.command("status")
     async def verify_status(self, ctx: commands.Context):
         """Status of the bot.
