@@ -91,6 +91,11 @@ class PurgeCog(commands.Cog):
             if member.joined_at > cutoff_date:
                 continue
 
+            async with self.settings.guild(guild).purge_excludedusers() as li:
+                # If user is excluded from the purge, they're safe
+                if member and member.id in li:
+                    continue
+
             members.append(member)
 
         return members
