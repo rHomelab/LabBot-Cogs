@@ -38,7 +38,7 @@ In-depth documentation/explanation of Cog 1, what it can do, what it can't do, a
 
 ### Verify
 
-This cog will allow users to prove their not a bot by having to read rules and complete an action. They will then be given the verified role if they can complete this.
+This cog will allow users to prove they're not a bot by having to read rules and complete an action. They will then be given the verified role if they can complete this.
 
 ### Purge
 
