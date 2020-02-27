@@ -1,5 +1,6 @@
 """discord red-bot verify"""
 import discord
+from datetime import timedelta, datetime
 from redbot.core import commands, checks, Config
 
 
@@ -32,7 +33,58 @@ class VerifyCog(commands.Cog):
             # User is a bot. Ignore.
             return
 
-        # TODO Check for verify message#
+        server = message.guild
+        channel = await self.settings.guild(server).verify_channel()
+        if message.channel.id != channel:
+            # User did not post verify message in channel
+            return
+
+        if not server.me.guild_permissions.manage_roles:
+            # We don't have permission to manage roles
+            # TODO Post debug message to alert this
+            return
+
+        mintime = await self.settings.guild(server).verify_mintime()
+        minjoin = datetime.utcnow() - timedelta(seconds=mintime)
+        if author.joined_at > minjoin:
+            # User tried to verify too fast
+            # TODO Alert the user they verified too fast
+            return
+
+        verify_msg = await self.settings.guild(server).verify_message()
+        if message.content != verify_msg:
+            # User did not post the perfect message.
+            # TODO Alert the user the message wasn't right
+            return
+
+        role_id = await self.settings.guild(server).verify_role()
+        role = server.get_role(role_id)
+        await author.add_roles(role)
+
+        count = await self.settings.guild(server).verify_count()
+        count += 1
+        await self.settings.guild(server).verify_count.set(count)
+
+        await self._cleanup(message, role)
+
+    async def _cleanup(self, verify: discord.Message, role: discord.Role):
+        # Deletion logic for the purge of messages
+        def _should_delete(m):
+            return (
+                # Delete messages by the verify-ee
+                m.author == verify.author or
+                # Delete messages if it might mention the verify-ee
+                (
+                    # The user must be in the mentions
+                    verify.author in m.mentions and
+                    # The mentions have all been verified
+                    len([u for u in m.mentions if role not in u.roles]) == 0
+                )
+            )
+        try:
+            return await verify.channel.purge(limit=100, check=_should_delete)
+        except discord.errors.Forbidden:
+            await verify.channel.send("I don't have permissions to cleanup!")
 
     @commands.group(name="verify")
     @commands.guild_only()
