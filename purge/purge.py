@@ -123,6 +123,11 @@ class PurgeCog(commands.Cog):
         try:
             # Kick the user from the server and log it
             await user.kick()
+
+            count = await self.settings.guild(user.guild).purge_count()
+            count += 1
+            await self.settings.guild(user.guild).purge_count.set(count)
+
             return True
         except (discord.HTTPException, discord.Forbidden):
             return False
@@ -334,7 +339,7 @@ class PurgeCog(commands.Cog):
         purge_log = await self.settings.guild(ctx.guild).purge_logchannel()
 
         data = discord.Embed(colour=(await ctx.embed_colour()))
-        data.add_field(name="Purged", value=f"{purge_count}")
+        data.add_field(name="Purged", value=f"{purge_count} users")
         data.add_field(name="Enabled", value=f"{purge_enabled}")
         data.add_field(name="Min Age", value=f"{purge_minage} days")
         if purge_log is None:
