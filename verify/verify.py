@@ -17,8 +17,10 @@ class VerifyCog(commands.Cog):
             "verify_role": None,
             "verify_channel": None,
             "verify_mintime": 60,
-            "verify_tooquick": ("That was quick, {user}! Are you sure " +
-                                "you've read the rules?"),
+            "verify_tooquick": (
+                "That was quick, {user}! Are you sure " +
+                "you've read the rules?"
+            ),
             "verify_wrongmsg": "",
             "verify_logchannel": None
         }
@@ -45,7 +47,6 @@ class VerifyCog(commands.Cog):
 
         if not server.me.guild_permissions.manage_roles:
             # We don't have permission to manage roles
-            # TODO Post debug message to alert this
             return
 
         mintime = await self.settings.guild(server).verify_mintime()
@@ -112,7 +113,7 @@ class VerifyCog(commands.Cog):
                 )
             )
         try:
-            return await verify.channel.purge(limit=100, check=_should_delete)
+            await verify.channel.purge(limit=100, check=_should_delete)
         except discord.errors.Forbidden:
             await verify.channel.send("I don't have permissions to cleanup!")
 
@@ -186,9 +187,11 @@ class VerifyCog(commands.Cog):
         await ctx.send(f"Verify minimum time set to {mintime} seconds")
 
     @_verify.command("channel")
-    async def verify_channel(self,
-                             ctx: commands.Context,
-                             channel: discord.TextChannel):
+    async def verify_channel(
+        self,
+        ctx: commands.Context,
+        channel: discord.TextChannel
+    ):
         """Sets the channel to post the message in to get the role
 
         Example:
@@ -199,9 +202,11 @@ class VerifyCog(commands.Cog):
         await ctx.send(f"Verify message channel set to `{channel.name}`")
 
     @_verify.command("logchannel")
-    async def verify_logchannel(self,
-                                ctx: commands.Context,
-                                channel: discord.TextChannel):
+    async def verify_logchannel(
+        self,
+        ctx: commands.Context,
+        channel: discord.TextChannel
+    ):
         """Sets the channel to post the verification logs
 
         Example:
