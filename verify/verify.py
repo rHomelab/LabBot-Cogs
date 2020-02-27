@@ -19,6 +19,20 @@ class VerifyCog(commands.Cog):
 
         self.settings.register_guild(**default_guild_settings)
 
+    @commands.Cog.listener()
+    async def on_message(self, message: discord.Message):
+        if not isinstance(message.guild, discord.Guild):
+            # The user has DM'd us. Ignore.
+            return
+
+        author = message.author
+        valid_user = isinstance(author, discord.Member) and not author.bot
+        if not valid_user:
+            # User is a bot. Ignore.
+            return
+
+        # TODO Check for verify message#
+
     @commands.group(name="verify")
     @commands.guild_only()
     @checks.admin_or_permissions(manage_guild=True)
