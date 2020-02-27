@@ -267,5 +267,6 @@ class VerifyCog(commands.Cog):
         try:
             await ctx.send(embed=data)
         except discord.Forbidden:
-            await ctx.send("I need the `Embed links` permission to " +
-                           "send a verify status.")
+            await ctx.send(
+                "I need the `Embed links` permission to send a verify status."
+            )
