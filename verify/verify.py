@@ -150,7 +150,7 @@ class VerifyCog(commands.Cog):
 
         Example:
         - `[p]verify wrongmsg "<message>"`
-        - `[p]verify wrongmsg "Calm down. Wait a bit, yea?"`
+        - `[p]verify wrongmsg "Wrong verification message!"`
 
         If `<message>` is empty, no message will be posted.
         """
