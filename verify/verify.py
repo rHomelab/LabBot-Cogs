@@ -19,7 +19,8 @@ class VerifyCog(commands.Cog):
             "verify_mintime": 60,
             "verify_tooquick": ("That was quick, {user}! Are you sure " +
                                 "you've read the rules?"),
-            "verify_wrongmsg": ""
+            "verify_wrongmsg": "",
+            "verify_logchannel": None
         }
 
         self.settings.register_guild(**default_guild_settings)
@@ -69,6 +70,22 @@ class VerifyCog(commands.Cog):
         role_id = await self.settings.guild(server).verify_role()
         role = server.get_role(role_id)
         await author.add_roles(role)
+
+        log_id = await self.settings.guild(server).verify_logchannel()
+        if log_id is not None:
+            log = server.get_channel(log_id)
+            data = discord.Embed(color=discord.Color.orange())
+            data.set_author(name=f"User Verified - {author}",
+                            icon_url=author.avatar_url)
+            data.add_field(name="User", value=f"{author}")
+            data.add_field(name="ID", value=f"{author.id}")
+            data.add_field(name="Verifier", value="Auto")
+            if log is not None:
+                try:
+                    await log.send(embed=data)
+                except discord.Forbidden:
+                    await log.send("**User Verified** - " +
+                                   f"{author.id} - {author}")
 
         count = await self.settings.guild(server).verify_count()
         count += 1
@@ -177,6 +194,19 @@ class VerifyCog(commands.Cog):
         await self.settings.guild(ctx.guild).verify_channel.set(channel.id)
         await ctx.send(f"Verify message channel set to `{channel.name}`")
 
+    @_verify.command("logchannel")
+    async def verify_logchannel(self,
+                                ctx: commands.Context,
+                                channel: discord.TextChannel):
+        """Sets the channel to post the verification logs
+
+        Example:
+        - `[p]verify logchannel <channel>`
+        - `[p]verify logchannel #admin-log`
+        """
+        await self.settings.guild(ctx.guild).verify_logchannel.set(channel.id)
+        await ctx.send(f"Verify log message channel set to `{channel.name}`")
+
     @_verify.command("status")
     async def verify_status(self, ctx: commands.Context):
         """Status of the bot.
@@ -203,6 +233,12 @@ class VerifyCog(commands.Cog):
 
             data.add_field(name="Channel", value=f"#{channel.name}")
 
+        log_id = await self.settings.guild(ctx.guild).verify_logchannel()
+        if log_id is not None:
+            log = ctx.guild.get_channel(log_id)
+
+            data.add_field(name="Log", value=f"#{log.name}")
+
         mintime = await self.settings.guild(ctx.guild).verify_mintime()
         data.add_field(name="Min Time", value=f"{mintime} secs")
 
@@ -223,4 +259,4 @@ class VerifyCog(commands.Cog):
             await ctx.send(embed=data)
         except discord.Forbidden:
             await ctx.send("I need the `Embed links` permission to " +
-                           "send a purge status.")
+                           "send a verify status.")
