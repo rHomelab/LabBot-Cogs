@@ -14,7 +14,8 @@ class VerifyCog(commands.Cog):
             "verify_message": "I agree",
             "verify_count": 0,
             "verify_role": None,
-            "verify_channel": None
+            "verify_channel": None,
+            "verify_mintime": 60
         }
 
         self.settings.register_guild(**default_guild_settings)
@@ -60,6 +61,24 @@ class VerifyCog(commands.Cog):
         await self.settings.guild(ctx.guild).verify_role.set(role.id)
         await ctx.send(f"Verify role set to `{role.name}`")
 
+    @_verify.command("mintime")
+    async def verify_mintime(self, ctx: commands.Context, mintime: int):
+        """
+        Sets the minimum time a user must be in the discord server
+        to be verified
+
+        Example:
+        - `[p]verify mintime <seconds>`
+        - `[p]verify mintime 60`
+        """
+        if mintime < 0:
+            # Not a valid value
+            await ctx.send(f"Verify minimum time was below 0 seconds")
+            return
+
+        await self.settings.guild(ctx.guild).verify_mintime.set(mintime)
+        await ctx.send(f"Verify minimum time set to {mintime} seconds")
+
     @_verify.command("channel")
     async def verify_channel(self,
                              ctx: commands.Context,
@@ -98,6 +117,9 @@ class VerifyCog(commands.Cog):
             channel = ctx.guild.get_channel(channel_id)
 
             data.add_field(name="Channel", value=f"#{channel.name}")
+
+        mintime = await self.settings.guild(ctx.guild).verify_mintime()
+        data.add_field(name="Min Time", value=f"{mintime} secs")
 
         message = await self.settings.guild(ctx.guild).verify_message()
         message = message.replace('`', '')
