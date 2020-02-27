@@ -75,8 +75,10 @@ class VerifyCog(commands.Cog):
         if log_id is not None:
             log = server.get_channel(log_id)
             data = discord.Embed(color=discord.Color.orange())
-            data.set_author(name=f"User Verified - {author}",
-                            icon_url=author.avatar_url)
+            data.set_author(
+                name=f"User Verified - {author}",
+                icon_url=author.avatar_url
+            )
             data.add_field(name="User", value=f"{author}")
             data.add_field(name="ID", value=f"{author.id}")
             data.add_field(name="Verifier", value="Auto")
@@ -84,8 +86,10 @@ class VerifyCog(commands.Cog):
                 try:
                     await log.send(embed=data)
                 except discord.Forbidden:
-                    await log.send("**User Verified** - " +
-                                   f"{author.id} - {author}")
+                    await log.send(
+                              "**User Verified** - " +
+                              f"{author.id} - {author}"
+                          )
 
         count = await self.settings.guild(server).verify_count()
         count += 1
