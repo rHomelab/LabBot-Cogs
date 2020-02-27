@@ -16,7 +16,8 @@ class VerifyCog(commands.Cog):
             "verify_count": 0,
             "verify_role": None,
             "verify_channel": None,
-            "verify_mintime": 60
+            "verify_mintime": 60,
+            "verify_wrongmsg": ""
         }
 
         self.settings.register_guild(**default_guild_settings)
@@ -54,7 +55,11 @@ class VerifyCog(commands.Cog):
         verify_msg = await self.settings.guild(server).verify_message()
         if message.content != verify_msg:
             # User did not post the perfect message.
-            # TODO Alert the user the message wasn't right
+            wrongmsg = await self.settings.guild(server).verify_wrongmsg()
+            if wrongmsg == "":
+                return
+            wrongmsg = wrongmsg.replace("{user}", f"{author.mention}")
+            await message.channel.send(wrongmsg)
             return
 
         role_id = await self.settings.guild(server).verify_role()
@@ -102,6 +107,19 @@ class VerifyCog(commands.Cog):
         """
         await self.settings.guild(ctx.guild).verify_message.set(message)
         await ctx.send("Verify message set.")
+
+    @_verify.command("wrongmsg")
+    async def verify_wrongmsg(self, ctx: commands.Context, message: str):
+        """The message to reply if they input the wrong verify message
+
+        Example:
+        - `[p]verify wrongmsg "<message>"`
+        - `[p]verify wrongmsg "Calm down. Wait a bit, yea?"`
+
+        If `<message>` is empty, no message will be posted.
+        """
+        await self.settings.guild(ctx.guild).verify_wrongmsg.set(message)
+        await ctx.send("Wrong verify message reply message set.")
 
     @_verify.command("role")
     async def verify_role(self, ctx: commands.Context, role: discord.Role):
@@ -176,6 +194,11 @@ class VerifyCog(commands.Cog):
         message = await self.settings.guild(ctx.guild).verify_message()
         message = message.replace('`', '')
         data.add_field(name="Message", value=f"`{message}`")
+
+        wrongmsg = await self.settings.guild(ctx.guild).verify_wrongmsg()
+        if wrongmsg != "":
+            wrongmsg = wrongmsg.replace('`', '')
+            data.add_field(name="Wrong Msg", value=f"`{wrongmsg}`")
 
         try:
             await ctx.send(embed=data)
