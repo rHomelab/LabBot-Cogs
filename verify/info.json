@@ -3,7 +3,7 @@
   "SHORT": "Give a role to verified users",
   "DESCRIPTION": "Verify that a user is less-of-a-bot that what could be",
   "DISABLED": false,
-  "NAME": "verification",
+  "NAME": "verify",
   "TAGS": ["verify", "verification", "check"],
   "INSTALL_MSG": "Usage: `[p]verify`"
 }

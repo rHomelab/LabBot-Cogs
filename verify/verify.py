@@ -1,10 +1,10 @@
-"""discord red-bot verification"""
+"""discord red-bot verify"""
 import discord
 from redbot.core import commands, checks, Config
 
 
-class VerificationCog(commands.Cog):
-    """Verification Cog"""
+class VerifyCog(commands.Cog):
+    """Verify Cog"""
 
     def __init__(self, bot):
         self.bot = bot
