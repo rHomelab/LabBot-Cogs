@@ -123,6 +123,11 @@ class PurgeCog(commands.Cog):
         try:
             # Kick the user from the server and log it
             await user.kick()
+
+            count = await self.settings.guild(user.guild).purge_count()
+            count += 1
+            await self.settings.guild(user.guild).purge_count.set(count)
+
             return True
         except (discord.HTTPException, discord.Forbidden):
             return False
@@ -266,13 +271,13 @@ class PurgeCog(commands.Cog):
         else:
             await ctx.send("That user is already not safe from pruning!")
 
-    @_purge.command("setminage")
-    async def purge_setminage(self, ctx: commands.Context, minage: int):
+    @_purge.command("minage")
+    async def purge_minage(self, ctx: commands.Context, minage: int):
         """Sets the number of days a user can remain in the server with no
         roles before being purged.
 
         Example:
-        - `[p]purge setminage <days>`
+        - `[p]purge minage <days>`
         """
         if minage < 0:
             await ctx.send(f"Cannot set the minimum age to 0 days or less")
@@ -334,7 +339,7 @@ class PurgeCog(commands.Cog):
         purge_log = await self.settings.guild(ctx.guild).purge_logchannel()
 
         data = discord.Embed(colour=(await ctx.embed_colour()))
-        data.add_field(name="Purged", value=f"{purge_count}")
+        data.add_field(name="Purged", value=f"{purge_count} users")
         data.add_field(name="Enabled", value=f"{purge_enabled}")
         data.add_field(name="Min Age", value=f"{purge_minage} days")
         if purge_log is None:
