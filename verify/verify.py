@@ -17,6 +17,8 @@ class VerifyCog(commands.Cog):
             "verify_role": None,
             "verify_channel": None,
             "verify_mintime": 60,
+            "verify_tooquick": ("That was quick, {user}! Are you sure " +
+                                "you've read the rules?"),
             "verify_wrongmsg": ""
         }
 
@@ -49,7 +51,9 @@ class VerifyCog(commands.Cog):
         minjoin = datetime.utcnow() - timedelta(seconds=mintime)
         if author.joined_at > minjoin:
             # User tried to verify too fast
-            # TODO Alert the user they verified too fast
+            tooquick = await self.settings.guild(server).verify_tooquick()
+            tooquick = tooquick.replace("{user}", f"{author.mention}")
+            await message.channel.send(tooquick)
             return
 
         verify_msg = await self.settings.guild(server).verify_message()
@@ -107,6 +111,17 @@ class VerifyCog(commands.Cog):
         """
         await self.settings.guild(ctx.guild).verify_message.set(message)
         await ctx.send("Verify message set.")
+
+    @_verify.command("tooquick")
+    async def verify_tooquick(self, ctx: commands.Context, message: str):
+        """The message to reply if they're too quick at verifying
+
+        Example:
+        - `[p]verify tooquick "<message>"`
+        - `[p]verify tooquick "Calm down. Wait a bit, yea?"`
+        """
+        await self.settings.guild(ctx.guild).verify_tooquick.set(message)
+        await ctx.send("Too quick reply message set.")
 
     @_verify.command("wrongmsg")
     async def verify_wrongmsg(self, ctx: commands.Context, message: str):
@@ -194,6 +209,10 @@ class VerifyCog(commands.Cog):
         message = await self.settings.guild(ctx.guild).verify_message()
         message = message.replace('`', '')
         data.add_field(name="Message", value=f"`{message}`")
+
+        tooquick = await self.settings.guild(ctx.guild).verify_tooquick()
+        tooquick = tooquick.replace('`', '')
+        data.add_field(name="Too Quick Msg", value=f"`{tooquick}`")
 
         wrongmsg = await self.settings.guild(ctx.guild).verify_wrongmsg()
         if wrongmsg != "":
