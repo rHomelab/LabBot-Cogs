@@ -1,2 +1,6 @@
-requests
+pip
+wheel
+setuptools
 croniter
+requests
+Red-DiscordBot
