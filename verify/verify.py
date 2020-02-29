@@ -172,7 +172,7 @@ class VerifyCog(commands.Cog):
     async def verify_mintime(self, ctx: commands.Context, mintime: int):
         """
         Sets the minimum time a user must be in the discord server
-        to be verified
+        to be verified, using seconds as a unit.
 
         Example:
         - `[p]verify mintime <seconds>`
@@ -218,7 +218,7 @@ class VerifyCog(commands.Cog):
 
     @_verify.command("status")
     async def verify_status(self, ctx: commands.Context):
-        """Status of the bot.
+        """Status of the cog.
         The bot will display how many users it has verified
         since it's inception.
         In addition, will also post its current configuration and status.
