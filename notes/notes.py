@@ -31,13 +31,13 @@ class NotesCog(commands.Cog):
         *,
         message: str
     ):
-        """Adds notes to a user
+        """Add a note to a user
 
         Example:
         - `[p]notes add <user> <message>`
         """
-        async with self.settings.guild(ctx.guild).notes() as cur_list:
-            cur_list.append(
+        async with self.settings.guild(ctx.guild).notes() as li:
+            li.append(
                 {
                     "member": user.id,
                     "message": message,
