@@ -95,6 +95,26 @@ class NotesCog(commands.Cog):
 
             await ctx.send("Note not found.")
 
+    @_warnings.command("delete")
+    async def warning_delete(
+        self,
+        ctx: commands.Context,
+        warning_id: int
+    ):
+        """Deletes warning
+
+        Example:
+        - `[p]warnings delete <warning id>`
+        """
+        async with self.settings.guild(ctx.guild).warnings() as li:
+            if not li[warning_id]["deleted"]:
+                # Delete warning if not previously deleted
+                li[warning_id]["deleted"] = True
+                await ctx.send("Warning deleted.")
+                return
+
+            await ctx.send("Warning not found.")
+
     @_notes.command("status")
     async def notes_status(self, ctx: commands.Context):
         """Status of the cog.
