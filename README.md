@@ -9,6 +9,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
 - [Cog Documentation](#cog-documentation)
   - [Cog 1](#cog1)
   - [Purge](#purge)
+  - [Verify](#verify)
 - [License](#license)
 
 ## Authors
@@ -27,12 +28,17 @@ This is a joint project involving any of the Homelab Discord server admins & mod
 
 - **Cog 1:** Summary of cog 1.
 - **[Purge](#purge):** This will purge users based on criteria.
+- **[Verify](#verify):** Allows users to verify themselves
 
 ## Cog Documentation
 
 ### Cog 1
 
 In-depth documentation/explanation of Cog 1, what it can do, what it can't do, and, if necessary, what it's used for.
+
+### Verify
+
+This cog will allow users to prove they're not a bot by having to read rules and complete an action. They will then be given the verified role if they can complete this.
 
 ### Purge
 
