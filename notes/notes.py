@@ -46,6 +46,26 @@ class NotesCog(commands.Cog):
             )
         await ctx.send("Note added.")
 
+    @_notes.command("delete")
+    async def notes_delete(
+        self,
+        ctx: commands.Context,
+        note_id: int
+    ):
+        """Deletes note
+
+        Example:
+        - `[p]notes delete <note id>`
+        """
+        async with self.settings.guild(ctx.guild).notes() as li:
+            if not li[note_id]["deleted"]:
+                # Delete note if not previously deleted
+                li[note_id]["deleted"] = True
+                await ctx.send("Note deleted.")
+                return
+
+            await ctx.send("Note not found.")
+
     @_notes.command("status")
     async def notes_status(self, ctx: commands.Context):
         """Status of the cog.
