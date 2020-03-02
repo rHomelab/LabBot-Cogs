@@ -23,6 +23,29 @@ class NotesCog(commands.Cog):
     async def _notes(self, ctx: commands.Context):
         pass
 
+    @_notes.command("add")
+    async def notes_add(
+        self,
+        ctx: commands.Context,
+        user: discord.Member,
+        *,
+        message: str
+    ):
+        """Adds notes to a user
+
+        Example:
+        - `[p]notes add <user> <message>`
+        """
+        async with self.settings.guild(ctx.guild).notes() as cur_list:
+            cur_list.append(
+                {
+                    "member": user.id,
+                    "message": message,
+                    "deleted": False
+                }
+            )
+        await ctx.send("Note added.")
+
     @_notes.command("status")
     async def notes_status(self, ctx: commands.Context):
         """Status of the cog.
