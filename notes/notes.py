@@ -52,6 +52,29 @@ class NotesCog(commands.Cog):
             )
         await ctx.send("Note added.")
 
+    @_warnings.command("add")
+    async def warnings_add(
+        self,
+        ctx: commands.Context,
+        user: discord.Member,
+        *,
+        message: str
+    ):
+        """Add a warning to a user
+
+        Example:
+        - `[p]warnings add <user> <message>`
+        """
+        async with self.settings.guild(ctx.guild).warnings() as li:
+            li.append(
+                {
+                    "member": user.id,
+                    "message": message,
+                    "deleted": False
+                }
+            )
+        await ctx.send("Warning added.")
+
     @_notes.command("delete")
     async def notes_delete(
         self,
