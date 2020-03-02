@@ -23,6 +23,12 @@ class NotesCog(commands.Cog):
     async def _notes(self, ctx: commands.Context):
         pass
 
+    @commands.group(name="warnings")
+    @commands.guild_only()
+    @checks.admin_or_permissions(manage_guild=True)
+    async def _warnings(self, ctx: commands.Context):
+        pass
+
     @_notes.command("add")
     async def notes_add(
         self,
