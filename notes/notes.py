@@ -115,6 +115,52 @@ class NotesCog(commands.Cog):
 
             await ctx.send("Warning not found.")
 
+    @_notes.command("list")
+    async def notes_list(
+        self,
+        ctx: commands.Context,
+        *,
+        user: discord.Member = None
+    ):
+        """Lists notes for everyone or a specific user
+
+        Example:
+        - `[p]notes list <user>`
+        - `[p]notes list`
+        """
+        notes = []
+        async with self.settings.guild(ctx.guild).notes() as li:
+            for note in li:
+                if note["deleted"]:
+                    # Ignore deleteds
+                    continue
+                if not (user is None or note["member"] == user.id):
+                    # Ignore notes that don't relate to the target
+                    continue
+                notes.append(note)
+
+        warnings = []
+        async with self.settings.guild(ctx.guild).warnings() as li:
+            for warning in li:
+                if warning["deleted"]:
+                    # Ignore deleteds
+                    continue
+                if not (user is None or warning["member"] == user.id):
+                    # Ignore warnings that don't relate to the target
+                    continue
+                warnings.append(warning)
+
+        if user is not None:
+            await ctx.send(
+                f"Found {len(warnings)} warnings and {len(notes)} notes" +
+                f" for {user.mention}."
+            )
+        else:
+            await ctx.send(
+                f"Found {len(warnings)} warnings and {len(notes)} notes" +
+                f" for this server."
+            )
+
     @_notes.command("status")
     async def notes_status(self, ctx: commands.Context):
         """Status of the cog.
