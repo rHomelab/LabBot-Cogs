@@ -1,6 +1,11 @@
 """discord red-bot notes"""
 import discord
+from datetime import datetime
 from redbot.core import commands, Config, checks
+from redbot.core.utils.chat_formatting import pagify
+from redbot.core.utils.menus import menu, prev_page, close_menu, next_page
+
+CUSTOM_CONTROLS = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}
 
 
 class NotesCog(commands.Cog):
@@ -19,13 +24,13 @@ class NotesCog(commands.Cog):
 
     @commands.group(name="notes")
     @commands.guild_only()
-    @checks.admin_or_permissions(manage_guild=True)
+    @checks.admin_or_permissions(manage_channels=True)
     async def _notes(self, ctx: commands.Context):
         pass
 
     @commands.group(name="warnings")
     @commands.guild_only()
-    @checks.admin_or_permissions(manage_guild=True)
+    @checks.admin_or_permissions(manage_channels=True)
     async def _warnings(self, ctx: commands.Context):
         pass
 
@@ -42,12 +47,16 @@ class NotesCog(commands.Cog):
         Example:
         - `[p]notes add <user> <message>`
         """
+        current_date = datetime.utcnow()
         async with self.settings.guild(ctx.guild).notes() as li:
             li.append(
                 {
+                    "id": len(li)+1,
                     "member": user.id,
                     "message": message,
-                    "deleted": False
+                    "deleted": False,
+                    "reporter": ctx.author.id,
+                    "date": current_date.timestamp()
                 }
             )
         await ctx.send("Note added.")
@@ -65,12 +74,16 @@ class NotesCog(commands.Cog):
         Example:
         - `[p]warnings add <user> <message>`
         """
+        current_date = datetime.utcnow()
         async with self.settings.guild(ctx.guild).warnings() as li:
             li.append(
                 {
+                    "id": len(li)+1,
                     "member": user.id,
                     "message": message,
-                    "deleted": False
+                    "deleted": False,
+                    "reporter": ctx.author.id,
+                    "date": current_date.timestamp()
                 }
             )
         await ctx.send("Warning added.")
@@ -87,9 +100,9 @@ class NotesCog(commands.Cog):
         - `[p]notes delete <note id>`
         """
         async with self.settings.guild(ctx.guild).notes() as li:
-            if not li[note_id]["deleted"]:
+            if not li[note_id-1]["deleted"]:
                 # Delete note if not previously deleted
-                li[note_id]["deleted"] = True
+                li[note_id-1]["deleted"] = True
                 await ctx.send("Note deleted.")
                 return
 
@@ -107,9 +120,9 @@ class NotesCog(commands.Cog):
         - `[p]warnings delete <warning id>`
         """
         async with self.settings.guild(ctx.guild).warnings() as li:
-            if not li[warning_id]["deleted"]:
+            if not li[warning_id-1]["deleted"]:
                 # Delete warning if not previously deleted
-                li[warning_id]["deleted"] = True
+                li[warning_id-1]["deleted"] = True
                 await ctx.send("Warning deleted.")
                 return
 
@@ -130,6 +143,8 @@ class NotesCog(commands.Cog):
         """
         notes = []
         async with self.settings.guild(ctx.guild).notes() as li:
+            li = sorted(li, key=lambda x: x["date"], reverse=True)
+
             for note in li:
                 if note["deleted"]:
                     # Ignore deleteds
@@ -137,10 +152,21 @@ class NotesCog(commands.Cog):
                 if not (user is None or note["member"] == user.id):
                     # Ignore notes that don't relate to the target
                     continue
-                notes.append(note)
+
+                member = ctx.guild.get_member(note["member"])
+                mod = ctx.guild.get_member(note["reporter"])
+                date = datetime.utcfromtimestamp(note["date"])
+                display_time = date.strftime("%Y-%m-%d %H:%M:%SZ")
+                notes.append(
+                    f"📝#{note['id']} **{member} - Added by {mod.name}** " +
+                    f"- {display_time}\n " +
+                    f"{note['message']}"
+                )
 
         warnings = []
         async with self.settings.guild(ctx.guild).warnings() as li:
+            li = sorted(li, key=lambda x: x["date"], reverse=True)
+
             for warning in li:
                 if warning["deleted"]:
                     # Ignore deleteds
@@ -148,18 +174,52 @@ class NotesCog(commands.Cog):
                 if not (user is None or warning["member"] == user.id):
                     # Ignore warnings that don't relate to the target
                     continue
-                warnings.append(warning)
 
-        if user is not None:
-            await ctx.send(
-                f"Found {len(warnings)} warnings and {len(notes)} notes" +
-                f" for {user.mention}."
+                member = ctx.guild.get_member(warning["member"])
+                mod = ctx.guild.get_member(warning["reporter"])
+                date = datetime.utcfromtimestamp(warning["date"])
+                display_time = date.strftime("%Y-%m-%d %H:%M:%SZ")
+                warnings.append(
+                    f"⚠️#{warning['id']} **{member} - Added by {mod.name}** " +
+                    f"- {display_time}\n " +
+                    f"{warning['message']}"
+                )
+
+        messages = "\n\n".join(warnings+notes)
+
+        # Pagify implementation
+        # https://github.com/Cog-Creators/Red-DiscordBot/blob/9698baf6e74f6b34f946189f05e2559a60e83706/redbot/core/utils/chat_formatting.py#L208
+        pages = [page for page in pagify(messages, shorten_by=58)]
+        embeds = []
+        for page in pages:
+            data = discord.Embed(colour=(await ctx.embed_colour()))
+            if user is not None:
+                data.title = (
+                    f"Notes for {user} - {len(warnings)} " +
+                    f"warnings, {len(notes)} notes"
+                )
+            else:
+                data.title = (
+                    f"Entire server notes - {len(warnings)} " +
+                    f"warnings, {len(notes)} notes"
+                )
+            data.description = page
+
+            embeds.append(data)
+
+        # Menu implementation
+        # https://github.com/Cog-Creators/Red-DiscordBot/blob/d6f9ddc3afe00ac1e8b4925a73f6783a3f497b9e/redbot/core/utils/menus.py#L18
+        if len(embeds) > 0:
+            await menu(
+                ctx,
+                pages=embeds,
+                controls=CUSTOM_CONTROLS,
+                message=None,
+                page=0,
+                timeout=30,
             )
         else:
-            await ctx.send(
-                f"Found {len(warnings)} warnings and {len(notes)} notes" +
-                f" for this server."
-            )
+            await ctx.send("No notes to display.")
 
     @_notes.command("status")
     async def notes_status(self, ctx: commands.Context):
@@ -174,8 +234,10 @@ class NotesCog(commands.Cog):
         data.title = "Notes Status"
 
         async with self.settings.guild(ctx.guild).notes() as li:
-            data.add_field(name="Count", value=f"{len(li)} notes")
+            data.add_field(name="Notes", value=f"{len(li)} notes")
 
+        async with self.settings.guild(ctx.guild).warnings() as li:
+            data.add_field(name="Warnings", value=f"{len(li)} warnings")
         try:
             await ctx.send(embed=data)
         except discord.Forbidden:
