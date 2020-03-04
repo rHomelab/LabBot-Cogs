@@ -2,6 +2,7 @@
 import discord
 from datetime import datetime
 from redbot.core import commands, Config, checks
+from redbot.core.utils.mod import is_admin_or_superior
 from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.menus import menu, prev_page, close_menu, next_page
 
@@ -24,13 +25,13 @@ class NotesCog(commands.Cog):
 
     @commands.group(name="notes")
     @commands.guild_only()
-    @checks.admin_or_permissions(manage_channels=True)
+    @checks.mod()
     async def _notes(self, ctx: commands.Context):
         pass
 
     @commands.group(name="warnings")
     @commands.guild_only()
-    @checks.admin_or_permissions(manage_channels=True)
+    @checks.mod()
     async def _warnings(self, ctx: commands.Context):
         pass
 
@@ -100,11 +101,23 @@ class NotesCog(commands.Cog):
         - `[p]notes delete <note id>`
         """
         async with self.settings.guild(ctx.guild).notes() as li:
-            if not li[note_id-1]["deleted"]:
-                # Delete note if not previously deleted
-                li[note_id-1]["deleted"] = True
-                await ctx.send("Note deleted.")
-                return
+            try:
+                note = li[note_id-1]
+                if not note["deleted"]:
+                    # User must be an admin or owner of the note
+                    if not (
+                        note['reporter'] == ctx.author.id or
+                        await is_admin_or_superior(self, ctx.author)
+                    ):
+                        await ctx.send("You don't have permission for this.")
+                        return
+
+                    # Delete note if not previously deleted
+                    note["deleted"] = True
+                    await ctx.send("Note deleted.")
+                    return
+            except IndexError:
+                pass
 
             await ctx.send("Note not found.")
 
@@ -120,11 +133,23 @@ class NotesCog(commands.Cog):
         - `[p]warnings delete <warning id>`
         """
         async with self.settings.guild(ctx.guild).warnings() as li:
-            if not li[warning_id-1]["deleted"]:
-                # Delete warning if not previously deleted
-                li[warning_id-1]["deleted"] = True
-                await ctx.send("Warning deleted.")
-                return
+            try:
+                warning = li[warning_id-1]
+                if not warning["deleted"]:
+                    # User must be an admin or owner of the warning
+                    if not (
+                        warning['reporter'] == ctx.author.id or
+                        await is_admin_or_superior(self, ctx.author)
+                    ):
+                        await ctx.send("You don't have permission for this.")
+                        return
+
+                    # Delete warning if not previously deleted
+                    warning["deleted"] = True
+                    await ctx.send("Warning deleted.")
+                    return
+            except IndexError:
+                pass
 
             await ctx.send("Warning not found.")
 
