@@ -43,7 +43,7 @@ class NotesCog(commands.Cog):
         *,
         message: str
     ):
-        """Add a note to a user
+        """Log a note against a user.
 
         Example:
         - `[p]notes add <user> <message>`
@@ -70,7 +70,7 @@ class NotesCog(commands.Cog):
         *,
         message: str
     ):
-        """Add a warning to a user
+        """Log a warning against a user.
 
         Example:
         - `[p]warnings add <user> <message>`
@@ -95,7 +95,7 @@ class NotesCog(commands.Cog):
         ctx: commands.Context,
         note_id: int
     ):
-        """Deletes note
+        """Deletes a note.
 
         Example:
         - `[p]notes delete <note id>`
@@ -109,7 +109,7 @@ class NotesCog(commands.Cog):
                         note['reporter'] == ctx.author.id or
                         await is_admin_or_superior(self, ctx.author)
                     ):
-                        await ctx.send("You don't have permission for this.")
+                        await ctx.send("You don't have permission to do this.")
                         return
 
                     # Delete note if not previously deleted
@@ -141,7 +141,7 @@ class NotesCog(commands.Cog):
                         warning['reporter'] == ctx.author.id or
                         await is_admin_or_superior(self, ctx.author)
                     ):
-                        await ctx.send("You don't have permission for this.")
+                        await ctx.send("You don't have permission to do this.")
                         return
 
                     # Delete warning if not previously deleted
@@ -160,7 +160,7 @@ class NotesCog(commands.Cog):
         *,
         user: discord.Member = None
     ):
-        """Lists notes for everyone or a specific user
+        """Lists notes and warnings for everyone or a specific user.
 
         Example:
         - `[p]notes list <user>`
@@ -225,7 +225,7 @@ class NotesCog(commands.Cog):
                 )
             else:
                 data.title = (
-                    f"Entire server notes - {len(warnings)} " +
+                    f"All notes and warnings - {len(warnings)} " +
                     f"warnings, {len(notes)} notes"
                 )
             data.description = page
