@@ -105,7 +105,7 @@ class EnforcerCog(commands.Cog):
         channel: discord.TextChannel,
         attribute: str,
         *,
-        value: str
+        value: str = None
     ):
         """Allows configuration of a channel
 
@@ -132,4 +132,57 @@ class EnforcerCog(commands.Cog):
             return
 
         await self._set_attribute(channel, attribute, value)
-        await ctx.send(f"Channel has now configured the {attribute} attribute.")
+        await ctx.send(
+            f"Channel has now configured the {attribute} attribute."
+        )
+
+    @commands.Cog.listener()
+    async def on_message(self, message: discord.Message):
+        if not isinstance(message.guild, discord.Guild):
+            # The user has DM'd us. Ignore.
+            return
+
+        author = message.author
+        valid_user = isinstance(author, discord.Member) and not author.bot
+        if not valid_user:
+            # User is a bot. Ignore.
+            return
+
+        delete = None
+
+        async with self.settings.guild(message.guild).channels() as li:
+            for ch in li:
+                if not ch["id"] == message.channel.id:
+                    # Not relating to this channel
+                    continue
+
+                if "enabled" not in ch or not ch["enabled"]:
+                    # Enforcing not enabled here
+                    continue
+
+                if "minchars" in ch:
+                    if len(message.content) < ch["minchars"]:
+                        # They breached minchars attribute
+                        delete = "min chars"
+                        break
+
+                if "nomedia" in ch and ch["nomedia"] is True:
+                    if len(message.attachments) > 0:
+                        # They breached nomedia attribute
+                        delete = "no media"
+                        break
+
+                if "requiremedia" in ch and ch["requiremedia"] is True:
+                    if len(message.attachments) == 0:
+                        # They breached requiremedia attribute
+                        delete = "requires media"
+                        break
+
+                if "notext" in ch and ch["notext"] is True:
+                    if len(message.content) > 0:
+                        # They breached notext attribute
+                        delete = "no text"
+                        break
+
+        if delete:
+            await message.delete()
