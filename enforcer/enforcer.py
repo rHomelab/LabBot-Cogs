@@ -34,7 +34,8 @@ class EnforcerCog(commands.Cog):
         }
 
         default_guild_settings = {
-            "channels": []
+            "channels": [],
+            "logchannel": None
         }
 
         self.settings.register_guild(**default_guild_settings)
@@ -44,6 +45,21 @@ class EnforcerCog(commands.Cog):
     @checks.admin()
     async def _enforcer(self, ctx: commands.Context):
         pass
+
+    @_enforcer.command("logchannel")
+    async def enforcer_logchannel(
+        self,
+        ctx: commands.Context,
+        channel: discord.TextChannel
+    ):
+        """Sets the channel to post the enforced logs
+
+        Example:
+        - `[p]enforcer logchannel <channel>`
+        - `[p]enforcer logchannel #admin-log`
+        """
+        await self.settings.guild(ctx.guild).logchannel.set(channel.id)
+        await ctx.send(f"Enforcer log message channel set to `{channel.name}`")
 
     async def _validate_attribute_value(self, attribute: str, value: str):
         attribute_type = self.attributes[attribute]["type"]
@@ -163,26 +179,44 @@ class EnforcerCog(commands.Cog):
                 if "minchars" in ch:
                     if len(message.content) < ch["minchars"]:
                         # They breached minchars attribute
-                        delete = "min chars"
+                        delete = "Not enough characters"
                         break
 
                 if "nomedia" in ch and ch["nomedia"] is True:
                     if len(message.attachments) > 0:
                         # They breached nomedia attribute
-                        delete = "no media"
+                        delete = "No media attached"
                         break
 
                 if "requiremedia" in ch and ch["requiremedia"] is True:
                     if len(message.attachments) == 0:
                         # They breached requiremedia attribute
-                        delete = "requires media"
+                        delete = "Requires media attached"
                         break
 
                 if "notext" in ch and ch["notext"] is True:
                     if len(message.content) > 0:
                         # They breached notext attribute
-                        delete = "no text"
+                        delete = "Message had no text"
                         break
 
         if delete:
             await message.delete()
+
+            log_id = await self.settings.guild(message.guild).logchannel()
+            if log_id is not None:
+                log = message.guild.get_channel(log_id)
+                data = discord.Embed(color=discord.Color.orange())
+                data.set_author(
+                    name=f"Message Enforced - {author}",
+                    icon_url=author.avatar_url
+                )
+                data.add_field(name="Enforced Reason", value=f"{delete}")
+                if log is not None:
+                    try:
+                        await log.send(embed=data)
+                    except discord.Forbidden:
+                        await log.send(
+                            "**Message Enforced** - " +
+                            f"{author.id} - {author} - Reason: {delete}"
+                        )
