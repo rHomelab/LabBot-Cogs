@@ -1,6 +1,15 @@
 """discord red-bot enforcer"""
 import discord
 from redbot.core import commands, Config, checks
+from datetime import datetime
+
+KEY_ENABLED = "enabled"
+KEY_MINCHARS = "minchars"
+KEY_NOTEXT = "notext"
+KEY_NOMEDIA = "nomedia"
+KEY_REQUIREMEDIA = "requiremedia"
+KEY_MINDISCORDAGE = "minimumdiscordage"
+KEY_MINGUILDAGE = "minimumguildage"
 
 
 class EnforcerCog(commands.Cog):
@@ -10,25 +19,25 @@ class EnforcerCog(commands.Cog):
         self.bot = bot
         self.settings = Config.get_conf(self, identifier=987342593)
         self.attributes = {
-            "enabled": {
+            KEY_ENABLED: {
                 "type": "bool"
             },
-            "minchars": {
+            KEY_MINCHARS: {
                 "type": "number"
             },
-            "notext": {
+            KEY_NOTEXT: {
                 "type": "bool"
             },
-            "nomedia": {
+            KEY_NOMEDIA: {
                 "type": "bool"
             },
-            "requiremedia": {
+            KEY_REQUIREMEDIA: {
                 "type": "bool"
             },
-            "minimumdiscordage": {
+            KEY_MINDISCORDAGE: {
                 "type": "number"
             },
-            "minimumguildage": {
+            KEY_MINGUILDAGE: {
                 "type": "number"
             }
         }
@@ -129,6 +138,16 @@ class EnforcerCog(commands.Cog):
         - `[p]enforcer configure <channel> <attribute> <value?>`
 
         If `<value>` is not provided, the attribute will be reset.
+
+        Possible attributes are:
+
+        - `enabled` - Is this channel enabled for enforcing. Default false.
+        - `minchars` - Minimum characters in a message. Default 0.
+        - `notext` - Message must have no text. Default false.
+        - `requiremedia` - Message must have an attachment. Default false.
+        - `nomedia` - Message must not have an attachment. Default false.
+        - `minimumdiscordage` - Account created age in seconds. Default 0.
+        - `minimumguildage` - Minimum server joined age in seconds. Default 0.
         """
         attribute = attribute.lower()
 
@@ -172,32 +191,54 @@ class EnforcerCog(commands.Cog):
                     # Not relating to this channel
                     continue
 
-                if "enabled" not in ch or not ch["enabled"]:
+                if KEY_ENABLED not in ch or not ch[KEY_ENABLED]:
                     # Enforcing not enabled here
                     continue
 
-                if "minchars" in ch:
-                    if len(message.content) < ch["minchars"]:
+                if KEY_MINCHARS in ch:
+                    if len(message.content) < ch[KEY_MINCHARS]:
                         # They breached minchars attribute
                         delete = "Not enough characters"
                         break
 
-                if "nomedia" in ch and ch["nomedia"] is True:
+                if KEY_NOMEDIA in ch and ch[KEY_NOMEDIA] is True:
                     if len(message.attachments) > 0:
                         # They breached nomedia attribute
                         delete = "No media attached"
                         break
 
-                if "requiremedia" in ch and ch["requiremedia"] is True:
+                if KEY_REQUIREMEDIA in ch and ch[KEY_REQUIREMEDIA] is True:
                     if len(message.attachments) == 0:
                         # They breached requiremedia attribute
                         delete = "Requires media attached"
                         break
 
-                if "notext" in ch and ch["notext"] is True:
+                if KEY_NOTEXT in ch and ch[KEY_NOTEXT] is True:
                     if len(message.content) > 0:
                         # They breached notext attribute
                         delete = "Message had no text"
+                        break
+
+                if KEY_MINDISCORDAGE in ch:
+                    if author.created_at is None:
+                        # They didn't have a created_at date?
+                        break
+
+                    delta = datetime.utcnow() - author.created_at
+                    if ch[KEY_MINDISCORDAGE] > delta.seconds:
+                        # They breached minimum discord age
+                        delete = "User not in server long enough"
+                        break
+
+                if KEY_MINGUILDAGE in ch:
+                    if author.joined_at is None:
+                        # They didn't have a joined_at date?
+                        break
+
+                    delta = datetime.utcnow() - author.joined_at
+                    if ch[KEY_MINGUILDAGE] > delta.seconds:
+                        # They breached minimum guild age
+                        delete = "User account not old enough"
                         break
 
         if delete:
@@ -220,3 +261,15 @@ class EnforcerCog(commands.Cog):
                             "**Message Enforced** - " +
                             f"{author.id} - {author} - Reason: {delete}"
                         )
+
+    @_enforcer.command("status")
+    async def enforcer_status(
+        self,
+        ctx: commands.Context
+    ):
+        """Prints the status of the enforcement cog
+
+        Example:
+        - `[p]enforcer status`
+        """
+        pass
