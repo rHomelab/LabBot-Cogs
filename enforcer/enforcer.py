@@ -111,6 +111,7 @@ class EnforcerCog(commands.Cog):
     ):
         added = False
         async with self.settings.guild(channel.guild).channels() as li:
+            # Check if attribute already exists
             for ch in li:
                 if ch["id"] == channel.id:
                     ch[attribute] = value
@@ -118,6 +119,7 @@ class EnforcerCog(commands.Cog):
                     break
 
             if added is False:
+                # Attribute does not exist for channel
                 li.append({
                     "id": channel.id,
                     attribute: value
@@ -155,11 +157,13 @@ class EnforcerCog(commands.Cog):
             await ctx.send("That attribute is not configurable.")
             return
 
+        # Reset the attribute for the channel
         if value is None:
             await self._reset_attribute(channel, attribute)
             await ctx.send("That attribute has been reset.")
             return
 
+        # Validate the input from the user
         try:
             value = await self._validate_attribute_value(attribute, value)
         except ValueError:
