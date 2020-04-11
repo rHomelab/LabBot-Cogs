@@ -88,9 +88,9 @@ class VerifyCog(commands.Cog):
                     await log.send(embed=data)
                 except discord.Forbidden:
                     await log.send(
-                              "**User Verified** - " +
-                              f"{author.id} - {author}"
-                          )
+                        "**User Verified** - " +
+                        f"{author.id} - {author}"
+                    )
 
         count = await self.settings.guild(server).verify_count()
         count += 1
@@ -119,7 +119,7 @@ class VerifyCog(commands.Cog):
 
     @commands.group(name="verify")
     @commands.guild_only()
-    @checks.admin_or_permissions(manage_guild=True)
+    @checks.mod()
     async def _verify(self, ctx: commands.Context):
         pass
 

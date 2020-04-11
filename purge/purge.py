@@ -27,8 +27,8 @@ class PurgeCog(commands.Cog):
         self.settings.register_guild(**default_guild_settings)
 
         self.purge_task = self.bot.loop.create_task(
-                              self.check_purgeable_users()
-                          )
+            self.check_purgeable_users()
+        )
 
     def cog_unload(self):
         self.purge_task.cancel()
@@ -63,8 +63,8 @@ class PurgeCog(commands.Cog):
 
                 # Set the last run
                 await self.settings.guild(guild).purge_lastrun.set(
-                                                    cur_epoch.timestamp()
-                                                )
+                    cur_epoch.timestamp()
+                )
 
                 # Only run if kick_members permission is given
                 if not guild.me.guild_permissions.kick_members:
@@ -162,7 +162,7 @@ class PurgeCog(commands.Cog):
 
     @commands.group(name="purge")
     @commands.guild_only()
-    @checks.admin_or_permissions(manage_guild=True)
+    @checks.mod()
     async def _purge(self, ctx: commands.Context):
         pass
 
@@ -360,13 +360,13 @@ class PurgeCog(commands.Cog):
         data.add_field(name="Last Run", value=f"{last_run_friendly}")
 
         if (
-               purge_last_run is not None or
-               purge_enabled
-           ) and purge_schedule is not None:
+            purge_last_run is not None or
+            purge_enabled
+        ) and purge_schedule is not None:
             next_date = croniter(
-                            purge_schedule,
-                            purge_last_run or datetime.utcnow()
-                        ).get_next(datetime)
+                purge_schedule,
+                purge_last_run or datetime.utcnow()
+            ).get_next(datetime)
             next_run_friendly = next_date.strftime("%Y-%m-%d %H:%M:%SZ")
 
             data.add_field(name="Next Run", value=f"{next_run_friendly}")
