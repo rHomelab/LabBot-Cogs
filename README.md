@@ -7,34 +7,32 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
 - [Authors](#authors)
 - [Cog Summaries](#cog-summaries)
 - [Cog Documentation](#cog-documentation)
-  - [Cog 1](#cog1)
   - [Purge](#purge)
   - [Verify](#verify)
 - [License](#license)
 
 ## Authors
 
-This is a joint project involving any of the Homelab Discord server admins & moderators that would like to get involved.
+This is a joint project involving any of the [Homelab Discord](https://discord.gg/homelab) admins & moderators that would like to get involved.
 
-**Admins:**
+### Contributors
+#### Admins
 
-[tigattack](https://github.com/tigattack), [MonsterMuffin](https://github.com/monstermuffin), [Sneezey](https://github.com/kdavis)
+* [tigattack](https://github.com/tigattack)
+* [Sneezey](https://github.com/kdavis)
 
-**Moderators:**
+#### Moderators
 
-[DanTho](https://github.com/dannyt66)
+* [DanTho](https://github.com/dannyt66)
+
+#### Other
 
 ## Cog Summaries
 
-- **Cog 1:** Summary of cog 1.
 - **[Purge](#purge):** This will purge users based on criteria.
 - **[Verify](#verify):** Allows users to verify themselves
 
 ## Cog Documentation
-
-### Cog 1
-
-In-depth documentation/explanation of Cog 1, what it can do, what it can't do, and, if necessary, what it's used for.
 
 ### Verify
 
