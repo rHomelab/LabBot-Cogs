@@ -1,6 +1,8 @@
 """discord red-bot enforcer"""
 import discord
 from redbot.core import commands, Config, checks
+from redbot.core.utils.chat_formatting import pagify
+from redbot.core.utils.menus import menu, prev_page, close_menu, next_page
 from datetime import datetime
 
 KEY_ENABLED = "enabled"
@@ -10,6 +12,8 @@ KEY_NOMEDIA = "nomedia"
 KEY_REQUIREMEDIA = "requiremedia"
 KEY_MINDISCORDAGE = "minimumdiscordage"
 KEY_MINGUILDAGE = "minimumguildage"
+
+CUSTOM_CONTROLS = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}
 
 
 class EnforcerCog(commands.Cog):
@@ -276,4 +280,41 @@ class EnforcerCog(commands.Cog):
         Example:
         - `[p]enforcer status`
         """
-        pass
+        messages = []
+        async with self.settings.guild(ctx.guild).channels() as li:
+            for channel_obj in li:
+                channel = ctx.guild.get_channel(channel_obj["id"])
+
+                conf_str = ""
+                for key in self.attributes.keys():
+                    if key in channel_obj:
+                        conf_str = conf_str + f"{key} - {channel_obj[key]}\n"
+
+                messages.append(
+                    f"📝{channel.mention} - " +
+                    f"Configuration\n " +
+                    conf_str
+                )
+
+        # Pagify implementation
+        # https://github.com/Cog-Creators/Red-DiscordBot/blob/9698baf6e74f6b34f946189f05e2559a60e83706/redbot/core/utils/chat_formatting.py#L208
+        pages = [page for page in pagify("\n\n".join(messages), shorten_by=58)]
+        embeds = []
+        index = 0
+        for page in pages:
+            index = index+1
+
+            data = discord.Embed(colour=(await ctx.embed_colour()))
+            data.title = f"Enforcement Configuration - Page {index}/{len(pages)}"
+            data.description = page
+
+            embeds.append(data)
+
+        await menu(
+            ctx,
+            pages=embeds,
+            controls=CUSTOM_CONTROLS,
+            message=None,
+            page=0,
+            timeout=30,
+        )
