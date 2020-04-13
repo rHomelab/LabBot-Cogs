@@ -155,15 +155,15 @@ class ReactRoleCog(commands.Cog):
             else:
                 await ctx.send("React Role didn't exist.")
 
-    @_reactrole.command("status")
-    async def reactrole_status(
+    @_reactrole.command("list")
+    async def reactrole_list(
         self,
         ctx: commands.Context
     ):
         """Shows a list of react roles configured
 
         Example:
-        - `[p]reactrole status`
+        - `[p]reactrole list`
         """
         messages = []
         enabled = await self.settings.guild(ctx.guild).enabled()
