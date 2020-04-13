@@ -1,6 +1,10 @@
 """discord red-bot reactrole cog"""
 import discord
 from redbot.core import checks, commands, Config
+from redbot.core.utils.chat_formatting import pagify
+from redbot.core.utils.menus import menu, prev_page, close_menu, next_page
+
+CUSTOM_CONTROLS = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}
 
 
 class ReactRoleCog(commands.Cog):
@@ -87,7 +91,8 @@ class ReactRoleCog(commands.Cog):
                 if (
                     item["message"] == message.id and
                     item["reaction"] == str(reaction) and
-                    item["role"] == role.id
+                    item["role"] == role.id and
+                    item["channel"] == message.channel.id
                 ):
                     added = True
 
@@ -100,7 +105,8 @@ class ReactRoleCog(commands.Cog):
                     li.append({
                         "message": message.id,
                         "reaction": str(reaction),
-                        "role": role.id
+                        "role": role.id,
+                        "channel": message.channel.id
                     })
                     await ctx.send("Configured React Role.")
                 except Exception:
@@ -127,7 +133,8 @@ class ReactRoleCog(commands.Cog):
                 if (
                     item["message"] == message.id and
                     item["reaction"] == str(reaction) and
-                    item["role"] == role.id
+                    item["role"] == role.id and
+                    item["channel"] == message.channel.id
                 ):
                     exists = item
 
@@ -137,3 +144,46 @@ class ReactRoleCog(commands.Cog):
                 await ctx.send("React Role removed.")
             else:
                 await ctx.send("React Role didn't exist.")
+
+    @_reactrole.command("status")
+    async def reactrole_status(
+        self,
+        ctx: commands.Context
+    ):
+        messages = []
+        async with self.settings.guild(ctx.guild).roles() as li:
+            for item in li:
+                try:
+                    role = ctx.guild.get_role(item["role"])
+                    channel = ctx.guild.get_channel(item["channel"])
+                    message = await channel.fetch_message(item["message"])
+                    messages.append(
+                        f'📝 {message.jump_url} '
+                        f'- {role.name} - {item["reaction"]}\n\n'
+                    )
+                except Exception as e:
+                    print(e)
+                    messages.append("Failed to retrieve 1 result.")
+
+        # Pagify implementation
+        # https://github.com/Cog-Creators/Red-DiscordBot/blob/9698baf6e74f6b34f946189f05e2559a60e83706/redbot/core/utils/chat_formatting.py#L208
+        pages = [page for page in pagify("\n\n".join(messages), shorten_by=58)]
+        embeds = []
+        index = 0
+        for page in pages:
+            index = index+1
+
+            data = discord.Embed(colour=(await ctx.embed_colour()))
+            data.title = f"React Roles - Page {index}/{len(pages)}"
+            data.description = page
+
+            embeds.append(data)
+
+        await menu(
+            ctx,
+            pages=embeds,
+            controls=CUSTOM_CONTROLS,
+            message=None,
+            page=0,
+            timeout=30,
+        )
