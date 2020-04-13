@@ -1,0 +1,9 @@
+{
+  "AUTHOR": "Sneezey",
+  "SHORT": "React Role cog",
+  "DESCRIPTION": "Allows roles to be applied and removed by reactions",
+  "DISABLED": false,
+  "NAME": "reactrole",
+  "TAGS": ["roles", "react"],
+  "INSTALL_MSG": "Usage: `[p]reactrole`"
+}
