@@ -150,6 +150,11 @@ class ReactRoleCog(commands.Cog):
         self,
         ctx: commands.Context
     ):
+        """Shows a list of react roles configured
+
+        Example:
+        - `[p]reactrole status`
+        """
         messages = []
         async with self.settings.guild(ctx.guild).roles() as li:
             for item in li:
