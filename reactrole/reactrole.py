@@ -15,7 +15,8 @@ class ReactRoleCog(commands.Cog):
         self.settings = Config.get_conf(self, identifier=124123498)
 
         default_guild_settings = {
-            "roles": []
+            "roles": [],
+            "enabled": True
         }
 
         self.settings.register_guild(**default_guild_settings)
@@ -25,6 +26,7 @@ class ReactRoleCog(commands.Cog):
         """
         Member adds reaction to a message
         """
+
         if not payload.member:
             # TODO Log error
             return
@@ -32,6 +34,10 @@ class ReactRoleCog(commands.Cog):
         guild = self.bot.get_guild(payload.guild_id)
         if guild is None:
             # Guild shouldn't be none
+            return
+
+        if not await self.settings.guild(guild).enabled():
+            # Go no further if disabled
             return
 
         async with self.settings.guild(guild).roles() as li:
@@ -54,6 +60,10 @@ class ReactRoleCog(commands.Cog):
             return
 
         member = guild.get_member(payload.user_id)
+
+        if not await self.settings.guild(guild).enabled():
+            # Go no further if disabled
+            return
 
         async with self.settings.guild(guild).roles() as li:
             for item in li:
@@ -156,6 +166,9 @@ class ReactRoleCog(commands.Cog):
         - `[p]reactrole status`
         """
         messages = []
+        enabled = await self.settings.guild(ctx.guild).enabled()
+        messages.append(f"Enabled: {enabled}")
+
         async with self.settings.guild(ctx.guild).roles() as li:
             for item in li:
                 try:
@@ -192,3 +205,23 @@ class ReactRoleCog(commands.Cog):
             page=0,
             timeout=30,
         )
+
+    @_reactrole.command("enable")
+    async def reactrole_enable(self, ctx):
+        """Enables the ReactRole's functionality
+
+        Example:
+        - `[p]reactrole enable`
+        """
+        await self.settings.guild(ctx.guild).enabled.set(True)
+        await ctx.send("Enabled ReactRole.")
+
+    @_reactrole.command("disable")
+    async def reactrole_disable(self, ctx):
+        """Disables the ReactRole's functionality
+
+        Example:
+        - `[p]reactrole disable`
+        """
+        await self.settings.guild(ctx.guild).enabled.set(False)
+        await ctx.send("Disabled ReactRole.")
