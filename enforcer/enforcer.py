@@ -141,10 +141,9 @@ class EnforcerCog(commands.Cog):
         """Allows configuration of a channel
 
         Example:
-        - `[p]enforcer configure <channel> <attribute> <value?>`
+        - `[p]enforcer configure <channel> <attribute> [value]`
 
-        If `<value>` is not provided, the attribute will be reset.
-
+        If `[value]` is not provided, the attribute will be reset.
         Possible attributes are:
 
         - `enabled` - Is this channel enabled for enforcing. Default false.
