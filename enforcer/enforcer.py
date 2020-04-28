@@ -65,7 +65,7 @@ class EnforcerCog(commands.Cog):
         ctx: commands.Context,
         channel: discord.TextChannel
     ):
-        """Sets the channel to post the enforced logs
+        """Sets the channel to post the enforcer logs.
 
         Example:
         - `[p]enforcer logchannel <channel>`
