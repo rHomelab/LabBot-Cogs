@@ -12,17 +12,17 @@ class VerifyCog(commands.Cog):
         self.settings = Config.get_conf(self, identifier=1522109312)
 
         default_guild_settings = {
-            "verify_message": "I agree",
-            "verify_count": 0,
-            "verify_role": None,
-            "verify_channel": None,
-            "verify_mintime": 60,
-            "verify_tooquick": (
+            "message": "I agree",
+            "count": 0,
+            "role": None,
+            "channel": None,
+            "mintime": 60,
+            "tooquick": (
                 "That was quick, {user}! Are you sure " +
                 "you've read the rules?"
             ),
-            "verify_wrongmsg": "",
-            "verify_logchannel": None
+            "wrongmsg": "",
+            "logchannel": None
         }
 
         self.settings.register_guild(**default_guild_settings)
@@ -40,7 +40,7 @@ class VerifyCog(commands.Cog):
             return
 
         server = message.guild
-        channel = await self.settings.guild(server).verify_channel()
+        channel = await self.settings.guild(server).channel()
         if message.channel.id != channel:
             # User did not post verify message in channel
             return
@@ -49,30 +49,30 @@ class VerifyCog(commands.Cog):
             # We don't have permission to manage roles
             return
 
-        mintime = await self.settings.guild(server).verify_mintime()
+        mintime = await self.settings.guild(server).mintime()
         minjoin = datetime.utcnow() - timedelta(seconds=mintime)
         if author.joined_at > minjoin:
             # User tried to verify too fast
-            tooquick = await self.settings.guild(server).verify_tooquick()
+            tooquick = await self.settings.guild(server).tooquick()
             tooquick = tooquick.replace("{user}", f"{author.mention}")
             await message.channel.send(tooquick)
             return
 
-        verify_msg = await self.settings.guild(server).verify_message()
+        verify_msg = await self.settings.guild(server).message()
         if message.content != verify_msg:
             # User did not post the perfect message.
-            wrongmsg = await self.settings.guild(server).verify_wrongmsg()
+            wrongmsg = await self.settings.guild(server).wrongmsg()
             if wrongmsg == "":
                 return
             wrongmsg = wrongmsg.replace("{user}", f"{author.mention}")
             await message.channel.send(wrongmsg)
             return
 
-        role_id = await self.settings.guild(server).verify_role()
+        role_id = await self.settings.guild(server).role()
         role = server.get_role(role_id)
         await author.add_roles(role)
 
-        log_id = await self.settings.guild(server).verify_logchannel()
+        log_id = await self.settings.guild(server).logchannel()
         if log_id is not None:
             log = server.get_channel(log_id)
             data = discord.Embed(color=discord.Color.orange())
@@ -92,9 +92,9 @@ class VerifyCog(commands.Cog):
                         f"{author.id} - {author}"
                     )
 
-        count = await self.settings.guild(server).verify_count()
+        count = await self.settings.guild(server).count()
         count += 1
-        await self.settings.guild(server).verify_count.set(count)
+        await self.settings.guild(server).count.set(count)
 
         await self._cleanup(message, role)
 
@@ -131,7 +131,7 @@ class VerifyCog(commands.Cog):
         - `[p]verify message "<message>"`
         - `[p]verify message "I agree"`
         """
-        await self.settings.guild(ctx.guild).verify_message.set(message)
+        await self.settings.guild(ctx.guild).message.set(message)
         await ctx.send("Verify message set.")
 
     @_verify.command("tooquick")
@@ -142,7 +142,7 @@ class VerifyCog(commands.Cog):
         - `[p]verify tooquick "<message>"`
         - `[p]verify tooquick "Calm down. Wait a bit, yea?"`
         """
-        await self.settings.guild(ctx.guild).verify_tooquick.set(message)
+        await self.settings.guild(ctx.guild).tooquick.set(message)
         await ctx.send("Too quick reply message set.")
 
     @_verify.command("wrongmsg")
@@ -155,7 +155,7 @@ class VerifyCog(commands.Cog):
 
         If `<message>` is empty, no message will be posted.
         """
-        await self.settings.guild(ctx.guild).verify_wrongmsg.set(message)
+        await self.settings.guild(ctx.guild).wrongmsg.set(message)
         await ctx.send("Wrong verify message reply message set.")
 
     @_verify.command("role")
@@ -165,7 +165,7 @@ class VerifyCog(commands.Cog):
         Example:
         - `[p]verify role "<role id>"`
         """
-        await self.settings.guild(ctx.guild).verify_role.set(role.id)
+        await self.settings.guild(ctx.guild).role.set(role.id)
         await ctx.send(f"Verify role set to `{role.name}`")
 
     @_verify.command("mintime")
@@ -183,7 +183,7 @@ class VerifyCog(commands.Cog):
             await ctx.send(f"Verify minimum time was below 0 seconds")
             return
 
-        await self.settings.guild(ctx.guild).verify_mintime.set(mintime)
+        await self.settings.guild(ctx.guild).mintime.set(mintime)
         await ctx.send(f"Verify minimum time set to {mintime} seconds")
 
     @_verify.command("channel")
@@ -198,7 +198,7 @@ class VerifyCog(commands.Cog):
         - `[p]verify channel <channel>`
         - `[p]verify channel #welcome`
         """
-        await self.settings.guild(ctx.guild).verify_channel.set(channel.id)
+        await self.settings.guild(ctx.guild).channel.set(channel.id)
         await ctx.send(f"Verify message channel set to `{channel.name}`")
 
     @_verify.command("logchannel")
@@ -213,7 +213,7 @@ class VerifyCog(commands.Cog):
         - `[p]verify logchannel <channel>`
         - `[p]verify logchannel #admin-log`
         """
-        await self.settings.guild(ctx.guild).verify_logchannel.set(channel.id)
+        await self.settings.guild(ctx.guild).logchannel.set(channel.id)
         await ctx.send(f"Verify log message channel set to `{channel.name}`")
 
     @_verify.command("status")
@@ -228,38 +228,38 @@ class VerifyCog(commands.Cog):
         """
         data = discord.Embed(colour=(await ctx.embed_colour()))
 
-        count = await self.settings.guild(ctx.guild).verify_count()
+        count = await self.settings.guild(ctx.guild).count()
         data.add_field(name="Verified", value=f"{count} users")
 
-        role_id = await self.settings.guild(ctx.guild).verify_role()
+        role_id = await self.settings.guild(ctx.guild).role()
         if role_id is not None:
             role = ctx.guild.get_role(role_id)
             data.add_field(name="Role", value=f"@{role.name}")
 
-        channel_id = await self.settings.guild(ctx.guild).verify_channel()
+        channel_id = await self.settings.guild(ctx.guild).channel()
         if channel_id is not None:
             channel = ctx.guild.get_channel(channel_id)
 
             data.add_field(name="Channel", value=f"#{channel.name}")
 
-        log_id = await self.settings.guild(ctx.guild).verify_logchannel()
+        log_id = await self.settings.guild(ctx.guild).logchannel()
         if log_id is not None:
             log = ctx.guild.get_channel(log_id)
 
             data.add_field(name="Log", value=f"#{log.name}")
 
-        mintime = await self.settings.guild(ctx.guild).verify_mintime()
+        mintime = await self.settings.guild(ctx.guild).mintime()
         data.add_field(name="Min Time", value=f"{mintime} secs")
 
-        message = await self.settings.guild(ctx.guild).verify_message()
+        message = await self.settings.guild(ctx.guild).message()
         message = message.replace('`', '')
         data.add_field(name="Message", value=f"`{message}`")
 
-        tooquick = await self.settings.guild(ctx.guild).verify_tooquick()
+        tooquick = await self.settings.guild(ctx.guild).tooquick()
         tooquick = tooquick.replace('`', '')
         data.add_field(name="Too Quick Msg", value=f"`{tooquick}`")
 
-        wrongmsg = await self.settings.guild(ctx.guild).verify_wrongmsg()
+        wrongmsg = await self.settings.guild(ctx.guild).wrongmsg()
         if wrongmsg != "":
             wrongmsg = wrongmsg.replace('`', '')
             data.add_field(name="Wrong Msg", value=f"`{wrongmsg}`")
