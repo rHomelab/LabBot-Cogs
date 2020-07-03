@@ -299,12 +299,12 @@ class EnforcerCog(commands.Cog):
         # https://github.com/Cog-Creators/Red-DiscordBot/blob/9698baf6e74f6b34f946189f05e2559a60e83706/redbot/core/utils/chat_formatting.py#L208
         pages = [page for page in pagify("\n\n".join(messages), shorten_by=58)]
         embeds = []
-        index = 0
+        i = 0
         for page in pages:
-            index = index+1
+            i = i+1
 
             data = discord.Embed(colour=(await ctx.embed_colour()))
-            data.title = f"Enforcement Configuration - Page {index}/{len(pages)}"
+            data.title = f"Enforcement Configuration - Page {i}/{len(pages)}"
             data.description = page
 
             embeds.append(data)

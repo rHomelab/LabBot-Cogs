@@ -5,6 +5,7 @@ from redbot.core import commands, Config, checks
 from redbot.core.utils.mod import is_admin_or_superior
 from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.menus import menu, prev_page, close_menu, next_page
+import typing
 
 CUSTOM_CONTROLS = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}
 
@@ -39,7 +40,7 @@ class NotesCog(commands.Cog):
     async def notes_add(
         self,
         ctx: commands.Context,
-        user: discord.Member,
+        user: typing.Union[discord.Member, str],
         *,
         message: str
     ):
@@ -49,14 +50,18 @@ class NotesCog(commands.Cog):
         - `[p]notes add <user> <message>`
         """
         current_date = datetime.utcnow()
+        userid = user if type(user) is str else user.id
+
+        # Save note to list
         async with self.settings.guild(ctx.guild).notes() as li:
             li.append(
                 {
                     "id": len(li)+1,
-                    "member": user.id,
+                    "member": userid,
                     "message": message,
                     "deleted": False,
                     "reporter": ctx.author.id,
+                    "reporterstr": ctx.author.name,
                     "date": current_date.timestamp()
                 }
             )
@@ -66,7 +71,7 @@ class NotesCog(commands.Cog):
     async def warnings_add(
         self,
         ctx: commands.Context,
-        user: discord.Member,
+        user: typing.Union[discord.Member, str],
         *,
         message: str
     ):
@@ -76,14 +81,17 @@ class NotesCog(commands.Cog):
         - `[p]warnings add <user> <message>`
         """
         current_date = datetime.utcnow()
+        userid = user if type(user) is str else user.id
+
         async with self.settings.guild(ctx.guild).warnings() as li:
             li.append(
                 {
                     "id": len(li)+1,
-                    "member": user.id,
+                    "member": userid,
                     "message": message,
                     "deleted": False,
                     "reporter": ctx.author.id,
+                    "reporterstr": ctx.author.name,
                     "date": current_date.timestamp()
                 }
             )
@@ -158,7 +166,7 @@ class NotesCog(commands.Cog):
         self,
         ctx: commands.Context,
         *,
-        user: discord.Member = None
+        user: typing.Union[discord.Member, str] = None
     ):
         """Lists notes and warnings for everyone or a specific user.
 
@@ -167,6 +175,8 @@ class NotesCog(commands.Cog):
         - `[p]notes list`
         """
         notes = []
+        userid = user if type(user) is str else user.id
+
         async with self.settings.guild(ctx.guild).notes() as li:
             li = sorted(li, key=lambda x: x["date"], reverse=True)
 
@@ -174,16 +184,31 @@ class NotesCog(commands.Cog):
                 if note["deleted"]:
                     # Ignore deleteds
                     continue
-                if not (user is None or note["member"] == user.id):
+                if not (user is None or note["member"] == userid):
                     # Ignore notes that don't relate to the target
                     continue
 
-                member = ctx.guild.get_member(note["member"])
-                mod = ctx.guild.get_member(note["reporter"])
+                member = None
+                try:
+                    member = ctx.guild.get_member(
+                        note["member"]) or note["member"]
+                except Exception:
+                    member = note["member"]
+
+                modname = None
+                try:
+                    modname = ctx.guild.get_member(note["reporter"])
+                    if modname:
+                        modname = modname.name
+                    else:
+                        modname = note["reporterstr"] or note["reporter"]
+                except Exception:
+                    modname = note["reporterstr"] or note["reporter"]
+
                 date = datetime.utcfromtimestamp(note["date"])
                 display_time = date.strftime("%Y-%m-%d %H:%M:%SZ")
                 notes.append(
-                    f"📝#{note['id']} **{member} - Added by {mod.name}** " +
+                    f"📝#{note['id']} **{member} - Added by {modname}** " +
                     f"- {display_time}\n " +
                     f"{note['message']}"
                 )
@@ -196,16 +221,31 @@ class NotesCog(commands.Cog):
                 if warning["deleted"]:
                     # Ignore deleteds
                     continue
-                if not (user is None or warning["member"] == user.id):
+                if not (user is None or warning["member"] == userid):
                     # Ignore warnings that don't relate to the target
                     continue
 
-                member = ctx.guild.get_member(warning["member"])
-                mod = ctx.guild.get_member(warning["reporter"])
+                member = None
+                try:
+                    member = ctx.guild.get_member(
+                        note["member"]) or note["member"]
+                except Exception:
+                    member = note["member"]
+
+                modname = None
+                try:
+                    modname = ctx.guild.get_member(note["reporter"])
+                    if modname:
+                        modname = modname.name
+                    else:
+                        modname = note["reporterstr"] or note["reporter"]
+                except Exception:
+                    modname = note["reporterstr"] or note["reporter"]
+
                 date = datetime.utcfromtimestamp(warning["date"])
                 display_time = date.strftime("%Y-%m-%d %H:%M:%SZ")
                 warnings.append(
-                    f"⚠️#{warning['id']} **{member} - Added by {mod.name}** " +
+                    f"⚠️#{warning['id']} **{member} - Added by {modname}** " +
                     f"- {display_time}\n " +
                     f"{warning['message']}"
                 )
