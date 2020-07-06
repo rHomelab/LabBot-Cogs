@@ -21,4 +21,4 @@ Issue #
 * Example: Adds breaking change which causes \<issue\>.
 
 ## Additional
-* Any further notes or comments you want to make.
+Any further notes or comments you want to make.
