@@ -15,10 +15,10 @@ Issue #
 
 ## Changes
 ### New Features
-* 
+* Example: Adds feature which does x, y, and z.
 
 ### Breaking Changes
-* 
+* Example: Adds breaking change which causes \<issue\>.
 
 ## Additional
-* 
+* Any further notes or comments you want to make.
