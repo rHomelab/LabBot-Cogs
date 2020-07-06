@@ -7,8 +7,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
 - [Authors](#authors)
 - [Cog Summaries](#cog-summaries)
 - [Cog Documentation](#cog-documentation)
-  - [Purge](#purge)
-  - [Verify](#verify)
+  * [Cog 1](#cog1)
 - [License](#license)
 
 ## Authors
