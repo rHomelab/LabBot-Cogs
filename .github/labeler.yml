@@ -1,0 +1,6 @@
+# The following uses the labeler action from GitHub. More documentation can be found at
+# at https://github.com/actions/labeler/blob/master/README.md
+
+# Add `ci` tag to any changes within the the following folders + subfolders
+ci:
+  - .github/**/*

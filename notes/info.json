@@ -1,0 +1,13 @@
+{
+    "AUTHOR": "Sneezey",
+    "SHORT": "Mod notes",
+    "DESCRIPTION": "Add notes about users",
+    "DISABLED": false,
+    "NAME": "notes",
+    "TAGS": [
+      "notes",
+      "mod",
+      "log"
+    ],
+    "INSTALL_MSG": "Usage: `[p]notes`"
+  }
