@@ -16,8 +16,7 @@ FILL OUT THE BELOW SECTIONS AS APPROPRIATE
 -->
 
 # Details
-
-* **What issue is this related to (if applicable)?**
+* **What issue is this related to (if applicable)?**  
 Issue #
 
 ## Changes
@@ -29,3 +28,4 @@ Issue #
 
 ## Additional
 Any further notes or comments you want to make.
+
