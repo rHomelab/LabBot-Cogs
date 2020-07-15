@@ -7,7 +7,8 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
 - [Authors](#authors)
 - [Cog Summaries](#cog-summaries)
 - [Cog Documentation](#cog-documentation)
-  * [Cog 1](#cog1)
+  - [Purge](#purge)
+  - [Verify](#verify)
 - [License](#license)
 
 ## Authors
@@ -27,11 +28,19 @@ This is a joint project involving any of the [Homelab Discord](https://discord.g
 #### Other
 
 ## Cog Summaries
-* **Cog 1:** Summary of cog 1.
+
+- **[Purge](#purge):** This will purge users based on criteria.
+- **[Verify](#verify):** Allows users to verify themselves
 
 ## Cog Documentation
-### Cog 1
-In-depth documentation/explanation of Cog 1, what it can do, what it can't do, and, if necessary, what it's used for.
+
+### Verify
+
+This cog will allow users to prove they're not a bot by having to read rules and complete an action. They will then be given the verified role if they can complete this.
+
+### Purge
+
+This cog will purge users that hold no roles as a way to combat accounts being created and left in an un-verified state.
 
 ## License
 
@@ -52,5 +61,5 @@ git config --bool flake8.strict true
 ```
 
 ### Making changes
-When suggesting changes, please [open an issue](https://gitlab.com/homelab-mods/LabBot/-/issues/new?issue%5Bassignee_id%5D=&issue%5Bmilestone_id%5D=) so it can be reviewed by the team who can then suggest how and if the idea is to be implmented.  
+When suggesting changes, please [open an issue](https://gitlab.com/homelab-mods/LabBot/-/issues/new?issue%5Bassignee_id%5D=&issue%5Bmilestone_id%5D=) so it can be reviewed by the team who can then suggest how and if the idea is to be implmented.   
 When submitting changes, please [create a merge request](https://gitlab.com/homelab-mods/LabBot/-/merge_requests/new) targetting the develop branch.
