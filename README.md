@@ -66,4 +66,5 @@ git config --bool flake8.strict true
 
 ### Making changes
 When suggesting changes, please [open an issue](https://gitlab.com/homelab-mods/LabBot/-/issues/new?issue%5Bassignee_id%5D=&issue%5Bmilestone_id%5D=) so it can be reviewed by the team who can then suggest how and if the idea is to be implmented.   
-When submitting changes, please [create a merge request](https://gitlab.com/homelab-mods/LabBot/-/merge_requests/new) targetting the develop branch.
+When submitting new or updated bot cogs, please [create a merge request](https://gitlab.com/homelab-mods/LabBot/-/merge_requests/new) (using the `bot-cog` template) targetting the develop branch.
+When submitting internal changes to the repository, please [create a merge request](https://gitlab.com/homelab-mods/LabBot/-/merge_requests/new) (using the `internal-change` template) targetting the develop branch.
