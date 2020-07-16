@@ -3,11 +3,11 @@
 <!--
 Note: This can be done by typing `/assign @user`.
 -->
-- [ ] If applicable, have the relevant milestone and labels been applied?
+- [ ] Have the relevant milestone and labels been applied?
 <!--
 Note: This can be done by typing `/milestone %milestone_name` and/or `/label ~label1 ~label2`.
 -->
-- [ ] If applicable, have you added details of the cog to the readme as per [README.md](https://gitlab.com/homelab-mods/LabBot/-/blob/develop/README.md#cog-summaries)?
+- [ ] If applicable, have you added or updated details of the cog in the readme as per [README.md](https://gitlab.com/homelab-mods/LabBot/-/blob/develop/README.md#cog-summaries)?
 
 ---
 
@@ -22,6 +22,9 @@ Issue #
 ## Changes
 ### New Features
 * Adds feature which does x, y, and z
+
+### Updated Features
+* Updated feature which does x, y, and z to do a, b, and c.
 
 ### Breaking Changes
 * Adds breaking change which causes \<issue\>.
