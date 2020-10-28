@@ -1,4 +1,4 @@
-FROM python:buster
+FROM python:3.8-buster
 RUN apt update
 RUN apt -y install make wget curl python3-openssl git openjdk-11-jre
 RUN groupadd -r redbot && useradd  -r -m -g redbot redbot
