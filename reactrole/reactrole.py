@@ -31,6 +31,10 @@ class ReactRoleCog(commands.Cog):
             # TODO Log error
             return
 
+        if payload.member.bot:
+            # Go no further if member is a bot
+            return
+
         guild = self.bot.get_guild(payload.guild_id)
         if guild is None:
             # Guild shouldn't be none
@@ -60,6 +64,10 @@ class ReactRoleCog(commands.Cog):
             return
 
         member = guild.get_member(payload.user_id)
+
+        if member.bot:
+            # Go no further if member is a bot
+            return
 
         if not await self.settings.guild(guild).enabled():
             # Go no further if disabled
