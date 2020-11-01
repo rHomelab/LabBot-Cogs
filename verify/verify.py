@@ -55,6 +55,9 @@ class VerifyCog(commands.Cog):
             # User tried to verify too fast
             tooquick = await self.settings.guild(server).tooquick()
             tooquick = tooquick.replace("{user}", f"{author.mention}")
+
+            await self._log_verify_message(server, author, None, "User tried too quickly")
+
             await message.channel.send(tooquick)
             return
 
@@ -62,6 +65,9 @@ class VerifyCog(commands.Cog):
         if message.content != verify_msg:
             # User did not post the perfect message.
             wrongmsg = await self.settings.guild(server).wrongmsg()
+
+            await self._log_verify_message(server, author, None, "User wrote wrong message")
+
             if wrongmsg == "":
                 return
             wrongmsg = wrongmsg.replace("{user}", f"{author.mention}")
@@ -283,27 +289,36 @@ class VerifyCog(commands.Cog):
         count += 1
         await self.settings.guild(server).count.set(count)
 
-    async def _log_verify_message(self, server: discord.Guild, user: discord.Member, verifier: discord.Member):
+    async def _log_verify_message(
+        self,
+        server: discord.Guild,
+        user: discord.Member,
+        verifier: discord.Member,
+        failmessage: str
+    ):
         """Private method for logging a message to the logchannel"""
+        message = failmessage or "User Verified"
+
         log_id = await self.settings.guild(server).logchannel()
         if log_id is not None:
             log = server.get_channel(log_id)
             data = discord.Embed(color=discord.Color.orange())
             data.set_author(
-                name=f"User Verified - {user}",
+                name=f"{message} - {user}",
                 icon_url=user.avatar_url
             )
             data.add_field(name="User", value=f"{user}")
             data.add_field(name="ID", value=f"{user.id}")
-            if verifier is None:
-                data.add_field(name="Verifier", value="Auto")
-            else:
-                data.add_field(name="Verifier", value=f"{verifier.nick}")
+            if failmessage is None:
+                if verifier is None:
+                    data.add_field(name="Verifier", value="Auto")
+                else:
+                    data.add_field(name="Verifier", value=f"{verifier.nick}")
             if log is not None:
                 try:
                     await log.send(embed=data)
                 except discord.Forbidden:
                     await log.send(
-                        "**User Verified** - " +
+                        f"**{message}** - " +
                         f"{user.id} - {user}"
                     )
