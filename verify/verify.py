@@ -70,25 +70,7 @@ class VerifyCog(commands.Cog):
 
         await self._verify_user(server, author)
 
-        log_id = await self.settings.guild(server).logchannel()
-        if log_id is not None:
-            log = server.get_channel(log_id)
-            data = discord.Embed(color=discord.Color.orange())
-            data.set_author(
-                name=f"User Verified - {author}",
-                icon_url=author.avatar_url
-            )
-            data.add_field(name="User", value=f"{author}")
-            data.add_field(name="ID", value=f"{author.id}")
-            data.add_field(name="Verifier", value="Auto")
-            if log is not None:
-                try:
-                    await log.send(embed=data)
-                except discord.Forbidden:
-                    await log.send(
-                        "**User Verified** - " +
-                        f"{author.id} - {author}"
-                    )
+        await self._log_verify_message(server, author, None)
 
         role_id = await self.settings.guild(server).role()
         role = server.get_role(role_id)
@@ -276,3 +258,28 @@ class VerifyCog(commands.Cog):
         count = await self.settings.guild(server).count()
         count += 1
         await self.settings.guild(server).count.set(count)
+
+    async def _log_verify_message(self, server: discord.Guild, user: discord.Member, verifier: discord.Member):
+        """Private method for logging a message to the logchannel"""
+        log_id = await self.settings.guild(server).logchannel()
+        if log_id is not None:
+            log = server.get_channel(log_id)
+            data = discord.Embed(color=discord.Color.orange())
+            data.set_author(
+                name=f"User Verified - {user}",
+                icon_url=user.avatar_url
+            )
+            data.add_field(name="User", value=f"{user}")
+            data.add_field(name="ID", value=f"{user.id}")
+            if verifier is None:
+                data.add_field(name="Verifier", value="Auto")
+            else:
+                data.add_field(name="Verifier", value=f"{verifier.nick}")
+            if log is not None:
+                try:
+                    await log.send(embed=data)
+                except discord.Forbidden:
+                    await log.send(
+                        "**User Verified** - " +
+                        f"{user.id} - {user}"
+                    )
