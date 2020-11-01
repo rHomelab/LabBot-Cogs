@@ -249,6 +249,30 @@ class VerifyCog(commands.Cog):
                 "I need the `Embed links` permission to send a verify status."
             )
 
+    @commands.command(name="v")
+    @commands.guild_only()
+    @checks.mod()
+    async def verify_manual(self, ctx: commands.Context, user: discord.Member):
+        """Manually verifies a user
+
+        Example:
+        - `[p]v <id>`
+        - `[p]v <@User>`
+        - `[p]v <User#1234>`
+        """
+        if user.bot:
+            # User is a bot
+            return
+
+        role_id = await self.settings.guild(ctx.guild).role()
+        role = ctx.guild.get_role(role_id)
+        if role in user.roles:
+            # Already verified
+            return
+
+        await self._verify_user(ctx.guild, user)
+        await self._log_verify_message(ctx.guild, user, ctx.author)
+
     async def _verify_user(self, server: discord.Guild, user: discord.Member):
         """Private method for verifying a user"""
         role_id = await self.settings.guild(server).role()
