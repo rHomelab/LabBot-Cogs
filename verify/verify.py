@@ -68,9 +68,7 @@ class VerifyCog(commands.Cog):
             await message.channel.send(wrongmsg)
             return
 
-        role_id = await self.settings.guild(server).role()
-        role = server.get_role(role_id)
-        await author.add_roles(role)
+        await self._verify_user(server, author)
 
         log_id = await self.settings.guild(server).logchannel()
         if log_id is not None:
@@ -92,10 +90,8 @@ class VerifyCog(commands.Cog):
                         f"{author.id} - {author}"
                     )
 
-        count = await self.settings.guild(server).count()
-        count += 1
-        await self.settings.guild(server).count.set(count)
-
+        role_id = await self.settings.guild(server).role()
+        role = server.get_role(role_id)
         await self._cleanup(message, role)
 
     async def _cleanup(self, verify: discord.Message, role: discord.Role):
@@ -270,3 +266,13 @@ class VerifyCog(commands.Cog):
             await ctx.send(
                 "I need the `Embed links` permission to send a verify status."
             )
+
+    async def _verify_user(self, server: discord.Guild, user: discord.Member):
+        """Private method for verifying a user"""
+        role_id = await self.settings.guild(server).role()
+        role = server.get_role(role_id)
+        await user.add_roles(role)
+
+        count = await self.settings.guild(server).count()
+        count += 1
+        await self.settings.guild(server).count.set(count)
