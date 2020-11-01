@@ -56,7 +56,7 @@ class VerifyCog(commands.Cog):
             tooquick = await self.settings.guild(server).tooquick()
             tooquick = tooquick.replace("{user}", f"{author.mention}")
 
-            await self._log_verify_message(server, author, None, "User tried too quickly")
+            await self._log_verify_message(server, author, None, failmessage="User tried too quickly")
 
             await message.channel.send(tooquick)
             return
@@ -66,7 +66,7 @@ class VerifyCog(commands.Cog):
             # User did not post the perfect message.
             wrongmsg = await self.settings.guild(server).wrongmsg()
 
-            await self._log_verify_message(server, author, None, "User wrote wrong message")
+            await self._log_verify_message(server, author, None, failmessage="User wrote wrong message")
 
             if wrongmsg == "":
                 return
@@ -258,12 +258,12 @@ class VerifyCog(commands.Cog):
     @commands.command(name="v")
     @commands.guild_only()
     @checks.mod()
-    async def verify_manual(self, ctx: commands.Context, user: discord.Member):
+    async def verify_manual(self, ctx: commands.Context, user: discord.Member, *, reason: str = None):
         """Manually verifies a user
 
         Example:
-        - `[p]v <id>`
-        - `[p]v <@User>`
+        - `[p]v <id> [zt]`
+        - `[p]v <@User> [bypass]`
         - `[p]v <User#1234>`
         """
         if user.bot:
@@ -277,7 +277,7 @@ class VerifyCog(commands.Cog):
             return
 
         await self._verify_user(ctx.guild, user)
-        await self._log_verify_message(ctx.guild, user, ctx.author)
+        await self._log_verify_message(ctx.guild, user, ctx.author, reason=reason)
 
     async def _verify_user(self, server: discord.Guild, user: discord.Member):
         """Private method for verifying a user"""
@@ -294,9 +294,10 @@ class VerifyCog(commands.Cog):
         server: discord.Guild,
         user: discord.Member,
         verifier: discord.Member,
-        failmessage: str
+        **kwargs
     ):
         """Private method for logging a message to the logchannel"""
+        failmessage = kwargs.get('failmessage', None)
         message = failmessage or "User Verified"
 
         log_id = await self.settings.guild(server).logchannel()
@@ -314,6 +315,9 @@ class VerifyCog(commands.Cog):
                     data.add_field(name="Verifier", value="Auto")
                 else:
                     data.add_field(name="Verifier", value=f"{verifier.nick}")
+            reason = kwargs.get('reason', False)
+            if reason:
+                data.add_field(name="Reason", value=reason)
             if log is not None:
                 try:
                     await log.send(embed=data)
