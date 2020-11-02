@@ -89,6 +89,7 @@ class ReactRoleCog(commands.Cog):
         pass
 
     @_reactrole.command("add")
+    @checks.admin()
     async def add_reactrole(
         self,
         ctx: commands.Context,
