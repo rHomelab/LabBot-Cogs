@@ -308,13 +308,14 @@ class VerifyCog(commands.Cog):
                 name=f"{message} - {user}",
                 icon_url=user.avatar_url
             )
-            data.add_field(name="User", value=f"{user}")
+            data.add_field(name="User", value=f"{user.mention}")
             data.add_field(name="ID", value=f"{user.id}")
             if failmessage is None:
                 if verifier is None:
                     data.add_field(name="Verifier", value="Auto")
                 else:
-                    data.add_field(name="Verifier", value=f"{verifier.nick}")
+                    data.add_field(name="Verifier",
+                                   value=f"{verifier.mention}")
             reason = kwargs.get('reason', False)
             if reason:
                 data.add_field(name="Reason", value=reason)
