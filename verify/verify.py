@@ -55,6 +55,9 @@ class VerifyCog(commands.Cog):
             # User tried to verify too fast
             tooquick = await self.settings.guild(server).tooquick()
             tooquick = tooquick.replace("{user}", f"{author.mention}")
+
+            await self._log_verify_message(server, author, None, failmessage="User tried too quickly")
+
             await message.channel.send(tooquick)
             return
 
@@ -62,40 +65,21 @@ class VerifyCog(commands.Cog):
         if message.content != verify_msg:
             # User did not post the perfect message.
             wrongmsg = await self.settings.guild(server).wrongmsg()
+
+            await self._log_verify_message(server, author, None, failmessage="User wrote wrong message")
+
             if wrongmsg == "":
                 return
             wrongmsg = wrongmsg.replace("{user}", f"{author.mention}")
             await message.channel.send(wrongmsg)
             return
 
+        await self._verify_user(server, author)
+
+        await self._log_verify_message(server, author, None)
+
         role_id = await self.settings.guild(server).role()
         role = server.get_role(role_id)
-        await author.add_roles(role)
-
-        log_id = await self.settings.guild(server).logchannel()
-        if log_id is not None:
-            log = server.get_channel(log_id)
-            data = discord.Embed(color=discord.Color.orange())
-            data.set_author(
-                name=f"User Verified - {author}",
-                icon_url=author.avatar_url
-            )
-            data.add_field(name="User", value=f"{author}")
-            data.add_field(name="ID", value=f"{author.id}")
-            data.add_field(name="Verifier", value="Auto")
-            if log is not None:
-                try:
-                    await log.send(embed=data)
-                except discord.Forbidden:
-                    await log.send(
-                        "**User Verified** - " +
-                        f"{author.id} - {author}"
-                    )
-
-        count = await self.settings.guild(server).count()
-        count += 1
-        await self.settings.guild(server).count.set(count)
-
         await self._cleanup(message, role)
 
     async def _cleanup(self, verify: discord.Message, role: discord.Role):
@@ -270,3 +254,76 @@ class VerifyCog(commands.Cog):
             await ctx.send(
                 "I need the `Embed links` permission to send a verify status."
             )
+
+    @commands.command(name="v")
+    @commands.guild_only()
+    @checks.mod()
+    async def verify_manual(self, ctx: commands.Context, user: discord.Member, *, reason: str = None):
+        """Manually verifies a user
+
+        Example:
+        - `[p]v <id> [zt]`
+        - `[p]v <@User> [bypass]`
+        - `[p]v <User#1234>`
+        """
+        if user.bot:
+            # User is a bot
+            return
+
+        role_id = await self.settings.guild(ctx.guild).role()
+        role = ctx.guild.get_role(role_id)
+        if role in user.roles:
+            # Already verified
+            return
+
+        await self._verify_user(ctx.guild, user)
+        await self._log_verify_message(ctx.guild, user, ctx.author, reason=reason)
+
+    async def _verify_user(self, server: discord.Guild, user: discord.Member):
+        """Private method for verifying a user"""
+        role_id = await self.settings.guild(server).role()
+        role = server.get_role(role_id)
+        await user.add_roles(role)
+
+        count = await self.settings.guild(server).count()
+        count += 1
+        await self.settings.guild(server).count.set(count)
+
+    async def _log_verify_message(
+        self,
+        server: discord.Guild,
+        user: discord.Member,
+        verifier: discord.Member,
+        **kwargs
+    ):
+        """Private method for logging a message to the logchannel"""
+        failmessage = kwargs.get('failmessage', None)
+        message = failmessage or "User Verified"
+
+        log_id = await self.settings.guild(server).logchannel()
+        if log_id is not None:
+            log = server.get_channel(log_id)
+            data = discord.Embed(color=discord.Color.orange())
+            data.set_author(
+                name=f"{message} - {user}",
+                icon_url=user.avatar_url
+            )
+            data.add_field(name="User", value=f"{user.mention}")
+            data.add_field(name="ID", value=f"{user.id}")
+            if failmessage is None:
+                if verifier is None:
+                    data.add_field(name="Verifier", value="Auto")
+                else:
+                    data.add_field(name="Verifier",
+                                   value=f"{verifier.mention}")
+            reason = kwargs.get('reason', False)
+            if reason:
+                data.add_field(name="Reason", value=reason)
+            if log is not None:
+                try:
+                    await log.send(embed=data)
+                except discord.Forbidden:
+                    await log.send(
+                        f"**{message}** - " +
+                        f"{user.id} - {user}"
+                    )
