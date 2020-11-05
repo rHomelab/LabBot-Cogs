@@ -186,7 +186,7 @@ class ReactRoleCog(commands.Cog):
                     message = await channel.fetch_message(item["message"])
                     messages.append(
                         f'📝 {message.jump_url} '
-                        f'- {role.name} - {item["reaction"]}\n\n'
+                        f'- {role.name} - {item["reaction"]}\n'
                     )
                 except Exception as e:
                     print(e)
