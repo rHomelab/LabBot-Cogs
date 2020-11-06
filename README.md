@@ -53,7 +53,7 @@ This cog will purge users that hold no roles as a way to combat accounts being c
 
 ### Report
 
-This cog will allow members to send a report into a channel that can be reviewed and actioned upon by moderators.
+This cog will allow members to send a report into a channel where it can be reviewed and actioned upon by moderators.
 
 ## License
 
