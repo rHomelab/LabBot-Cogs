@@ -72,8 +72,8 @@ class ReportCog(commands.Cog):
             name=f"Report",
             icon_url=author.avatar_url
         )
+        data.description = message
         data.add_field(name="Reporter", value=author.mention)
-        data.add_field(name="Message", value=escape(message))
         data.add_field(name="Channel", value=ctx.channel.mention)
 
         await log.send(embed=data)
