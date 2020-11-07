@@ -1,0 +1,11 @@
+{
+	"AUTHOR": "Sneezey",
+	"SHORT": "Nicknamer cog",
+	"DESCRIPTION": "Keeps users from pushing themselves up the user board",
+	"DISABLED": false,
+	"NAME": "Nicknamer",
+	"TAGS": [
+		"nicknamer"
+	],
+	"INSTALL_MSG": "Usage: `[p]nne`"
+}
