@@ -12,6 +12,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
   - [Purge](#purge)
   - [Verify](#verify)
   - [Report](#report)
+  - [Nicknamer](#nicknamer)
 - [License](#license)
 
 ## Authors
@@ -36,6 +37,7 @@ This is a joint project involving any of the [Homelab Discord](https://discord.g
 - **[Purge](#purge):** This will purge users based on criteria.
 - **[Verify](#verify):** Allows users to verify themselves
 - **[Report](#report):** Allows users to report issues
+- **[Nicknamer](#nicknamer):** Enforces nickname changing
 
 ## Cog Documentation
 
@@ -54,6 +56,10 @@ This cog will purge users that hold no roles as a way to combat accounts being c
 ### Report
 
 This cog will allow members to send a report into a channel where it can be reviewed and actioned upon by moderators.
+
+### Nicknamer
+
+This cog will regulate people changing their nicknames to appear higher in the list or impersonate moderators.
 
 ## License
 
