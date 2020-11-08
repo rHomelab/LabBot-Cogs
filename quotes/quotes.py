@@ -36,29 +36,29 @@ class QuotesCog(commands.Cog):
 
     @commands.guild_only()
     @_quotes.command(name='add')
-    async def add_quote(self, ctx, channel:discord.TextChannel, *message_ids):
+    async def add_quote(self, ctx, *message_ids):
         """Add a message or set of messages to the quotes channel
 
         Usage:
-        - `[p]quote add <channel> <message_id>`
+        - `[p]quote add <message_id>`
 
         For multiple messages in a single quote:
-        - `[p]quote add <channel> <message_id1> <message_id2> <message_id3>`
+        - `[p]quote add <message_id1> <message_id2> <message_id3>`
         """
         messages = []
         # Collect the messages
-        for message_id in message_ids:
-            try:
-                m = await channel.fetch_message(int(message_id))
-                # Stops people from putting messages that aren't in this guild
-                if m.channel.guild != ctx.guild:
-                    raise BaseException
-                messages.append(m)
-            # Could be ValueError if the ID isn't int convertible or NotFound if it's not a valid ID
-            except Exception:
-                error_embed = await self.make_error_embed(ctx, custom_msg=f'Could not find message with ID `{message_id}`')
+        for i in range(len(message_ids)):
+            if len(messages) != i:
+                error_embed = await self.make_error_embed(ctx, custom_msg=f'Could not find message with ID `{message_ids[i-1]}`')
                 await ctx.send(embed=error_embed)
                 return
+            for channel in ctx.guild.channels:
+                try:
+                    m = await channel.fetch_message(int(message_ids[i]))
+                    messages.append(m)
+                # Could be ValueError if the ID isn't int convertible or NotFound if it's not a valid ID
+                except Exception:
+                    continue
 
         authors = []
         for i in messages:
@@ -87,13 +87,34 @@ class QuotesCog(commands.Cog):
             return
 
         try:
-            await quote_channel.send(embed=quote_embed)
-            success_embed = discord.Embed(description='Your quote has been sent', colour=ctx.guild.me.colour)
-            await ctx.send(embed=success_embed)
+            messageObject = await ctx.send(embed=quote_embed, content='Are you sure you want to send this quote?')
         # If sending the quote failed for any reason. For example, quote exceeded the character limit
         except Exception as err:
             error_embed = await self.make_error_embed(ctx, custom_msg=err)
             await ctx.send(embed=error_embed)
+
+        emojis = ['✅', '❌']
+        for emoji in emojis:
+            messageObject.add_reaction(emoji)
+
+        def reaction_check(reaction, user):
+            return (user == ctx.author) and (reaction.message.id == messageObject.id) and (reaction.emoji in emojis)
+
+        try:
+            reaction, user = await self.bot.wait_for('reaction_add', timeout=180.0, check=reaction_check)
+        except asyncio.TimeoutError:
+            try:
+                await messageObject.clear_reactions()
+            except Exception:
+                pass
+            return
+        else:
+            if reaction.emoji == '❌':
+                await messageObject.clear_reactions()
+                return
+            await quote_channel.send(embed=quote_embed)
+            success_embed = discord.Embed(description='Your quote has been sent', colour=ctx.guild.me.colour)
+            await ctx.send(embed=success_embed)
 
 # Helper functions
 
