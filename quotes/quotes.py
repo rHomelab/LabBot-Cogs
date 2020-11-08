@@ -62,6 +62,11 @@ class QuotesCog(commands.Cog):
                     except Exception:
                         continue
 
+            if len(messages) < len(message_ids):
+                error_embed = await self.make_error_embed(ctx, custom_msg=f'Could not find message with ID `{message_ids[-1]}`')
+                await ctx.send(embed=error_embed)
+                return
+
             authors = []
             for i in messages:
                 if i.author in authors:
@@ -88,12 +93,12 @@ class QuotesCog(commands.Cog):
                 await ctx.send(embed=error_embed)
                 return
 
-            try:
-                messageObject = await ctx.send(embed=quote_embed, content='Are you sure you want to send this quote?')
-            # If sending the quote failed for any reason. For example, quote exceeded the character limit
-            except Exception as err:
-                error_embed = await self.make_error_embed(ctx, custom_msg=err)
-                await ctx.send(embed=error_embed)
+        try:
+            messageObject = await ctx.send(embed=quote_embed, content='Are you sure you want to send this quote?')
+        # If sending the quote failed for any reason. For example, quote exceeded the character limit
+        except Exception as err:
+            error_embed = await self.make_error_embed(ctx, custom_msg=err)
+            await ctx.send(embed=error_embed)
 
         emojis = ['✅', '❌']
         for emoji in emojis:
