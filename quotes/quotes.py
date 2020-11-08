@@ -1,6 +1,7 @@
 """discord red-bot quotes"""
 import discord
 from redbot.core import checks, commands, Config
+import asyncio
 
 
 class QuotesCog(commands.Cog):
