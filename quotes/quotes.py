@@ -48,51 +48,52 @@ class QuotesCog(commands.Cog):
         """
         messages = []
         # Collect the messages
-        for i in range(len(message_ids)):
-            if len(messages) != i:
-                error_embed = await self.make_error_embed(ctx, custom_msg=f'Could not find message with ID `{message_ids[i-1]}`')
+        async with ctx.channel.typing():
+            for i in range(len(message_ids)):
+                if len(messages) != i:
+                    error_embed = await self.make_error_embed(ctx, custom_msg=f'Could not find message with ID `{message_ids[i-1]}`')
+                    await ctx.send(embed=error_embed)
+                    return
+                for channel in ctx.guild.channels:
+                    try:
+                        m = await channel.fetch_message(int(message_ids[i]))
+                        messages.append(m)
+                    # Could be ValueError if the ID isn't int convertible or NotFound if it's not a valid ID
+                    except Exception:
+                        continue
+
+            authors = []
+            for i in messages:
+                if i.author in authors:
+                    continue
+                authors.append(i.author)
+
+            if len(set(authors)) > 1:
+                formatted_quote = '\n'.join([f'**{i.author.nick if i.author.nick else i.author.name}:** {i.content}' for i in messages])
+            else:
+                formatted_quote = '\n'.join([i.content for i in messages])
+
+            quote_embed = await self.make_quote_embed(ctx, formatted_quote, messages, authors)
+            quote_channel = await self.config.guild(ctx.guild).quote_channel()
+
+            if not quote_channel:
+                error_embed = await self.make_error_embed(ctx, error_type='NoChannelSet')
                 await ctx.send(embed=error_embed)
                 return
-            for channel in ctx.guild.channels:
-                try:
-                    m = await channel.fetch_message(int(message_ids[i]))
-                    messages.append(m)
-                # Could be ValueError if the ID isn't int convertible or NotFound if it's not a valid ID
-                except Exception:
-                    continue
 
-        authors = []
-        for i in messages:
-            if i.author in authors:
-                continue
-            authors.append(i.author)
+            try:
+                quote_channel = await self.bot.fetch_channel(quote_channel)
+            except Exception:
+                error_embed = await self.make_error_embed(ctx, error_type='ChannelNotFound')
+                await ctx.send(embed=error_embed)
+                return
 
-        if len(set(authors)) > 1:
-            formatted_quote = '\n'.join([f'**{i.author.nick if i.author.nick else i.author.name}:** {i.content}' for i in messages])
-        else:
-            formatted_quote = '\n'.join([i.content for i in messages])
-
-        quote_embed = await self.make_quote_embed(ctx, formatted_quote, messages, authors)
-        quote_channel = await self.config.guild(ctx.guild).quote_channel()
-
-        if not quote_channel:
-            error_embed = await self.make_error_embed(ctx, error_type='NoChannelSet')
-            await ctx.send(embed=error_embed)
-            return
-
-        try:
-            quote_channel = await self.bot.fetch_channel(quote_channel)
-        except Exception:
-            error_embed = await self.make_error_embed(ctx, error_type='ChannelNotFound')
-            await ctx.send(embed=error_embed)
-            return
-
-        try:
-            messageObject = await ctx.send(embed=quote_embed, content='Are you sure you want to send this quote?')
-        # If sending the quote failed for any reason. For example, quote exceeded the character limit
-        except Exception as err:
-            error_embed = await self.make_error_embed(ctx, custom_msg=err)
-            await ctx.send(embed=error_embed)
+            try:
+                messageObject = await ctx.send(embed=quote_embed, content='Are you sure you want to send this quote?')
+            # If sending the quote failed for any reason. For example, quote exceeded the character limit
+            except Exception as err:
+                error_embed = await self.make_error_embed(ctx, custom_msg=err)
+                await ctx.send(embed=error_embed)
 
         emojis = ['✅', '❌']
         for emoji in emojis:
