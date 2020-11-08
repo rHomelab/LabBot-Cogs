@@ -55,6 +55,10 @@ This cog will purge users that hold no roles as a way to combat accounts being c
 
 This cog will allow members to send a report into a channel where it can be reviewed and actioned upon by moderators.
 
+### Quotes
+
+This cog will allow members to add quotes to the quotes channel easily
+
 ## License
 
 All code in this repository is licensed under the [GNU General Public License version 3](https://github.com/tigattack/LabBot/blob/master/LICENSE).
