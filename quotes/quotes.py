@@ -112,7 +112,8 @@ class QuotesCog(commands.Cog):
         error_msgs = {
             'NoChannelSet': f"""There is no quotes channel configured for this server.
         A moderator must set a quotes channel for this server using the command `{ctx.prefix}quote set_quotes_channel <channel>`""",
-            'ChannelNotFound': f"""Unable to find the quotes channel for this server. This could be due to permissions or because the channel no longer exists.
+            'ChannelNotFound': f"""Unable to find the quotes channel for this server. This could be due to a permissions issue or because the channel no longer exists.
+
         A moderator must set a valid quotes channel for this server using the command `{ctx.prefix}quote set_quotes_channel <channel>`"""
         }
 
