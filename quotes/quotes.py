@@ -22,12 +22,12 @@ class QuotesCog(commands.Cog):
 
     @commands.guild_only()
     @checks.mod()
-    @_quotes.command()
+    @_quotes.command(name='setchannel')
     async def set_quotes_channel(self, ctx, channel: discord.TextChannel):
         """Set the quotes channel for this server
 
         Usage:
-        - `[p]quote add <channel_id>`
+        - `[p]quote setchannel <channel>`
         """
         await self.config.guild(ctx.guild).quote_channel.set(channel.id)
         check_value = await self.config.guild(ctx.guild).quote_channel()
@@ -43,7 +43,7 @@ class QuotesCog(commands.Cog):
         - `[p]quote add <channel> <message_id>`
 
         For multiple messages in a single quote:
-        - `[p]quote add <channel> <message_ids>`
+        - `[p]quote add <channel> <message_id1> <message_id2> <message_id3>`
         """
         messages = []
         # Collect the messages
