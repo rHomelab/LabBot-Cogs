@@ -48,44 +48,50 @@ class QuotesCog(commands.Cog):
         """
         messages = []
         # Collect the messages
-        for i in range(len(message_ids)):
-            if len(messages) != i:
-                error_embed = await self.make_error_embed(ctx, custom_msg=f'Could not find message with ID `{message_ids[i-1]}`')
+        async with ctx.channel.typing():
+            for i in range(len(message_ids)):
+                if len(messages) != i:
+                    error_embed = await self.make_error_embed(ctx, custom_msg=f'Could not find message with ID `{message_ids[i-1]}`')
+                    await ctx.send(embed=error_embed)
+                    return
+                for channel in ctx.guild.channels:
+                    try:
+                        m = await channel.fetch_message(int(message_ids[i]))
+                        messages.append(m)
+                    # Could be ValueError if the ID isn't int convertible or NotFound if it's not a valid ID
+                    except Exception:
+                        continue
+
+            if len(messages) < len(message_ids):
+                error_embed = await self.make_error_embed(ctx, custom_msg=f'Could not find message with ID `{message_ids[-1]}`')
                 await ctx.send(embed=error_embed)
                 return
-            for channel in ctx.guild.channels:
-                try:
-                    m = await channel.fetch_message(int(message_ids[i]))
-                    messages.append(m)
-                # Could be ValueError if the ID isn't int convertible or NotFound if it's not a valid ID
-                except Exception:
+
+            authors = []
+            for i in messages:
+                if i.author in authors:
                     continue
+                authors.append(i.author)
 
-        authors = []
-        for i in messages:
-            if i.author in authors:
-                continue
-            authors.append(i.author)
+            if len(set(authors)) > 1:
+                formatted_quote = '\n'.join([f'**{i.author.nick if i.author.nick else i.author.name}:** {i.content}' for i in messages])
+            else:
+                formatted_quote = '\n'.join([i.content for i in messages])
 
-        if len(set(authors)) > 1:
-            formatted_quote = '\n'.join([f'**{i.author.nick if i.author.nick else i.author.name}:** {i.content}' for i in messages])
-        else:
-            formatted_quote = '\n'.join([i.content for i in messages])
+            quote_embed = await self.make_quote_embed(ctx, formatted_quote, messages, authors)
+            quote_channel = await self.config.guild(ctx.guild).quote_channel()
 
-        quote_embed = await self.make_quote_embed(ctx, formatted_quote, messages, authors)
-        quote_channel = await self.config.guild(ctx.guild).quote_channel()
+            if not quote_channel:
+                error_embed = await self.make_error_embed(ctx, error_type='NoChannelSet')
+                await ctx.send(embed=error_embed)
+                return
 
-        if not quote_channel:
-            error_embed = await self.make_error_embed(ctx, error_type='NoChannelSet')
-            await ctx.send(embed=error_embed)
-            return
-
-        try:
-            quote_channel = await self.bot.fetch_channel(quote_channel)
-        except Exception:
-            error_embed = await self.make_error_embed(ctx, error_type='ChannelNotFound')
-            await ctx.send(embed=error_embed)
-            return
+            try:
+                quote_channel = await self.bot.fetch_channel(quote_channel)
+            except Exception:
+                error_embed = await self.make_error_embed(ctx, error_type='ChannelNotFound')
+                await ctx.send(embed=error_embed)
+                return
 
         try:
             messageObject = await ctx.send(embed=quote_embed, content='Are you sure you want to send this quote?')
@@ -96,7 +102,7 @@ class QuotesCog(commands.Cog):
 
         emojis = ['✅', '❌']
         for emoji in emojis:
-            messageObject.add_reaction(emoji)
+            await messageObject.add_reaction(emoji)
 
         def reaction_check(reaction, user):
             return (user == ctx.author) and (reaction.message.id == messageObject.id) and (reaction.emoji in emojis)
@@ -122,10 +128,19 @@ class QuotesCog(commands.Cog):
     async def make_quote_embed(self, ctx, formatted_quote, messages, authors):
         """Generate the quote embed to be sent"""
         author_list = ' '.join([i.mention for i in authors])
+        channels = []
+
+        for channel in [i.channel for i in messages]:
+            if f'<#{channel.id}>' not in channels:
+                channels.append(f'<#{channel.id}>')
+
         quote_embed = discord.Embed(description=formatted_quote, colour=ctx.guild.me.colour, timestamp=messages[0].created_at)
         quote_embed.add_field(name='Authors', value=author_list, inline=False)
         quote_embed.add_field(name='Submitted by', value=ctx.author.mention, inline=True)
-        quote_embed.add_field(name='Channel', value=f'<#{messages[0].channel.id}>', inline=True)
+        if len(channels) > 1:
+            quote_embed.add_field(name='Channels', value='\n'.join(channels), inline=True)
+        else:
+            quote_embed.add_field(name='Channel', value=channels[0], inline=True)
         quote_embed.add_field(name='Link', value=f'[Jump to quote]({messages[0].jump_url})', inline=True)
         return quote_embed
 
