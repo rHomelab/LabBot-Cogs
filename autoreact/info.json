@@ -1,0 +1,13 @@
+{
+    "AUTHOR": "Issy",
+    "SHORT": "Quote funny moments",
+    "DESCRIPTION": "Add quotes to the quotes channel automagically",
+    "DISABLED": false,
+    "NAME": "quotes",
+    "TAGS": [
+        "quotes",
+        "fun",
+        "utility"
+    ],
+    "INSTALL_MSG": "Usage: `[p]quote add [channel] [message IDs]`"
+}
