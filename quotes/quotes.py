@@ -101,7 +101,7 @@ class QuotesCog(commands.Cog):
         """Generate the quote embed to be sent"""
         author_list = ' '.join([i.mention for i in authors])
         quote_embed = discord.Embed(description=formatted_quote, colour=ctx.guild.me.colour, timestamp=messages[0].created_at)
-        quote_embed.add_field(name='Mentioned', value=author_list, inline=False)
+        quote_embed.add_field(name='Authors', value=author_list, inline=False)
         quote_embed.add_field(name='Submitted by', value=ctx.author.mention, inline=True)
         quote_embed.add_field(name='Channel', value=f'<#{messages[0].channel.id}>', inline=True)
         quote_embed.add_field(name='Link', value=f'[Jump to quote]({messages[0].jump_url})', inline=True)
