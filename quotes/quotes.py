@@ -96,7 +96,7 @@ class QuotesCog(commands.Cog):
 
         emojis = ['✅', '❌']
         for emoji in emojis:
-            messageObject.add_reaction(emoji)
+            await messageObject.add_reaction(emoji)
 
         def reaction_check(reaction, user):
             return (user == ctx.author) and (reaction.message.id == messageObject.id) and (reaction.emoji in emojis)
@@ -122,10 +122,19 @@ class QuotesCog(commands.Cog):
     async def make_quote_embed(self, ctx, formatted_quote, messages, authors):
         """Generate the quote embed to be sent"""
         author_list = ' '.join([i.mention for i in authors])
+        channels = []
+
+        for channel in [i.channel for i in messages]:
+            if f'<#{channel.id}>' not in channels:
+                channels.append(f'<#{channel.id}>')
+
         quote_embed = discord.Embed(description=formatted_quote, colour=ctx.guild.me.colour, timestamp=messages[0].created_at)
         quote_embed.add_field(name='Authors', value=author_list, inline=False)
         quote_embed.add_field(name='Submitted by', value=ctx.author.mention, inline=True)
-        quote_embed.add_field(name='Channel', value=f'<#{messages[0].channel.id}>', inline=True)
+        if len(channels) > 1:
+            quote_embed.add_field(name='Channels', value='\n'.join(channels), inline=True)
+        else:
+            quote_embed.add_field(name='Channel', value=channels[0], inline=True)
         quote_embed.add_field(name='Link', value=f'[Jump to quote]({messages[0].jump_url})', inline=True)
         return quote_embed
 
