@@ -12,6 +12,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
   - [Purge](#purge)
   - [Verify](#verify)
   - [Report](#report)
+  - [Quotes](#quotes)
 - [License](#license)
 
 ## Authors
@@ -36,6 +37,7 @@ This is a joint project involving any of the [Homelab Discord](https://discord.g
 - **[Purge](#purge):** This will purge users based on criteria.
 - **[Verify](#verify):** Allows users to verify themselves
 - **[Report](#report):** Allows users to report issues
+- **[Quotes](#quotes):** Allows users to quote other users' messages in a quotes channel.
 
 ## Cog Documentation
 
@@ -58,6 +60,10 @@ This cog will allow members to send a report into a channel where it can be revi
 ### AutoReact
 
 This cog allows mods to add auto reactions to certain phrases
+
+### Quotes
+
+This cog will allow members to add quotes to the quotes channel easily.
 
 ## License
 
