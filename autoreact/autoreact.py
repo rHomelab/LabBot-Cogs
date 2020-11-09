@@ -78,7 +78,7 @@ class AutoReactCog(commands.Cog):
         if len(embed_list) > 0:
             await menu(ctx, pages=embed_list, controls=CUSTOM_CONTROLS, message=None, page=0, timeout=60)
         else:
-            error_embed = await self.make_error_embed(error_type='NoConfiguration')
+            error_embed = await self.make_error_embed(ctx, error_type='NoConfiguration')
             await ctx.send(embed=error_embed)
 
 # Add commands
