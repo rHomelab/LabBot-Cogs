@@ -166,7 +166,7 @@ class AutoReactCog(commands.Cog):
 
         emojis = ['✅', '❌']
         for i in emojis:
-            message_object.add_reaction(i)
+            await message_object.add_reaction(i)
 
         def reaction_check(reaction, user):
             return (user == ctx.author) and (reaction.message.id == message_object.id) and (reaction.emoji in emojis)
