@@ -106,7 +106,9 @@ class AutoReactCog(commands.Cog):
                 reactions[phrase.lower()] = []
                 reactions[phrase.lower()].append(emoji)
 
-        success_embed = await self.make_success_embed(emoji, phrase)
+        success_embed = discord.Embed(colour=ctx.guild.me.colour)
+        success_embed.add_field(name='Reaction', value=emoji, inline=False)
+        success_embed.add_field(name='Phrase', value=phrase, inline=False)
         await ctx.send(embed=success_embed)
 
     @commands.guild_only()
