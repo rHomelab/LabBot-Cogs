@@ -75,8 +75,13 @@ class AutoReactCog(commands.Cog):
 
         l = await self.ordered_list_from_config(ctx.guild, object_type)
         embed_list = await self.make_embed_list(ctx, object_type, l)
-        if len(embed_list) > 0:
+
+        if len(embed_list) > 1:
             await menu(ctx, pages=embed_list, controls=CUSTOM_CONTROLS, message=None, page=0, timeout=60)
+
+        elif len(embed_list) == 1:
+            await ctx.send(embed=embed_list[0])
+
         else:
             error_embed = await self.make_error_embed(ctx, error_type='NoConfiguration')
             await ctx.send(embed=error_embed)
@@ -106,7 +111,7 @@ class AutoReactCog(commands.Cog):
                 reactions[phrase.lower()] = []
                 reactions[phrase.lower()].append(emoji)
 
-        success_embed = discord.Embed(colour=ctx.guild.me.colour)
+        success_embed = discord.Embed(title='Added reaction pair', colour=ctx.guild.me.colour)
         success_embed.add_field(name='Reaction', value=emoji, inline=False)
         success_embed.add_field(name='Phrase', value=phrase, inline=False)
         await ctx.send(embed=success_embed)
