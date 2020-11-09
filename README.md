@@ -57,6 +57,10 @@ This cog will purge users that hold no roles as a way to combat accounts being c
 
 This cog will allow members to send a report into a channel where it can be reviewed and actioned upon by moderators.
 
+### AutoReact
+
+This cog allows mods to add auto reactions to certain phrases
+
 ### Quotes
 
 This cog will allow members to add quotes to the quotes channel easily.
