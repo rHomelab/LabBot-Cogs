@@ -32,6 +32,8 @@ This is a joint project involving any of the [Homelab Discord](https://discord.g
 
 #### Other
 
+* [Issy](https://github.issy.dev)
+
 ## Cog Summaries
 
 - **[Purge](#purge):** This will purge users based on criteria.
