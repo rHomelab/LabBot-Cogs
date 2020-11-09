@@ -45,8 +45,6 @@ class AutoReactCog(commands.Cog):
                 for emoji in reactions[phrase]:
                     await message.add_reaction(emoji)
 
-        await self.bot.process_commands(message)
-
 # Command groups
 
     @commands.group(name='autoreact', pass_context=True)
