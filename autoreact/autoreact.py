@@ -7,7 +7,7 @@ from redbot.core.utils.menus import menu, prev_page, close_menu, next_page
 CUSTOM_CONTROLS = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}
 
 
-class AutoReact(commands.Cog):
+class AutoReactCog(commands.Cog):
     """AutoReact Cog"""
 
     def __init__(self, bot):
