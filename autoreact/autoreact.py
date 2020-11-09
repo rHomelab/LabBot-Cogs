@@ -134,12 +134,12 @@ class AutoReactCog(commands.Cog):
 
     @commands.guild_only()
     @checks.mod()
-    @_add.command(name='whitelisted channel', aliases=['whitelisted_channel'])
+    @_add.command(name='whitelisted_channel')
     async def _add_whitelisted(self, ctx, channel:discord.TextChannel):
         """Adds a channel to the reaction whitelist
 
         Example:
-        - `[p]autoreact add whitelisted channel <channel>`
+        - `[p]autoreact add whitelisted_channel <channel>`
         """
         async with self.config.guild(ctx.guild).whitelisted_channels() as whitelist:
             if channel.id in whitelist:
@@ -236,12 +236,12 @@ class AutoReactCog(commands.Cog):
 
     @commands.guild_only()
     @checks.mod()
-    @_remove.command(name='whitelisted channel', aliases=['whitelisted_channel'])
+    @_remove.command(name='whitelisted_channel')
     async def _remove_whitelisted(self, ctx, channel:discord.TextChannel):
         """Remove whitelisted channels
 
         Example:
-        - `[p]autoreact remove whitelisted channel <channel>`
+        - `[p]autoreact remove whitelisted_channel <channel>`
         """
         async with self.config.guild(ctx.guild).whitelisted_channels() as channels:
 
@@ -275,7 +275,7 @@ class AutoReactCog(commands.Cog):
                     return
 
                 channels.remove(channel.id)
-                success_embed = discord.Embed(title='Channel removed from whitelist', description=f'<#{channel.id}>', colour=ctx.guild.me)
+                success_embed = discord.Embed(title='Channel removed from whitelist', description=f'<#{channel.id}>', colour=ctx.guild.me.colour)
                 await ctx.send(embed=success_embed)
 
 # Helper functions
