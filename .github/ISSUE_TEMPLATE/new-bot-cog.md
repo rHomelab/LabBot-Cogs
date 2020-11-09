@@ -1,8 +1,8 @@
 ---
-name: Bot Feature
+name: New Bot Cog
 about: Suggest a new feature/cog for the bot.
 title: "[FEAT] "
-labels: enhancement
+labels: new-cog
 assignees: ''
 
 ---
