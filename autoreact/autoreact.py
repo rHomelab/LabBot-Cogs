@@ -114,7 +114,7 @@ class AutoReact(commands.Cog):
     @commands.guild_only()
     @checks.mod()
     @_add.command(name='channel')
-    async def _add_channel(self, ctx, channel:discord.Channel, *emojis):
+    async def _add_channel(self, ctx, channel:discord.TextChannel, *emojis):
         """Adds groups of reactions to every message in a channel
 
         Example:
@@ -130,7 +130,7 @@ class AutoReact(commands.Cog):
     @commands.guild_only()
     @checks.mod()
     @_add.command(name='whitelisted channel', aliases=['whitelisted_channel'])
-    async def _add_whitelisted(self, ctx, channel:discord.Channel):
+    async def _add_whitelisted(self, ctx, channel:discord.TextChannel):
         """Adds a channel to the reaction whitelist
 
         Example:
@@ -186,7 +186,7 @@ class AutoReact(commands.Cog):
     @commands.guild_only()
     @checks.mod()
     @_remove.command(name='channel')
-    async def _remove_channel(self, ctx, channel:discord.Channel):
+    async def _remove_channel(self, ctx, channel:discord.TextChannel):
         """Remove reaction channels
 
         Example:
@@ -232,7 +232,7 @@ class AutoReact(commands.Cog):
     @commands.guild_only()
     @checks.mod()
     @_remove.command(name='whitelisted channel', aliases=['whitelisted_channel'])
-    async def _remove_whitelisted(self, ctx, channel:discord.Channel):
+    async def _remove_whitelisted(self, ctx, channel:discord.TextChannel):
         """Remove whitelisted channels
 
         Example:
