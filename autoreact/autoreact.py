@@ -64,7 +64,7 @@ class AutoReact(commands.Cog):
         """Remove autoreact pairs, channels, or whitelisted channels"""
         pass
 
-    @commands.is_guild()
+    @commands.guild_only()
     @checks.mod()
     @_autoreact.command(name='view')
     async def _view(self, ctx, *, object_type):
@@ -85,7 +85,7 @@ class AutoReact(commands.Cog):
 
 # Add commands
 
-    @commands.is_guild()
+    @commands.guild_only()
     @checks.mod()
     @_add.command(name='reaction')
     async def _add_reaction(self, ctx, emoji, *, phrase):
@@ -111,7 +111,7 @@ class AutoReact(commands.Cog):
         success_embed = await self.make_success_embed(emoji, phrase)
         await ctx.send(embed=success_embed)
 
-    @commands.is_guild()
+    @commands.guild_only()
     @checks.mod()
     @_add.command(name='channel')
     async def _add_channel(self, ctx, channel:discord.Channel, *emojis):
@@ -127,7 +127,7 @@ class AutoReact(commands.Cog):
         success_embed = discord.Embed(title='Autoreact channel added', description=desc, colour=ctx.guild.me.colour)
         await ctx.send(embed=success_embed)
 
-    @commands.is_guild()
+    @commands.guild_only()
     @checks.mod()
     @_add.command(name='whitelisted channel', aliases=['whitelisted_channel'])
     async def _add_whitelisted(self, ctx, channel:discord.Channel):
@@ -148,7 +148,7 @@ class AutoReact(commands.Cog):
 
 # Remove commands
 
-    @commands.is_guild()
+    @commands.guild_only()
     @checks.mod()
     @_remove.command(name='reaction')
     async def _remove_reaction(self, ctx, num:int):
@@ -183,7 +183,7 @@ class AutoReact(commands.Cog):
             success_embed = discord.Embed(title='Reaction pair removed', description=f"{to_del['reaction']} **-** {to_del['phrase']}", colour=ctx.guild.me.colour)
             await ctx.send(embed=success_embed)
 
-    @commands.is_guild()
+    @commands.guild_only()
     @checks.mod()
     @_remove.command(name='channel')
     async def _remove_channel(self, ctx, channel:discord.Channel):
@@ -229,7 +229,7 @@ class AutoReact(commands.Cog):
                 success_embed = discord.Embed(title='Reaction channel removed', description=f'<#{channel.id}>', colour=ctx.guild.me)
                 await ctx.send(embed=success_embed)
 
-    @commands.is_guild()
+    @commands.guild_only()
     @checks.mod()
     @_remove.command(name='whitelisted channel', aliases=['whitelisted_channel'])
     async def _remove_whitelisted(self, ctx, channel:discord.Channel):
