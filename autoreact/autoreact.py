@@ -47,6 +47,7 @@ class AutoReactCog(commands.Cog):
 
 # Command groups
 
+    @checks.admin()
     @commands.group(name='autoreact', pass_context=True)
     async def _autoreact(self, ctx):
         """Automagically add reactions to messages containing certain phrases"""
@@ -63,10 +64,13 @@ class AutoReactCog(commands.Cog):
         pass
 
     @commands.guild_only()
-    @checks.mod()
     @_autoreact.command(name='view')
     async def _view(self, ctx, *, object_type):
-        """View the configuration for the autoreact cog"""
+        """View the configuration for the autoreact cog
+        
+        Example:
+        - `[p]autoreact view <reactions|channels|whitelisted_channels>`
+        """
         object_type = object_type.lower()
         if object_type not in {'reactions', 'channels', 'whitelisted channels', 'whitelisted_channels'}:
             error_embed = await self.make_error_embed(ctx, error_type='InvalidObjectType')
@@ -89,10 +93,14 @@ class AutoReactCog(commands.Cog):
 # Add commands
 
     @commands.guild_only()
-    @checks.mod()
     @_add.command(name='reaction')
     async def _add_reaction(self, ctx, emoji, *, phrase):
-        """Add an autoreact pair"""
+        """Add an autoreact pair
+        
+        Example:
+        - `[p]autoreact add reaction <emoji> <phrase>`
+        """
+
         # If not unicode emoji (eg. 🤠)
         if len(emoji) > 1:
             # If discord emoji
@@ -117,7 +125,6 @@ class AutoReactCog(commands.Cog):
         await ctx.send(embed=success_embed)
 
     @commands.guild_only()
-    @checks.mod()
     @_add.command(name='channel')
     async def _add_channel(self, ctx, channel:discord.TextChannel, *emojis):
         """Adds groups of reactions to every message in a channel
@@ -133,7 +140,6 @@ class AutoReactCog(commands.Cog):
         await ctx.send(embed=success_embed)
 
     @commands.guild_only()
-    @checks.mod()
     @_add.command(name='whitelisted_channel')
     async def _add_whitelisted(self, ctx, channel:discord.TextChannel):
         """Adds a channel to the reaction whitelist
@@ -154,9 +160,14 @@ class AutoReactCog(commands.Cog):
 # Remove commands
 
     @commands.guild_only()
-    @checks.mod()
     @_remove.command(name='reaction')
     async def _remove_reaction(self, ctx, num:int):
+        """Remove a reaction pair
+        
+        Example:
+        - `[p]autoreact remove reaction <index>`
+        To find the index of a reaction pair do `[p]autoreact view reactions`
+        """
         l = await self.ordered_list_from_config(ctx.guild)
         to_del = l[num-1]
         embed = discord.Embed(colour=ctx.guild.me.colour)
@@ -189,7 +200,6 @@ class AutoReactCog(commands.Cog):
             await ctx.send(embed=success_embed)
 
     @commands.guild_only()
-    @checks.mod()
     @_remove.command(name='channel')
     async def _remove_channel(self, ctx, channel:discord.TextChannel):
         """Remove reaction channels
@@ -235,7 +245,6 @@ class AutoReactCog(commands.Cog):
                 await ctx.send(embed=success_embed)
 
     @commands.guild_only()
-    @checks.mod()
     @_remove.command(name='whitelisted_channel')
     async def _remove_whitelisted(self, ctx, channel:discord.TextChannel):
         """Remove whitelisted channels
