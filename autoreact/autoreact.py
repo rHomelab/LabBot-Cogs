@@ -2,9 +2,9 @@
 import discord, discord.utils
 import asyncio
 from redbot.core import checks, commands, Config
-from redbot.core.utils.menus import menu, prev_page, close_menu, next_page
+from redbot.core.utils.menus import menu, prev_page, next_page
 
-CUSTOM_CONTROLS = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}
+CUSTOM_CONTROLS = {"⬅️": prev_page, "➡️": next_page}
 
 
 class AutoReactCog(commands.Cog):
@@ -41,10 +41,10 @@ class AutoReactCog(commands.Cog):
             return
 
         for phrase in reactions.keys():
-            if phrase in message.content.lower():
+            if phrase in message.content.lower().split():
                 for emoji in reactions[phrase]:
-                    await message.add_reaction(emoji)
-
+                    await message.add_reaction(emoji)                    
+                    
 # Command groups
 
     @checks.admin()
@@ -368,5 +368,11 @@ class AutoReactCog(commands.Cog):
                 channel_list = '\n'.join([f'<#{i}>' for i in section])
                 embed = discord.Embed(title='Whitelisted Channels', description=channel_list, colour=ctx.guild.me.colour)
                 embed_list.append(embed)
+
+        embed_count = 1
+
+        for embed in embed_list:
+            embed.set_footer(text=f'{embed_count} of {len(embed_list)}')
+            embed_count += 1
 
         return embed_list
