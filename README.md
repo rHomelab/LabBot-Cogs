@@ -32,6 +32,8 @@ This is a joint project involving any of the [Homelab Discord](https://discord.g
 
 #### Other
 
+* [Issy](https://github.issy.dev)
+
 ## Cog Summaries
 
 - **[Purge](#purge):** This will purge users based on criteria.
@@ -56,6 +58,10 @@ This cog will purge users that hold no roles as a way to combat accounts being c
 ### Report
 
 This cog will allow members to send a report into a channel where it can be reviewed and actioned upon by moderators.
+
+### AutoReact
+
+This cog allows mods to add auto reactions to certain phrases
 
 ### Quotes
 
