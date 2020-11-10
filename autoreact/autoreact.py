@@ -372,7 +372,7 @@ class AutoReactCog(commands.Cog):
         embed_count = 1
 
         for embed in embed_list:
-            embed.set_footer(text=f'{embed_count} of {embed_range}')
+            embed.set_footer(text=f'{embed_count} of {len(embed_list)}')
             embed_count += 1
 
         return embed_list
