@@ -9,10 +9,11 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
 - [Authors](#authors)
 - [Cog Summaries](#cog-summaries)
 - [Cog Documentation](#cog-documentation)
+  - [AutoReact](#autoreact)
   - [Purge](#purge)
-  - [Verify](#verify)
-  - [Report](#report)
   - [Quotes](#quotes)
+  - [Report](#report)
+  - [Verify](#verify)
 - [License](#license)
 
 ## Authors
@@ -36,36 +37,33 @@ This is a joint project involving any of the [Homelab Discord](https://discord.g
 
 ## Cog Summaries
 
+- **[AutoReact](#autoreact):** React to specific phrases with one or more emotes.
 - **[Purge](#purge):** This will purge users based on criteria.
-- **[Verify](#verify):** Allows users to verify themselves
-- **[Report](#report):** Allows users to report issues
 - **[Quotes](#quotes):** Allows users to quote other users' messages in a quotes channel.
+- **[Report](#report):** Allows users to report issues
+- **[Verify](#verify):** Allows users to verify themselves
 
 ## Cog Documentation
-
-### Verify
-
-This cog will allow users to prove they're not a bot by having to read rules and complete an action. They will then be given the verified role if they can complete this.
-
-### Purge
-
-This cog will purge users that hold no roles as a way to combat accounts being created and left in an un-verified state.
-
-### Purge
-
-This cog will purge users that hold no roles as a way to combat accounts being created and left in an un-verified state.
-
-### Report
-
-This cog will allow members to send a report into a channel where it can be reviewed and actioned upon by moderators.
 
 ### AutoReact
 
 This cog allows mods to add auto reactions to certain phrases
 
+### Purge
+
+This cog will purge users that hold no roles as a way to combat accounts being created and left in an un-verified state.
+
 ### Quotes
 
 This cog will allow members to add quotes to the quotes channel easily.
+
+### Report
+
+This cog will allow members to send a report into a channel where it can be reviewed and actioned upon by moderators.
+
+### Verify
+
+This cog will allow users to prove they're not a bot by having to read rules and complete an action. They will then be given the verified role if they can complete this.
 
 ## License
 
