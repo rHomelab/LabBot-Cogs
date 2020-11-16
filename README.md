@@ -49,6 +49,10 @@ This is a joint project involving any of the [Homelab Discord](https://discord.g
 
 This cog allows mods to add auto reactions to certain phrases
 
+### Feed
+
+This cog allows users to feed each other
+
 ### Purge
 
 This cog will purge users that hold no roles as a way to combat accounts being created and left in an un-verified state.
@@ -64,10 +68,6 @@ This cog will allow members to send a report into a channel where it can be revi
 ### Verify
 
 This cog will allow users to prove they're not a bot by having to read rules and complete an action. They will then be given the verified role if they can complete this.
-
-### Feed
-
-This cog allows users to feed each other
 
 ## License
 
