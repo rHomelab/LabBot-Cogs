@@ -65,6 +65,10 @@ This cog will allow members to send a report into a channel where it can be revi
 
 This cog will allow users to prove they're not a bot by having to read rules and complete an action. They will then be given the verified role if they can complete this.
 
+### Feed
+
+This cog allows users to feed each other
+
 ## License
 
 All code in this repository is licensed under the [GNU General Public License version 3](https://github.com/tigattack/LabBot/blob/master/LICENSE).
