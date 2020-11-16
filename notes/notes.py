@@ -175,7 +175,9 @@ class NotesCog(commands.Cog):
         - `[p]notes list`
         """
         notes = []
-        userid = user if type(user) is str else user.id
+        userid = None
+        if user is not None:
+            userid = user if type(user) is str else user.id
 
         async with self.settings.guild(ctx.guild).notes() as li:
             li = sorted(li, key=lambda x: x["date"], reverse=True)
