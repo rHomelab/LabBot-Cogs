@@ -10,6 +10,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
 - [Cog Summaries](#cog-summaries)
 - [Cog Documentation](#cog-documentation)
   - [AutoReact](#autoreact)
+  - [Feed](#feed)
   - [Purge](#purge)
   - [Quotes](#quotes)
   - [Report](#report)
@@ -38,6 +39,7 @@ This is a joint project involving any of the [Homelab Discord](https://discord.g
 ## Cog Summaries
 
 - **[AutoReact](#autoreact):** React to specific phrases with one or more emotes.
+- **[Feed](#feed):** This allows users to feed each other
 - **[Purge](#purge):** This will purge users based on criteria.
 - **[Quotes](#quotes):** Allows users to quote other users' messages in a quotes channel.
 - **[Report](#report):** Allows users to report issues
