@@ -115,7 +115,7 @@ class NotesCog(commands.Cog):
                     # User must be an admin or owner of the note
                     if not (
                         note['reporter'] == ctx.author.id or
-                        await is_admin_or_superior(self, ctx.author)
+                        await is_admin_or_superior(ctx.bot, ctx.author)
                     ):
                         await ctx.send("You don't have permission to do this.")
                         return
