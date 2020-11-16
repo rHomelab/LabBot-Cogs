@@ -3,7 +3,7 @@ import discord
 from redbot.core import commands
 import random
 
-food = ['🍇',
+food = ('🍇',
         '🍈',
         '🍉',
         '🍊',
@@ -113,7 +113,7 @@ food = ['🍇',
         '🥤',
         '🧃',
         '🧉',
-        '🧊']
+        '🧊')
 
 class FeedCog(commands.Cog):
     """Feed Cog"""
