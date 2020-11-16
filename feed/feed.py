@@ -118,9 +118,6 @@ food = ('🍇',
 class FeedCog(commands.Cog):
     """Feed Cog"""
 
-    def __init__(self, bot):
-        self.bot = bot
-
     @commands.command(name='feed')
     async def feed(self, ctx, member: discord.Member):
         """Feed your friends
