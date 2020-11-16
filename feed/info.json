@@ -1,0 +1,11 @@
+{
+    "AUTHOR": "Issy",
+    "SHORT": "Feed your friends",
+    "DESCRIPTION": "Force food into people's mouths",
+    "DISABLED": false,
+    "NAME": "feed",
+    "TAGS": [
+        "fun"
+    ],
+    "INSTALL_MSG": "Usage: `[p]feed [member]`"
+}
