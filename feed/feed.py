@@ -125,6 +125,6 @@ class FeedCog(commands.Cog):
         Example:
         - `[p]feed <member>`
         """
-        feed_text = f"Forces {random.choice(food)} down {member.nick if member.nick else member.user.name}'s throat"
+        feed_text = f"Forces {random.choice(food)} down {member.display_name}'s throat"
         embed = discord.Embed(title=feed_text, colour=ctx.guild.me.colour)
         await ctx.send(embed=embed)
