@@ -101,7 +101,7 @@ class AutoReplyCog(commands.Cog):
         """
         l = await self.ordered_list_from_config(ctx.guild)
         to_del = l[num-1]
-        embed = self.make_trigger_embed(to_del)
+        embed = self.make_trigger_embed(ctx, to_del)
         message_object = await ctx.send(embed=embed, content='Are you sure you want to remove this autoreply trigger?')
 
         emojis = ['✅', '❌']
@@ -146,10 +146,11 @@ class AutoReplyCog(commands.Cog):
         error_embed = discord.Embed(title='Error', description=error_msgs[error_type], colour=ctx.guild.me.colour)
         return error_embed
 
-    def make_trigger_embed(self, ctx, trigger_dict: dict, index):
+    def make_trigger_embed(self, ctx, trigger_dict: dict, index={}):
         trigger = trigger_dict['trigger'][:1010] if len(trigger_dict['trigger']) > 1010 else trigger_dict['trigger']
         response = trigger_dict['response'][:1010] if len(trigger_dict['response']) > 1010 else trigger_dict['response']
         desc = f"**Trigger:**\n{trigger}\n**Response:**\n{response}"
         embed = discord.Embed(description=desc, colour=ctx.guild.me.colour)
-        embed.set_footer(text=f"{index['current'] + 1} of {index['max']}")
+        if index:
+            embed.set_footer(text=f"{index['current']} of {index['max']}")
         return embed
