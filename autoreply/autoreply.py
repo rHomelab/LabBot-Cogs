@@ -42,34 +42,35 @@ class AutoReplyCog(commands.Cog):
 # Commands
 
     @_autoreply.command(name='add')
-    async def _add(self, ctx):
+    async def _add(self, ctx, trigger:str = '', response:str = ''):
         """Add autoreply trigger"""
-        message_object = await ctx.send("Let's set up an autoreply trigger. Please enter the phrase you want this autoreply to trigger on")
+        if not trigger and not response:
+            message_object = await ctx.send("Let's set up an autoreply trigger. Please enter the phrase you want this autoreply to trigger on")
 
-        def reply_check(m):
-            return m.author == ctx.author and m.channel == ctx.channel
+            def reply_check(m):
+                return m.author == ctx.author and m.channel == ctx.channel
 
-        try:
-            msg = await self.bot.wait_for('message', check=reply_check, timeout=5*60)
-        except asyncio.TimeoutError:
-            message_object.delete()
-            return
-        else:
-            trigger = msg.content
+            try:
+                msg = await self.bot.wait_for('message', check=reply_check, timeout=5*60)
+            except asyncio.TimeoutError:
+                await message_object.delete()
+                return
+            else:
+                trigger = msg.content
 
-        message_object1 = await ctx.send('Please enter the response for this trigger')
+            message_object1 = await ctx.send('Please enter the response for this trigger')
 
-        try:
-            msg = await self.bot.wait_for('message', check=reply_check, timeout=5*60)
-        except asyncio.TimeoutError:
-            await message_object1.delete()
-            await message_object.delete()
-            return
-        else:
-            phrase = msg.content
+            try:
+                msg = await self.bot.wait_for('message', check=reply_check, timeout=5*60)
+            except asyncio.TimeoutError:
+                await message_object1.delete()
+                await message_object.delete()
+                return
+            else:
+                response = msg.content
 
         async with self.config.guild(ctx.guild).triggers() as triggers:
-            triggers[trigger] = phrase
+            triggers[trigger] = response
 
         await ctx.send('✅ Autoreply trigger successfully added')
 
