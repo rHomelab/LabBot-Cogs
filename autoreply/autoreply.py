@@ -124,8 +124,9 @@ class AutoReplyCog(commands.Cog):
                 await message_object.clear_reactions()
                 return
 
-            await self.remove_trigger(ctx.guild, to_del['phrase'], to_del['reaction'])
-            success_embed = discord.Embed(title='Autoreply trigger removed', description=f"{to_del['reaction']} **-** {to_del['phrase']}", colour=ctx.guild.me.colour)
+            await message_object.clear_reactions()
+            await self.remove_trigger(ctx.guild, to_del['trigger'], to_del['response'])
+            success_embed = self.make_removal_success_embed(ctx, to_del)
             await ctx.send(embed=success_embed)
 
 # Helper functions
@@ -145,6 +146,13 @@ class AutoReplyCog(commands.Cog):
         }
         error_embed = discord.Embed(title='Error', description=error_msgs[error_type], colour=ctx.guild.me.colour)
         return error_embed
+
+    def make_removal_success_embed(self, ctx, trigger_dict: dict):
+        trigger = trigger_dict['trigger'][:1010] if len(trigger_dict['trigger']) > 1010 else trigger_dict['trigger']
+        response = trigger_dict['response'][:1010] if len(trigger_dict['response']) > 1010 else trigger_dict['response']
+        desc = f"**Trigger:**\n{trigger}\n**Response:**\n{response}"
+        embed = discord.Embed(title='Autoreply trigger removed', description=desc, colour=ctx.guild.me.colour)
+        return embed
 
     def make_trigger_embed(self, ctx, trigger_dict: dict, index={}):
         trigger = trigger_dict['trigger'][:1010] if len(trigger_dict['trigger']) > 1010 else trigger_dict['trigger']
