@@ -228,19 +228,19 @@ class NotesCog(commands.Cog):
                 member = None
                 try:
                     member = ctx.guild.get_member(
-                        note["member"]) or note["member"]
+                        warning["member"]) or warning["member"]
                 except Exception:
-                    member = note["member"]
+                    member = warning["member"]
 
                 modname = None
                 try:
-                    modname = ctx.guild.get_member(note["reporter"])
+                    modname = ctx.guild.get_member(warning["reporter"])
                     if modname:
                         modname = modname.name
                     else:
-                        modname = note["reporterstr"] or note["reporter"]
+                        modname = warning["reporterstr"] or warning["reporter"]
                 except Exception:
-                    modname = note["reporterstr"] or note["reporter"]
+                    modname = warning["reporterstr"] or warning["reporter"]
 
                 date = datetime.utcfromtimestamp(warning["date"])
                 display_time = date.strftime("%Y-%m-%d %H:%M:%SZ")
