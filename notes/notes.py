@@ -115,7 +115,7 @@ class NotesCog(commands.Cog):
                     # User must be an admin or owner of the note
                     if not (
                         note['reporter'] == ctx.author.id or
-                        await is_admin_or_superior(self, ctx.author)
+                        await is_admin_or_superior(ctx.bot, ctx.author)
                     ):
                         await ctx.send("You don't have permission to do this.")
                         return
@@ -175,7 +175,9 @@ class NotesCog(commands.Cog):
         - `[p]notes list`
         """
         notes = []
-        userid = user if type(user) is str else user.id
+        userid = None
+        if user is not None:
+            userid = user if type(user) is str else user.id
 
         async with self.settings.guild(ctx.guild).notes() as li:
             li = sorted(li, key=lambda x: x["date"], reverse=True)

@@ -44,7 +44,7 @@ class ReportCog(commands.Cog):
         self,
         ctx: commands.Context,
         *,
-        message: str
+        message: str = None
     ):
         """Sends a report to the mods for possible intervention
 
@@ -75,6 +75,7 @@ class ReportCog(commands.Cog):
         data.add_field(name="Reporter", value=author.mention)
         data.add_field(name="Channel", value=ctx.channel.mention)
         data.add_field(name="Timestamp", value=ctx.message.created_at)
-        data.add_field(name="Message", value=escape(message), inline=False)
+        data.add_field(name="Message", value=escape(
+            message or "<no message>"), inline=False)
 
         await log.send(embed=data)
