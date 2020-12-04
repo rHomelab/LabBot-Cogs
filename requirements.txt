@@ -1,6 +1,0 @@
-pip
-wheel
-setuptools
-croniter
-requests
-Red-DiscordBot
