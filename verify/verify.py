@@ -17,10 +17,7 @@ class VerifyCog(commands.Cog):
             "role": None,
             "channel": None,
             "mintime": 60,
-            "tooquick": (
-                "That was quick, {user}! Are you sure " +
-                "you've read the rules?"
-            ),
+            "tooquick": "That was quick, {user}! Are you sure you've read the rules?",
             "wrongmsg": "",
             "logchannel": None,
             "welcomechannel": None,
@@ -58,7 +55,9 @@ class VerifyCog(commands.Cog):
             tooquick = await self.settings.guild(server).tooquick()
             tooquick = tooquick.replace("{user}", f"{author.mention}")
 
-            await self._log_verify_message(server, author, None, failmessage="User tried too quickly")
+            await self._log_verify_message(
+                server, author, None, failmessage="User tried too quickly"
+            )
 
             await message.channel.send(tooquick)
             return
@@ -68,7 +67,9 @@ class VerifyCog(commands.Cog):
             # User did not post the perfect message.
             wrongmsg = await self.settings.guild(server).wrongmsg()
 
-            await self._log_verify_message(server, author, None, failmessage="User wrote wrong message")
+            await self._log_verify_message(
+                server, author, None, failmessage="User wrote wrong message"
+            )
 
             if wrongmsg == "":
                 return
@@ -89,15 +90,18 @@ class VerifyCog(commands.Cog):
         def _should_delete(m):
             return (
                 # Delete messages by the verify-ee
-                m.author == verify.author or
+                m.author == verify.author
+                or
                 # Delete messages if it might mention the verify-ee
                 (
                     # The user must be in the mentions
-                    verify.author in m.mentions and
+                    verify.author in m.mentions
+                    and
                     # The mentions have all been verified
                     len([u for u in m.mentions if role not in u.roles]) == 0
                 )
             )
+
         try:
             await verify.channel.purge(limit=100, check=_should_delete)
         except discord.errors.Forbidden:
@@ -110,7 +114,7 @@ class VerifyCog(commands.Cog):
         pass
 
     @_verify.command("message")
-    async def verify_message(self, ctx: commands.Context, message: str):
+    async def verify_message(self, ctx: commands.Context, *, message: str):
         """Sets the new verification message
 
         Example:
@@ -196,11 +200,7 @@ class VerifyCog(commands.Cog):
         await ctx.send(f"Verify minimum time set to {mintime} seconds")
 
     @_verify.command("channel")
-    async def verify_channel(
-        self,
-        ctx: commands.Context,
-        channel: discord.TextChannel
-    ):
+    async def verify_channel(self, ctx: commands.Context, channel: discord.TextChannel):
         """Sets the channel to post the message in to get the role
 
         Example:
@@ -212,9 +212,7 @@ class VerifyCog(commands.Cog):
 
     @_verify.command("logchannel")
     async def verify_logchannel(
-        self,
-        ctx: commands.Context,
-        channel: discord.TextChannel
+        self, ctx: commands.Context, channel: discord.TextChannel
     ):
         """Sets the channel to post the verification logs
 
@@ -243,34 +241,34 @@ class VerifyCog(commands.Cog):
         role_id = await self.settings.guild(ctx.guild).role()
         if role_id is not None:
             role = ctx.guild.get_role(role_id)
-            data.add_field(name="Role", value=f"@{role.name}")
+            data.add_field(name="Role", value=role.mention)
 
         channel_id = await self.settings.guild(ctx.guild).channel()
         if channel_id is not None:
             channel = ctx.guild.get_channel(channel_id)
 
-            data.add_field(name="Channel", value=f"#{channel.name}")
+            data.add_field(name="Channel", value=channel.mention)
 
         log_id = await self.settings.guild(ctx.guild).logchannel()
         if log_id is not None:
             log = ctx.guild.get_channel(log_id)
 
-            data.add_field(name="Log", value=f"#{log.name}")
+            data.add_field(name="Log", value=log.mention)
 
         mintime = await self.settings.guild(ctx.guild).mintime()
         data.add_field(name="Min Time", value=f"{mintime} secs")
 
         message = await self.settings.guild(ctx.guild).message()
-        message = message.replace('`', '')
+        message = message.replace("`", "")
         data.add_field(name="Message", value=f"`{message}`")
 
         tooquick = await self.settings.guild(ctx.guild).tooquick()
-        tooquick = tooquick.replace('`', '')
+        tooquick = tooquick.replace("`", "")
         data.add_field(name="Too Quick Msg", value=f"`{tooquick}`")
 
         wrongmsg = await self.settings.guild(ctx.guild).wrongmsg()
         if wrongmsg != "":
-            wrongmsg = wrongmsg.replace('`', '')
+            wrongmsg = wrongmsg.replace("`", "")
             data.add_field(name="Wrong Msg", value=f"`{wrongmsg}`")
 
         welcomechannel = await self.settings.guild(ctx.guild).welcomechannel()
@@ -293,7 +291,9 @@ class VerifyCog(commands.Cog):
     @commands.command(name="v")
     @commands.guild_only()
     @checks.mod()
-    async def verify_manual(self, ctx: commands.Context, user: discord.Member, *, reason: str = None):
+    async def verify_manual(
+        self, ctx: commands.Context, user: discord.Member, *, reason: str = None
+    ):
         """Manually verifies a user
 
         Example:
@@ -337,36 +337,29 @@ class VerifyCog(commands.Cog):
         server: discord.Guild,
         user: discord.Member,
         verifier: discord.Member,
-        **kwargs
+        **kwargs,
     ):
         """Private method for logging a message to the logchannel"""
-        failmessage = kwargs.get('failmessage', None)
+        failmessage = kwargs.get("failmessage", None)
         message = failmessage or "User Verified"
 
         log_id = await self.settings.guild(server).logchannel()
         if log_id is not None:
             log = server.get_channel(log_id)
             data = discord.Embed(color=discord.Color.orange())
-            data.set_author(
-                name=f"{message} - {user}",
-                icon_url=user.avatar_url
-            )
-            data.add_field(name="User", value=f"{user.mention}")
-            data.add_field(name="ID", value=f"{user.id}")
+            data.set_author(name=f"{message} - {user}", icon_url=user.avatar_url)
+            data.add_field(name="User", value=user.mention)
+            data.add_field(name="ID", value=user.id)
             if failmessage is None:
                 if verifier is None:
                     data.add_field(name="Verifier", value="Auto")
                 else:
-                    data.add_field(name="Verifier",
-                                   value=f"{verifier.mention}")
-            reason = kwargs.get('reason', False)
+                    data.add_field(name="Verifier", value=verifier.mention)
+            reason = kwargs.get("reason", False)
             if reason:
                 data.add_field(name="Reason", value=reason)
             if log is not None:
                 try:
                     await log.send(embed=data)
                 except discord.Forbidden:
-                    await log.send(
-                        f"**{message}** - " +
-                        f"{user.id} - {user}"
-                    )
+                    await log.send(f"**{message}** - {user.id} - {user}")
