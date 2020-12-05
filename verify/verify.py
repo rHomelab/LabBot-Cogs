@@ -22,7 +22,9 @@ class VerifyCog(commands.Cog):
                 "you've read the rules?"
             ),
             "wrongmsg": "",
-            "logchannel": None
+            "logchannel": None,
+            "welcomechannel": None,
+            "welcomemsg": None,
         }
 
         self.settings.register_guild(**default_guild_settings)
@@ -117,6 +119,29 @@ class VerifyCog(commands.Cog):
         """
         await self.settings.guild(ctx.guild).message.set(message)
         await ctx.send("Verify message set.")
+
+    @_verify.command("welcome")
+    async def verify_welcome(
+        self,
+        ctx: commands.Context,
+        channel: discord.TextChannel = None,
+        *,
+        message: str = None,
+    ):
+        """Sets the welcome message
+
+        Example:
+        - `[p]verify welcome <channel> "<message>"`
+        - `[p]verify welcome #general "Welcome {user}!"`
+        - `[p]verify welcome` to reset
+        """
+        welcome_channel = None
+        if channel is not None:
+            welcome_channel = channel.id
+        await self.settings.guild(ctx.guild).welcomechannel.set(welcome_channel)
+        await self.settings.guild(ctx.guild).welcomemsg.set(message)
+
+        await ctx.send("Welcome message set.")
 
     @_verify.command("tooquick")
     async def verify_tooquick(self, ctx: commands.Context, message: str):
@@ -248,6 +273,16 @@ class VerifyCog(commands.Cog):
             wrongmsg = wrongmsg.replace('`', '')
             data.add_field(name="Wrong Msg", value=f"`{wrongmsg}`")
 
+        welcomechannel = await self.settings.guild(ctx.guild).welcomechannel()
+        if welcomechannel != None:
+            welcome = ctx.guild.get_channel(welcomechannel)
+            data.add_field(name="Welcome Channel", value=welcome.mention)
+
+        welcomemsg = await self.settings.guild(ctx.guild).welcomemsg()
+        if welcomemsg is not None:
+            welcomemsg = welcomemsg.replace("`", "")
+            data.add_field(name="Welcome Msg", value=f"`{welcomemsg}`")
+
         try:
             await ctx.send(embed=data)
         except discord.Forbidden:
@@ -288,6 +323,14 @@ class VerifyCog(commands.Cog):
         count = await self.settings.guild(server).count()
         count += 1
         await self.settings.guild(server).count.set(count)
+
+        welcomemsg = await self.settings.guild(server).welcomemsg()
+        welcomechannel = await self.settings.guild(server).welcomechannel()
+        if welcomechannel is None:
+            return
+
+        welcomemsg = welcomemsg.replace("{user}", user.mention)
+        await server.get_channel(welcomechannel).send(welcomemsg)
 
     async def _log_verify_message(
         self,
