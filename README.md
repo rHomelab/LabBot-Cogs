@@ -40,26 +40,26 @@ This is a joint project involving any of the [Homelab Discord](https://discord.g
 ## Cog Summaries
 
 - **[AutoReact](#autoreact):** React to specific phrases with one or more emotes.
-- **[AutoReply](#autoreply):** Automatically replies to messages that match a trigger phrase
-- **[Feed](#feed):** This allows users to feed each other
+- **[AutoReply](#autoreply):** Automatically replies to messages that match a trigger phrase.
+- **[Feed](#feed):** This allows users to feed each other.
 - **[Purge](#purge):** This will purge users based on criteria.
 - **[Quotes](#quotes):** Allows users to quote other users' messages in a quotes channel.
-- **[Report](#report):** Allows users to report issues
-- **[Verify](#verify):** Allows users to verify themselves
+- **[Report](#report):** Allows users to report issues.
+- **[Verify](#verify):** Allows users to verify themselves.
 
 ## Cog Documentation
 
 ### AutoReact
 
-This cog allows mods to add auto reactions to certain phrases
+This cog allows mods to add auto reactions to certain phrases.
 
 ### AutoReply
 
-This cog automatically responds to messages that match specific trigger phrases, set by admins
+This cog automatically responds to messages that match specific trigger phrases, set by admins.
 
 ### Feed
 
-This cog allows users to feed each other
+This cog allows users to feed each other.
 
 ### Purge
 
