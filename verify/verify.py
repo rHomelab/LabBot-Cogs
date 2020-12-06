@@ -239,7 +239,7 @@ class VerifyCog(commands.Cog):
         data.add_field(name="Verified", value=f"{count} users")
 
         role_id = await self.settings.guild(ctx.guild).role()
-        if role_id is not None:
+        if role_id:
             role = ctx.guild.get_role(role_id)
             data.add_field(name="Role", value=role.mention)
 
