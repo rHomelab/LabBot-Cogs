@@ -11,9 +11,12 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
 - [Cog Documentation](#cog-documentation)
   - [AutoReact](#autoreact)
   - [AutoReply](#autoreply)
+  - [Enforcer](#autoreply)
   - [Feed](#feed)
+  - [Notes](#notes)
   - [Purge](#purge)
   - [Quotes](#quotes)
+  - [Reactrole](#reactrole)
   - [Report](#report)
   - [Verify](#verify)
 - [License](#license)
@@ -41,9 +44,12 @@ This is a joint project involving any of the [Homelab Discord](https://discord.g
 
 - **[AutoReact](#autoreact):** React to specific phrases with one or more emotes.
 - **[AutoReply](#autoreply):** Automatically replies to messages that match a trigger phrase.
+- **[Enforcer](#enforcer):** Allows you to enforce certain characteristics on a channel.
 - **[Feed](#feed):** This allows users to feed each other.
+- **[Notes](#notes):** Manage notes and warnings against users.
 - **[Purge](#purge):** This will purge users based on criteria.
 - **[Quotes](#quotes):** Allows users to quote other users' messages in a quotes channel.
+- **[Reactrole](#reactrole):** Allows roles to be applied and removed using reactions.
 - **[Report](#report):** Allows users to report issues.
 - **[Verify](#verify):** Allows users to verify themselves.
 
@@ -57,9 +63,17 @@ This cog allows mods to add auto reactions to certain phrases.
 
 This cog automatically responds to messages that match specific trigger phrases, set by admins.
 
+### Enforcer
+
+This cog allows you to enforce certain characteristics on a channel.
+
 ### Feed
 
 This cog allows users to feed each other.
+
+### Notes
+
+Manage notes and warnings against users.
 
 ### Purge
 
@@ -68,6 +82,10 @@ This cog will purge users that hold no roles as a way to combat accounts being c
 ### Quotes
 
 This cog will allow members to add quotes to the quotes channel easily.
+
+### Reactrole
+
+Allows roles to be applied and removed using reactions.
 
 ### Report
 
