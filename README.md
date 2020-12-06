@@ -59,41 +59,62 @@ This is a joint project involving any of the [Homelab Discord](https://discord.g
 
 This cog allows mods to add auto reactions to certain phrases.
 
+`[p]autoreact`
+
 ### AutoReply
 
 This cog automatically responds to messages that match specific trigger phrases, set by admins.
+
+`[p]autoreact`
 
 ### Enforcer
 
 This cog allows you to enforce certain characteristics on a channel.
 
+`[p]enforcer`
+
 ### Feed
 
 This cog allows users to feed each other.
+
+`[p]feed <user>`
 
 ### Notes
 
 Manage notes and warnings against users.
 
+`[p]notes`
+`[p]warnings`
+
 ### Purge
 
 This cog will purge users that hold no roles as a way to combat accounts being created and left in an un-verified state.
+
+`[p]purge`
 
 ### Quotes
 
 This cog will allow members to add quotes to the quotes channel easily.
 
+`[p]quote`
+
 ### Reactrole
 
 Allows roles to be applied and removed using reactions.
+
+`[p]reactrole`
 
 ### Report
 
 This cog will allow members to send a report into a channel where it can be reviewed and actioned upon by moderators.
 
+`[p]report`
+
 ### Verify
 
 This cog will allow users to prove they're not a bot by having to read rules and complete an action. They will then be given the verified role if they can complete this.
+
+`[p]verify`
 
 ## License
 
