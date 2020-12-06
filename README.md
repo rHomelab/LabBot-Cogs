@@ -83,7 +83,7 @@ This cog allows users to feed each other.
 
 Manage notes and warnings against users.
 
-`[p]notes`
+`[p]notes`  
 `[p]warnings`
 
 ### Purge
