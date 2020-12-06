@@ -71,7 +71,7 @@ class VerifyCog(commands.Cog):
                 server, author, None, failmessage="User wrote wrong message"
             )
 
-            if wrongmsg == "":
+            if not wrongmsg:
                 return
             wrongmsg = wrongmsg.replace("{user}", f"{author.mention}")
             await message.channel.send(wrongmsg)
@@ -140,7 +140,7 @@ class VerifyCog(commands.Cog):
         - `[p]verify welcome` to reset
         """
         welcome_channel = None
-        if channel is not None:
+        if channel:
             welcome_channel = channel.id
         await self.settings.guild(ctx.guild).welcomechannel.set(welcome_channel)
         await self.settings.guild(ctx.guild).welcomemsg.set(message)
@@ -244,13 +244,13 @@ class VerifyCog(commands.Cog):
             data.add_field(name="Role", value=role.mention)
 
         channel_id = await self.settings.guild(ctx.guild).channel()
-        if channel_id is not None:
+        if channel_id:
             channel = ctx.guild.get_channel(channel_id)
 
             data.add_field(name="Channel", value=channel.mention)
 
         log_id = await self.settings.guild(ctx.guild).logchannel()
-        if log_id is not None:
+        if log_id:
             log = ctx.guild.get_channel(log_id)
 
             data.add_field(name="Log", value=log.mention)
@@ -267,17 +267,17 @@ class VerifyCog(commands.Cog):
         data.add_field(name="Too Quick Msg", value=f"`{tooquick}`")
 
         wrongmsg = await self.settings.guild(ctx.guild).wrongmsg()
-        if wrongmsg != "":
+        if wrongmsg:
             wrongmsg = wrongmsg.replace("`", "")
             data.add_field(name="Wrong Msg", value=f"`{wrongmsg}`")
 
         welcomechannel = await self.settings.guild(ctx.guild).welcomechannel()
-        if welcomechannel != None:
+        if welcomechannel:
             welcome = ctx.guild.get_channel(welcomechannel)
             data.add_field(name="Welcome Channel", value=welcome.mention)
 
         welcomemsg = await self.settings.guild(ctx.guild).welcomemsg()
-        if welcomemsg is not None:
+        if welcomemsg:
             welcomemsg = welcomemsg.replace("`", "")
             data.add_field(name="Welcome Msg", value=f"`{welcomemsg}`")
 
@@ -326,7 +326,7 @@ class VerifyCog(commands.Cog):
 
         welcomemsg = await self.settings.guild(server).welcomemsg()
         welcomechannel = await self.settings.guild(server).welcomechannel()
-        if welcomechannel is None:
+        if not welcomechannel:
             return
 
         welcomemsg = welcomemsg.replace("{user}", user.mention)
@@ -344,21 +344,21 @@ class VerifyCog(commands.Cog):
         message = failmessage or "User Verified"
 
         log_id = await self.settings.guild(server).logchannel()
-        if log_id is not None:
+        if log_id:
             log = server.get_channel(log_id)
             data = discord.Embed(color=discord.Color.orange())
             data.set_author(name=f"{message} - {user}", icon_url=user.avatar_url)
             data.add_field(name="User", value=user.mention)
             data.add_field(name="ID", value=user.id)
-            if failmessage is None:
-                if verifier is None:
+            if not failmessage:
+                if not verifier:
                     data.add_field(name="Verifier", value="Auto")
                 else:
                     data.add_field(name="Verifier", value=verifier.mention)
             reason = kwargs.get("reason", False)
             if reason:
                 data.add_field(name="Reason", value=reason)
-            if log is not None:
+            if log:
                 try:
                     await log.send(embed=data)
                 except discord.Forbidden:
