@@ -20,7 +20,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
 
 ## Authors
 
-This is a joint project involving any of the [Homelab Discord](https://discord.gg/homelab) admins & moderators that would like to get involved.
+This is a joint project involving any of the [Homelab Discord](https://discord.gg/homelab) admins, moderators, and community members that would like to get involved.
 
 ### Contributors
 
