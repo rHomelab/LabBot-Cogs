@@ -309,11 +309,14 @@ class EnforcerCog(commands.Cog):
 
             embeds.append(data)
 
-        await menu(
-            ctx,
-            pages=embeds,
-            controls=CUSTOM_CONTROLS,
-            message=None,
-            page=0,
-            timeout=30,
-        )
+        if len(embeds) > 0:
+            await menu(
+                ctx,
+                pages=embeds,
+                controls=CUSTOM_CONTROLS,
+                message=None,
+                page=0,
+                timeout=30,
+            )
+        else:
+            ctx.send("No configurations found")
