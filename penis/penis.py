@@ -20,6 +20,9 @@ class Penis(commands.Cog):
         msg = ""
         state = random.getstate()
 
+        if len(users) == 0:
+            users = (ctx.author,)
+
         for user in users:
             random.seed(user.id)
             dongs[user] = "8{}D".format("=" * random.randint(0, 30))
