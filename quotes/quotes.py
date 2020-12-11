@@ -38,7 +38,7 @@ class QuotesCog(commands.Cog):
 
     @commands.guild_only()
     @_quotes.command(name='add')
-    async def add_quote(self, ctx, *message_ids: tuple = ()):
+    async def add_quote(self, ctx, *message_ids):
         """Add a message or set of messages to the quotes channel
 
         Usage:
