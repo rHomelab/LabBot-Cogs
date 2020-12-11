@@ -24,11 +24,7 @@ class ReportCog(commands.Cog):
         pass
 
     @_reports.command("logchannel")
-    async def reports_logchannel(
-        self,
-        ctx: commands.Context,
-        channel: discord.TextChannel
-    ):
+    async def reports_logchannel(self, ctx: commands.Context, channel: discord.TextChannel):
         """Sets the channel to post the reports
 
         Example:
@@ -40,12 +36,7 @@ class ReportCog(commands.Cog):
 
     @commands.command("report")
     @commands.guild_only()
-    async def cmd_report(
-        self,
-        ctx: commands.Context,
-        *,
-        message: str = None
-    ):
+    async def cmd_report(self, ctx: commands.Context, *, message: str = None):
         """Sends a report to the mods for possible intervention
 
         Example:
@@ -54,28 +45,50 @@ class ReportCog(commands.Cog):
         # Pre-emptively delete the message for privacy reasons
         await ctx.message.delete()
 
-        author = ctx.author
-        if author.bot:
-            # Ignore the bot
-            return
-
         log_id = await self.settings.guild(ctx.guild).logchannel()
         log = None
-        if log_id is not None:
+        if log_id:
             log = ctx.guild.get_channel(log_id)
-        if log is None:
+        if not log:
             # Failed to get the channel
             return
 
+        data = self.make_report_embed(ctx, message)
+        await log.send(embed=data)
+
+    @commands.command("emergency")
+    @commands.guild_only()
+    async def cmd_emergency(self, ctx: commands.Context, *, message: str = None):
+        """Pings the mods with a report for possible intervention
+
+        Example:
+        - `[p]emergency <message>`
+        """
+        # Pre-emptively delete the message for privacy reasons
+        await ctx.message.delete()
+
+        log_id = await self.settings.guild(ctx.guild).logchannel()
+        log = None
+        if log_id:
+            log = ctx.guild.get_channel(log_id)
+        if not log:
+            # Failed to get the channel
+            return
+
+        data = self.make_report_embed(ctx, message)
+        mod_pings = ' '.join([i.mention for i in log.channel.members if not i.bot])
+        await log.send(content=mod_pings, embed=data)
+
+    def make_report_embed(self, ctx: commands.Context, message: str):
+        """Construct the embed to be sent"""
         data = discord.Embed(color=discord.Color.orange())
         data.set_author(
             name=f"Report",
-            icon_url=author.avatar_url
+            icon_url=ctx.author.avatar_url
         )
-        data.add_field(name="Reporter", value=author.mention)
+        data.add_field(name="Reporter", value=ctx.author.mention)
         data.add_field(name="Channel", value=ctx.channel.mention)
         data.add_field(name="Timestamp", value=ctx.message.created_at)
         data.add_field(name="Message", value=escape(
             message or "<no message>"), inline=False)
-
-        await log.send(embed=data)
+        return data
