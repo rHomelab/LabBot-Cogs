@@ -14,12 +14,12 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
   - [Enforcer](#autoreply)
   - [Feed](#feed)
   - [Notes](#notes)
+  - [Penis](#penis)
   - [Purge](#purge)
   - [Quotes](#quotes)
   - [Reactrole](#reactrole)
   - [Report](#report)
   - [Verify](#verify)
-  - [Penis](#penis)
 - [License](#license)
 
 ## Authors
@@ -48,6 +48,7 @@ This is a joint project involving any of the [Homelab Discord](https://discord.g
 - **[Enforcer](#enforcer):** Allows you to enforce certain characteristics on a channel.
 - **[Feed](#feed):** This allows users to feed each other.
 - **[Notes](#notes):** Manage notes and warnings against users.
+- **[Penis](#penis):** Allows users to check the size of their penis.
 - **[Purge](#purge):** This will purge users based on criteria.
 - **[Quotes](#quotes):** Allows users to quote other users' messages in a quotes channel.
 - **[Reactrole](#reactrole):** Allows roles to be applied and removed using reactions.
@@ -87,6 +88,12 @@ Manage notes and warnings against users.
 `[p]notes`  
 `[p]warnings`
 
+### Penis
+
+This cog allows users to check the size of their penis.
+
+`[p]penis <user>`
+
 ### Purge
 
 This cog will purge users that hold no roles as a way to combat accounts being created and left in an un-verified state.
@@ -116,12 +123,6 @@ This cog will allow members to send a report into a channel where it can be revi
 This cog will allow users to prove they're not a bot by having to read rules and complete an action. They will then be given the verified role if they can complete this.
 
 `[p]verify`
-
-### Penis
-
-This cog allows users to check the size of their penis
-
-`[p]penis <user>`
 
 ## License
 
