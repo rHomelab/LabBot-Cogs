@@ -43,8 +43,8 @@ class AutoReactCog(commands.Cog):
         for phrase in reactions.keys():
             if phrase in message.content.lower().split():
                 for emoji in reactions[phrase]:
-                    await message.add_reaction(emoji)                    
-                    
+                    await message.add_reaction(emoji)
+
 # Command groups
 
     @checks.admin()
