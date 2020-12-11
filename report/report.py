@@ -76,7 +76,9 @@ class ReportCog(commands.Cog):
             return
 
         data = self.make_report_embed(ctx, message)
-        mod_pings = ' '.join([i.mention for i in log.members if not i.bot and i.status == 'online'])
+        mod_pings = ' '.join([i.mention for i in log.members if not i.bot and str(i.status) in ['online', 'idle']])
+        if not mod_pings: # If no online/idle mods
+            mod_pings = ' '.join([i.mention for i in log.members if not i.bot])
         await log.send(content=mod_pings, embed=data)
 
     def make_report_embed(self, ctx: commands.Context, message: str):
