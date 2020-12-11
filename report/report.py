@@ -76,7 +76,7 @@ class ReportCog(commands.Cog):
             return
 
         data = self.make_report_embed(ctx, message)
-        mod_pings = ' '.join([i.mention for i in log.channel.members if not i.bot])
+        mod_pings = ' '.join([i.mention for i in log.members if not i.bot and i.status == 'online'])
         await log.send(content=mod_pings, embed=data)
 
     def make_report_embed(self, ctx: commands.Context, message: str):
@@ -88,7 +88,8 @@ class ReportCog(commands.Cog):
         )
         data.add_field(name="Reporter", value=ctx.author.mention)
         data.add_field(name="Channel", value=ctx.channel.mention)
-        data.add_field(name="Timestamp", value=ctx.message.created_at)
+        data.add_field(name="Timestamp",
+                    value=ctx.message.created_at.strftime("%Y-%m-%d %H:%I"))
         data.add_field(name="Message", value=escape(
             message or "<no message>"), inline=False)
         return data
