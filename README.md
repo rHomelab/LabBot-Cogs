@@ -19,6 +19,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
   - [Reactrole](#reactrole)
   - [Report](#report)
   - [Verify](#verify)
+  - [Penis](#penis)
 - [License](#license)
 
 ## Authors
@@ -115,6 +116,12 @@ This cog will allow members to send a report into a channel where it can be revi
 This cog will allow users to prove they're not a bot by having to read rules and complete an action. They will then be given the verified role if they can complete this.
 
 `[p]verify`
+
+### Penis
+
+This cog allows users to check the size of their penis
+
+`[p]penis <user>`
 
 ## License
 
