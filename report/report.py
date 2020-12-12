@@ -91,7 +91,7 @@ class ReportCog(commands.Cog):
         data.add_field(name="Reporter", value=ctx.author.mention)
         data.add_field(name="Channel", value=ctx.channel.mention)
         data.add_field(name="Timestamp",
-                    value=ctx.message.created_at.strftime("%Y-%m-%d %H:%I"))
+                       value=ctx.message.created_at.strftime("%Y-%m-%d %H:%I"))
         data.add_field(name="Message", value=escape(
             message or "<no message>"), inline=False)
         return data
