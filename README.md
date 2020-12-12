@@ -14,6 +14,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
   - [Enforcer](#autoreply)
   - [Feed](#feed)
   - [Notes](#notes)
+  - [Penis](#penis)
   - [Purge](#purge)
   - [Quotes](#quotes)
   - [Reactrole](#reactrole)
@@ -47,6 +48,7 @@ This is a joint project involving any of the [Homelab Discord](https://discord.g
 - **[Enforcer](#enforcer):** Allows you to enforce certain characteristics on a channel.
 - **[Feed](#feed):** This allows users to feed each other.
 - **[Notes](#notes):** Manage notes and warnings against users.
+- **[Penis](#penis):** Allows users to check the size of their penis.
 - **[Purge](#purge):** This will purge users based on criteria.
 - **[Quotes](#quotes):** Allows users to quote other users' messages in a quotes channel.
 - **[Reactrole](#reactrole):** Allows roles to be applied and removed using reactions.
@@ -85,6 +87,12 @@ Manage notes and warnings against users.
 
 `[p]notes`  
 `[p]warnings`
+
+### Penis
+
+This cog allows users to check the size of their penis.
+
+`[p]penis <user>`
 
 ### Purge
 
