@@ -70,8 +70,8 @@ class QuotesCog(commands.Cog):
                     return
                 for channel in ctx.guild.channels:
                     try:
-                        m = await channel.fetch_message(int(elem))
-                        messages.append(m)
+                        message = await channel.fetch_message(int(elem))
+                        messages.append(message)
                     # Could be ValueError if the ID isn't int convertible or NotFound if it's not a valid ID
                     except Exception:
                         continue

@@ -181,8 +181,8 @@ class ReactRoleCog(commands.Cog):
                     messages.append(
                         f"📝 {message.jump_url} " f'- {role.name} - {item["reaction"]}\n'
                     )
-                except Exception as e:
-                    print(e)
+                except Exception as exc:
+                    print(exc)
                     messages.append("Failed to retrieve 1 result.")
 
         # Pagify implementation

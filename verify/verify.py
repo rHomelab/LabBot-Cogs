@@ -88,18 +88,18 @@ class VerifyCog(commands.Cog):
 
     async def _cleanup(self, verify: discord.Message, role: discord.Role):
         # Deletion logic for the purge of messages
-        def _should_delete(m):
+        def _should_delete(message):
             return (
                 # Delete messages by the verify-ee
-                m.author == verify.author
+                message.author == verify.author
                 or
                 # Delete messages if it might mention the verify-ee
                 (
                     # The user must be in the mentions
-                    verify.author in m.mentions
+                    verify.author in message.mentions
                     and
                     # The mentions have all been verified
-                    len([u for u in m.mentions if role not in u.roles]) == 0
+                    len([u for u in message.mentions if role not in u.roles]) == 0
                 )
             )
 
