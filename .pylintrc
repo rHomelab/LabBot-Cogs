@@ -6,3 +6,8 @@ ignore =
     requirements-ci.txt,
     requirements.txt,
     venv
+disable=
+    C0114, # missing-module-docstring
+
+[FORMAT]
+max-line-length=150

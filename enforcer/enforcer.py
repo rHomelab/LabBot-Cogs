@@ -248,7 +248,7 @@ class EnforcerCog(commands.Cog):
                         conf_str = conf_str + f"{key} - {channel_obj[key]}\n"
 
                 messages.append(
-                    f"📝{channel.mention} - " + f"Configuration\n " + conf_str
+                    f"📝{channel.mention} - " + "Configuration\n " + conf_str
                 )
 
         # Pagify implementation

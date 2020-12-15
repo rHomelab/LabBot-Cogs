@@ -273,7 +273,7 @@ class PurgeCog(commands.Cog):
         - `[p]purge minage <days>`
         """
         if minage < 0:
-            await ctx.send(f"Cannot set the minimum age to 0 days or less")
+            await ctx.send("Cannot set the minimum age to 0 days or less")
 
         await self.settings.guild(ctx.guild).minage.set(minage)
         await ctx.send(f"Set the new minimum age to {minage} days.")
@@ -290,7 +290,7 @@ class PurgeCog(commands.Cog):
         """
         new_shedule = await self.set_crontab(ctx.guild, schedule)
         if not new_shedule:
-            await ctx.send(f"The schedule given was invalid.")
+            await ctx.send("The schedule given was invalid.")
         else:
             await ctx.send(f"Set the schedule to `{new_shedule}`.")
 

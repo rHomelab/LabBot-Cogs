@@ -90,7 +90,7 @@ class ReportCog(commands.Cog):
     def make_report_embed(self, ctx: commands.Context, message: str):
         """Construct the embed to be sent"""
         data = discord.Embed(color=discord.Color.orange())
-        data.set_author(name=f"Report", icon_url=ctx.author.avatar_url)
+        data.set_author(name="Report", icon_url=ctx.author.avatar_url)
         data.add_field(name="Reporter", value=ctx.author.mention)
         data.add_field(name="Channel", value=ctx.channel.mention)
         data.add_field(

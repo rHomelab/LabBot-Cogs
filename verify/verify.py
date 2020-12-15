@@ -194,7 +194,7 @@ class VerifyCog(commands.Cog):
         """
         if mintime < 0:
             # Not a valid value
-            await ctx.send(f"Verify minimum time was below 0 seconds")
+            await ctx.send("Verify minimum time was below 0 seconds")
             return
 
         await self.settings.guild(ctx.guild).mintime.set(mintime)
