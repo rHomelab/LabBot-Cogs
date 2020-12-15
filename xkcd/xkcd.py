@@ -34,7 +34,7 @@ class Xkcd(commands.Cog):
             url = f"https://xkcd.com/{comicNumber}/info.0.json"
         
         #Get comic data from xkcd api
-        comicJson = await fetchGet(url)
+        comicJson = await fetch_get(url)
         #Load as json
         comicJson = json.loads(comicJson)
 
