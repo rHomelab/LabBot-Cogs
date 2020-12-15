@@ -10,7 +10,9 @@ async def fetch_get(urlIn):
         with async_timeout.timeout(10):
             async with session.get(urlIn) as response:
                 await session.close()
-                return await response.text()
+                if response.status != 200:
+                    return False
+                return await response.json()
 
 class Xkcd(commands.Cog):
     """xkcd Cog"""
@@ -22,11 +24,6 @@ class Xkcd(commands.Cog):
     async def xkcd(self, ctx, comicNumber: int = 0):
         """Returns xkcd comic of given number, otherwise return latest comic."""
         
-        #Because Randall is very funny comic #404 doen't exist
-        if comicNumber == 404:
-            xkcdEmbed = discord.Embed(title='404', colour=ctx.guild.me.colour)
-            await ctx.send(embed=xkcdEmbed)
-            return
         if comicNumber == 0:
             #No comic specified get latest
             url = "https://xkcd.com/info.0.json"
@@ -35,8 +32,11 @@ class Xkcd(commands.Cog):
         
         #Get comic data from xkcd api
         comicJson = await fetch_get(url)
-        #Load as json
-        comicJson = json.loads(comicJson)
+
+        #If the response isn't 200 just give up
+        if comicJson == False:
+            return
+        
 
         #Build embed for xkcd comic
         
