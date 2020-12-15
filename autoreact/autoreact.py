@@ -55,17 +55,14 @@ class AutoReactCog(commands.Cog):
     @commands.group(name="autoreact", pass_context=True)
     async def _autoreact(self, ctx):
         """Automagically add reactions to messages containing certain phrases"""
-        pass
 
     @_autoreact.group(name="add", pass_context=True)
     async def _add(self, ctx):
         """Add autoreact pairs, channels, or whitelisted channels"""
-        pass
 
     @_autoreact.group(name="remove", pass_context=True)
     async def _remove(self, ctx):
         """Remove autoreact pairs, channels, or whitelisted channels"""
-        pass
 
     @commands.guild_only()
     @_autoreact.command(name="view")
@@ -429,9 +426,7 @@ class AutoReactCog(commands.Cog):
                 )
                 for i, elem in enumerate(section):
                     embed.add_field(name="Index", value=count, inline=True)
-                    embed.add_field(
-                        name="Phrase", value=elem["phrase"], inline=True
-                    )
+                    embed.add_field(name="Phrase", value=elem["phrase"], inline=True)
                     embed.add_field(
                         name="Reaction", value=elem["reaction"], inline=True
                     )

@@ -39,7 +39,6 @@ class AutoReplyCog(commands.Cog):
     @commands.group(name="autoreply", pass_context=True)
     async def _autoreply(self, ctx):
         """Automatically reply to messages matching certain trigger phrases"""
-        pass
 
     # Commands
 
