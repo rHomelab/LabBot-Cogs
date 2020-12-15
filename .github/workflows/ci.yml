@@ -59,7 +59,7 @@ jobs:
           pip install -r requirements-ci.txt
       - name: Lint with pylint
         run: |
-          pylint *
+          pylint --msg-template='::warning file={path},line={line},col={column}::{msg}' * || exit 0
   lint-isort:
     runs-on: ubuntu-latest
 
