@@ -136,7 +136,7 @@ class QuotesCog(commands.Cog):
             )
 
         try:
-            reaction, user = await self.bot.wait_for(
+            reaction, _ = await self.bot.wait_for(
                 "reaction_add", timeout=180.0, check=reaction_check
             )
         except asyncio.TimeoutError:

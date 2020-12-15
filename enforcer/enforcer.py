@@ -64,8 +64,7 @@ class EnforcerCog(commands.Cog):
                 return True
             elif value in ["false", "0", "no", "n"]:
                 return False
-            else:
-                raise ValueError()
+            raise ValueError()
         elif attribute_type == "number":
             value = int(value)
 

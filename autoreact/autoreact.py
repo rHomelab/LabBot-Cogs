@@ -218,7 +218,7 @@ class AutoReactCog(commands.Cog):
             )
 
         try:
-            reaction, user = await self.bot.wait_for(
+            reaction, _ = await self.bot.wait_for(
                 "reaction_add", timeout=180.0, check=reaction_check
             )
         except asyncio.TimeoutError:
@@ -280,7 +280,7 @@ class AutoReactCog(commands.Cog):
                 )
 
             try:
-                reaction, user = await self.bot.wait_for(
+                reaction, _ = await self.bot.wait_for(
                     "reaction_add", timeout=180.0, check=reaction_check
                 )
             except asyncio.TimeoutError:
@@ -338,7 +338,7 @@ class AutoReactCog(commands.Cog):
                 )
 
             try:
-                reaction, user = await self.bot.wait_for(
+                reaction, _ = await self.bot.wait_for(
                     "reaction_add", timeout=180.0, check=reaction_check
                 )
             except asyncio.TimeoutError:
@@ -424,7 +424,7 @@ class AutoReactCog(commands.Cog):
                 embed = discord.Embed(
                     title=object_type.capitalize(), colour=ctx.guild.me.colour
                 )
-                for i, elem in enumerate(section):
+                for elem in section:
                     embed.add_field(name="Index", value=count, inline=True)
                     embed.add_field(name="Phrase", value=elem["phrase"], inline=True)
                     embed.add_field(
