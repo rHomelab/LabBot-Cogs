@@ -3,7 +3,7 @@ import discord
 import aiohttp,async_timeout
 
 
-async def fetch_get(url_in: str): -> dict:
+async def fetch_get(url_in: str) -> dict:
     """Make web requests"""
     async with aiohttp.ClientSession() as session:
         with async_timeout.timeout(10):
