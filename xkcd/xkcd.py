@@ -34,11 +34,11 @@ class Xkcd(commands.Cog):
 
         # If the response isn't 200 throw an error
         if not comic_json:
-            embed = make_error_embed(ctx, '404')
+            embed = self.make_error_embed(ctx, '404')
             await ctx.send(embed=embed)
             return
 
-        embed = make_comic_embed(ctx, comic_json)
+        embed = self.make_comic_embed(ctx, comic_json)
         await ctx.send(embed=embed)
 
     def make_comic_embed(self, ctx: commands.Context, data: dict) -> discord.Embed:
@@ -52,6 +52,7 @@ class Xkcd(commands.Cog):
         else:
             pass
         xkcd_embed.set_image(url=data["img"])
+        return xkcd_embed
 
     def make_error_embed(self, ctx: commands.Context, error_type: str) -> discord.Embed:
         "Generate error message embeds"
