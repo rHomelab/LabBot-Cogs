@@ -20,6 +20,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
   - [Reactrole](#reactrole)
   - [Report](#report)
   - [Verify](#verify)
+  - [xkcd](#xkcd)
 - [License](#license)
 
 ## Authors
