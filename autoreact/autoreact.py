@@ -382,7 +382,9 @@ class AutoReactCog(commands.Cog):
         elif object_type == "channels":
             async with self.config.guild(guild).channels() as channels:
                 for key in channels.keys():
-                    items.append({"channel": key, "reactions": ", ".join(channels[key])})
+                    items.append(
+                        {"channel": key, "reactions": ", ".join(channels[key])}
+                    )
 
         elif object_type in ("whitelisted channels", "whitelisted_channels"):
             async with self.config.guild(guild).whitelisted_channels() as channels:
@@ -439,7 +441,7 @@ class AutoReactCog(commands.Cog):
                 embed = discord.Embed(
                     title=object_type.capitalize(), colour=ctx.guild.me.colour
                 )
-                for i, elem in enumerate(section):
+                for elem in section:
                     embed.add_field(
                         name="Channel", value=f"<#{elem['channel']}>", inline=True
                     )

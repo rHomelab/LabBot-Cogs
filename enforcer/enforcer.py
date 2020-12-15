@@ -62,10 +62,10 @@ class EnforcerCog(commands.Cog):
         if attribute_type == "bool":
             if value in ["true", "1", "yes", "y"]:
                 return True
-            elif value in ["false", "0", "no", "n"]:
+            if value in ["false", "0", "no", "n"]:
                 return False
             raise ValueError()
-        elif attribute_type == "number":
+        if attribute_type == "number":
             value = int(value)
 
             return value
@@ -242,7 +242,7 @@ class EnforcerCog(commands.Cog):
                 channel = ctx.guild.get_channel(channel_obj["id"])
 
                 conf_str = ""
-                for key in self.attributes.keys():
+                for key in self.attributes:
                     if key in channel_obj:
                         conf_str = conf_str + f"{key} - {channel_obj[key]}\n"
 

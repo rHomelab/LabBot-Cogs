@@ -203,7 +203,9 @@ class NotesCog(commands.Cog):
 
         warnings = []
         async with self.settings.guild(ctx.guild).warnings() as discord_warnings:
-            discord_warnings = sorted(discord_warnings, key=lambda x: x["date"], reverse=True)
+            discord_warnings = sorted(
+                discord_warnings, key=lambda x: x["date"], reverse=True
+            )
 
             for warning in discord_warnings:
                 if warning["deleted"]:
