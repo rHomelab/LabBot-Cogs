@@ -1,0 +1,8 @@
+[MASTER]
+ignore =
+    LICENSE,
+    LabBot.png,
+    README.md,
+    requirements-ci.txt,
+    requirements.txt,
+    venv
