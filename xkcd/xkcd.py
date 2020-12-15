@@ -34,7 +34,7 @@ class Xkcd(commands.Cog):
         comicJson = await fetch_get(url)
 
         #If the response isn't 200 just give up
-        if comicJson == False:
+        if not comicJson:
             return
         
 
