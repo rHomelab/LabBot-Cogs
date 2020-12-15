@@ -40,6 +40,7 @@ This is a joint project involving any of the [Homelab Discord](https://discord.g
 #### Other
 
 * [Issy](https://github.issy.dev)
+* [TheDevFreak](https://github.com/TheDevFreak)
 
 ## Cog Summaries
 
