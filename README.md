@@ -40,6 +40,7 @@ This is a joint project involving any of the [Homelab Discord](https://discord.g
 #### Other
 
 * [Issy](https://github.issy.dev)
+* [BeryJu](https://github.com/BeryJu)
 
 ## Cog Summaries
 
@@ -85,7 +86,7 @@ This cog allows users to feed each other.
 
 Manage notes and warnings against users.
 
-`[p]notes`  
+`[p]notes`
 `[p]warnings`
 
 ### Penis
