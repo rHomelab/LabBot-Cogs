@@ -5,7 +5,7 @@ import asyncio,aiohttp,async_timeout,json
 
 
 #Define function to do web requests
-async def fetchGet(urlIn):
+async def fetch_get(urlIn):
     async with aiohttp.ClientSession() as session:
         with async_timeout.timeout(10):
             async with session.get(urlIn) as response:
