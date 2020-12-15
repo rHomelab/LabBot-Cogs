@@ -50,8 +50,8 @@ class AutoReplyCog(commands.Cog):
                 "Let's set up an autoreply trigger. Please enter the phrase you want this autoreply to trigger on"
             )
 
-            def reply_check(m):
-                return m.author == ctx.author and m.channel == ctx.channel
+            def reply_check(message):
+                return message.author == ctx.author and message.channel == ctx.channel
 
             try:
                 msg = await self.bot.wait_for(
@@ -121,8 +121,8 @@ class AutoReplyCog(commands.Cog):
         - `[p]autoreply remove <index>`
         To find the index of an autoreply pair do `[p]autoreply view`
         """
-        l = await self.ordered_list_from_config(ctx.guild)
-        to_del = l[num - 1]
+        items = await self.ordered_list_from_config(ctx.guild)
+        to_del = items[num - 1]
         embed = self.make_trigger_embed(ctx, to_del)
         message_object = await ctx.send(
             embed=embed,

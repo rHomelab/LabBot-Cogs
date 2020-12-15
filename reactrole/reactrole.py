@@ -41,8 +41,8 @@ class ReactRoleCog(commands.Cog):
             # Go no further if disabled
             return
 
-        async with self.settings.guild(guild).roles() as li:
-            for item in li:
+        async with self.settings.guild(guild).roles() as roles:
+            for item in roles:
                 if item["message"] == payload.message_id and item["reaction"] == str(
                     payload.emoji
                 ):
@@ -69,8 +69,8 @@ class ReactRoleCog(commands.Cog):
             # Go no further if disabled
             return
 
-        async with self.settings.guild(guild).roles() as li:
-            for item in li:
+        async with self.settings.guild(guild).roles() as roles:
+            for item in roles:
                 if item["message"] == payload.message_id and item["reaction"] == str(
                     payload.emoji
                 ):
@@ -97,10 +97,10 @@ class ReactRoleCog(commands.Cog):
         Example:
         - `[p]reactrole add <message id> <reaction> <role>`
         """
-        async with self.settings.guild(ctx.guild).roles() as li:
+        async with self.settings.guild(ctx.guild).roles() as roles:
             added = False
 
-            for item in li:
+            for item in roles:
                 # Check if a result already exists
                 if (
                     item["message"] == message.id
@@ -116,7 +116,7 @@ class ReactRoleCog(commands.Cog):
                 try:
                     await message.add_reaction(str(reaction))
 
-                    li.append(
+                    roles.append(
                         {
                             "message": message.id,
                             "reaction": str(reaction),
@@ -141,10 +141,10 @@ class ReactRoleCog(commands.Cog):
         Example:
         - `[p]reactrole remove <message id> <reaction> <role>`
         """
-        async with self.settings.guild(ctx.guild).roles() as li:
+        async with self.settings.guild(ctx.guild).roles() as roles:
             exists = False
 
-            for item in li:
+            for item in roles:
                 # Check if a result already exists
                 if (
                     item["message"] == message.id
@@ -154,7 +154,7 @@ class ReactRoleCog(commands.Cog):
                 ):
                     exists = item
 
-            li.remove(exists)
+            roles.remove(exists)
 
             if exists:
                 await ctx.send("React Role removed.")
@@ -172,8 +172,8 @@ class ReactRoleCog(commands.Cog):
         enabled = await self.settings.guild(ctx.guild).enabled()
         messages.append(f"Enabled: {enabled}")
 
-        async with self.settings.guild(ctx.guild).roles() as li:
-            for item in li:
+        async with self.settings.guild(ctx.guild).roles() as roles:
+            for item in roles:
                 try:
                     role = ctx.guild.get_role(item["role"])
                     channel = ctx.guild.get_channel(item["channel"])

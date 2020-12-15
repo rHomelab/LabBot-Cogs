@@ -85,8 +85,8 @@ class AutoReactCog(commands.Cog):
             await ctx.send(embed=error_embed)
             return
 
-        l = await self.ordered_list_from_config(ctx.guild, object_type)
-        embed_list = await self.make_embed_list(ctx, object_type, l)
+        items = await self.ordered_list_from_config(ctx.guild, object_type)
+        embed_list = await self.make_embed_list(ctx, object_type, items)
 
         if len(embed_list) > 1:
             await menu(
@@ -197,8 +197,8 @@ class AutoReactCog(commands.Cog):
         - `[p]autoreact remove reaction <index>`
         To find the index of a reaction pair do `[p]autoreact view reactions`
         """
-        l = await self.ordered_list_from_config(ctx.guild)
-        to_del = l[num - 1]
+        items = await self.ordered_list_from_config(ctx.guild)
+        to_del = items[num - 1]
         embed = discord.Embed(colour=ctx.guild.me.colour)
         embed.add_field(name="Reaction", value=to_del["reaction"], inline=False)
         embed.add_field(name="Phrase", value=to_del["phrase"], inline=False)
@@ -372,24 +372,24 @@ class AutoReactCog(commands.Cog):
                 reactions[phrase].remove(reactions[reaction])
 
     async def ordered_list_from_config(self, guild, object_type="reactions"):
-        l = []
+        items = []
         if object_type == "reactions":
             async with self.config.guild(guild).reactions() as reactions:
                 for key in reactions.keys():
                     for item in reactions[key]:
-                        l.append({"phrase": key, "reaction": item})
+                        items.append({"phrase": key, "reaction": item})
 
         elif object_type == "channels":
             async with self.config.guild(guild).channels() as channels:
                 for key in channels.keys():
-                    l.append({"channel": key, "reactions": ", ".join(channels[key])})
+                    items.append({"channel": key, "reactions": ", ".join(channels[key])})
 
         elif object_type in ("whitelisted channels", "whitelisted_channels"):
             async with self.config.guild(guild).whitelisted_channels() as channels:
                 for channel in channels:
-                    l.append(channel)
+                    items.append(channel)
 
-        return l
+        return items
 
     async def make_error_embed(self, ctx, error_type: str = ""):
         error_msgs = {
@@ -405,20 +405,20 @@ class AutoReactCog(commands.Cog):
         )
         return error_embed
 
-    async def make_embed_list(self, ctx, object_type: str, l: list):
-        if not l:
+    async def make_embed_list(self, ctx, object_type: str, items: list):
+        if not items:
             return []
 
         embed_list = []
 
         # Divide the list into parts
-        def chunks(lst, n):
-            """Yield successive n-sized chunks from lst"""
-            for i in range(0, len(lst), n):
-                yield lst[i : i + n]
+        def chunks(full_list: list, chunk_size: int):
+            """Yield successive n-sized chunks from full_list"""
+            for i in range(0, len(full_list), chunk_size):
+                yield full_list[i : i + chunk_size]
 
         if object_type == "reactions":
-            sectioned_list = list(chunks(l, 8))
+            sectioned_list = list(chunks(items, 8))
             count = 1
             for section in sectioned_list:
                 embed = discord.Embed(
@@ -434,7 +434,7 @@ class AutoReactCog(commands.Cog):
                 embed_list.append(embed)
 
         elif object_type == "channels":
-            sectioned_list = list(chunks(l, 8))
+            sectioned_list = list(chunks(items, 8))
             for section in sectioned_list:
                 embed = discord.Embed(
                     title=object_type.capitalize(), colour=ctx.guild.me.colour
@@ -452,7 +452,7 @@ class AutoReactCog(commands.Cog):
                 embed_list.append(embed)
 
         elif object_type in ("whitelisted channels", "whitelisted_channels"):
-            sectioned_list = list(chunks(l, 10))
+            sectioned_list = list(chunks(items, 10))
             for section in sectioned_list:
                 channel_list = "\n".join([f"<#{i}>" for i in section])
                 embed = discord.Embed(

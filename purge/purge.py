@@ -147,9 +147,9 @@ class PurgeCog(commands.Cog):
             if member.joined_at > cutoff_date:
                 continue
 
-            async with self.settings.guild(guild).excludedusers() as li:
+            async with self.settings.guild(guild).excludedusers() as excluded_users:
                 # If user is excluded from the purge, they're safe
-                if member and member.id in li:
+                if member and member.id in excluded_users:
                     continue
 
             members.append(member)
@@ -234,9 +234,9 @@ class PurgeCog(commands.Cog):
         guild = ctx.guild
         added = False
         # Get excluded users list
-        async with self.settings.guild(guild).excludedusers() as li:
-            if user and user.id not in li:
-                li.append(user.id)
+        async with self.settings.guild(guild).excludedusers() as excluded_users:
+            if user and user.id not in excluded_users:
+                excluded_users.append(user.id)
                 added = True
 
         if added:
@@ -254,9 +254,9 @@ class PurgeCog(commands.Cog):
         guild = ctx.guild
         removed = False
         # Get excluded users list
-        async with self.settings.guild(guild).excludedusers() as li:
-            if user and user.id in li:
-                li.remove(user.id)
+        async with self.settings.guild(guild).excludedusers() as excluded_users:
+            if user and user.id in excluded_users:
+                excluded_users.remove(user.id)
                 removed = True
 
         if removed:
