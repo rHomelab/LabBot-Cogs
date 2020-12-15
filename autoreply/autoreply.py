@@ -199,7 +199,7 @@ class AutoReplyCog(commands.Cog):
         )
         return embed
 
-    def make_trigger_embed(self, ctx, trigger_dict: dict, index={}):
+    def make_trigger_embed(self, ctx, trigger_dict: dict, index=None):
         trigger = (
             trigger_dict["trigger"][:1010]
             if len(trigger_dict["trigger"]) > 1010
