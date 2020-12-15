@@ -1,17 +1,16 @@
 from redbot.core import commands
 import discord
-import random
-import asyncio,aiohttp,async_timeout,json
+import aiohttp,async_timeout
 
 
-#Define function to do web requests
-async def fetch_get(urlIn):
+async def fetch_get(url_in: str): -> dict:
+    """Make web requests"""
     async with aiohttp.ClientSession() as session:
         with async_timeout.timeout(10):
-            async with session.get(urlIn) as response:
+            async with session.get(url_in) as response:
                 await session.close()
                 if response.status != 200:
-                    return False
+                    return {}
                 return await response.json()
 
 class Xkcd(commands.Cog):
@@ -21,34 +20,42 @@ class Xkcd(commands.Cog):
         pass
 
     @commands.command()
-    async def xkcd(self, ctx, comicNumber: int = 0):
+    async def xkcd(self, ctx: commands.Context, comic_number: int = 0):
         """Returns xkcd comic of given number, otherwise return latest comic."""
-        
-        if comicNumber == 0:
-            #No comic specified get latest
+
+        if not comic_number:
+            # No comic specified, get latest
             url = "https://xkcd.com/info.0.json"
         else:
-            url = f"https://xkcd.com/{comicNumber}/info.0.json"
-        
-        #Get comic data from xkcd api
-        comicJson = await fetch_get(url)
+            url = f"https://xkcd.com/{comic_number}/info.0.json"
 
-        #If the response isn't 200 just give up
-        if not comicJson:
+        # Get comic data from xkcd api
+        comic_json = await fetch_get(url)
+
+        # If the response isn't 200 throw an error
+        if not comic_json:
+            embed = make_error_embed(ctx, '404')
+            await ctx.send(embed=embed)
             return
-        
 
-        #Build embed for xkcd comic
-        
-        xkcdEmbed = discord.Embed(title='xkcd Comic: #{}'.format(comicJson["num"]), colour=ctx.guild.me.colour)
-        xkcdEmbed.add_field(name="Comic Title", value=comicJson["safe_title"])
-        xkcdEmbed.add_field(name="Publish Date", value=f"{comicJson['year']}-{comicJson['month']}-{comicJson['day']}")
-        #If there is alt text add it to the embed, otherwise don't
-        if not comicJson["alt"]:
-            xkcdEmbed.add_field(name="Comic Alt Text", value=comicJson["alt"])
+        embed = make_comic_embed(ctx, comic_json)
+        await ctx.send(embed=embed)
+
+    def make_comic_embed(self, ctx: commands.Context, data: dict) -> discord.Embed:
+        """Generate embed for xkcd comic"""
+        xkcd_embed = discord.Embed(title=f"xkcd Comic: #{data['num']}", colour=ctx.guild.me.colour)
+        xkcd_embed.add_field(name="Comic Title", value=data["safe_title"])
+        xkcd_embed.add_field(name="Publish Date", value=f"{data['year']}-{data['month']}-{data['day']}")
+        # If there is alt text add it to the embed, otherwise don't
+        if not data["alt"]:
+            xkcd_embed.add_field(name="Comic Alt Text", value=data["alt"])
         else:
             pass
-        xkcdEmbed.set_image(url=comicJson["img"])
-        
+        xkcd_embed.set_image(url=data["img"])
 
-        await ctx.send(embed=xkcdEmbed)
+    def make_error_embed(self, ctx: commands.Context, error_type: str) -> discord.Embed:
+        "Generate error message embeds"
+        error_msgs = {
+            '404': 'Comic not found'
+        }
+        return discord.Embed(title='Error', description = error_msgs[error_type], colour=ctx.guild.me.colour)
