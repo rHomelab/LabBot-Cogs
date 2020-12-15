@@ -1,8 +1,10 @@
 """discord red-bot autoreply"""
-import discord, discord.utils
 import asyncio
-from redbot.core import checks, commands, Config
-from redbot.core.utils.menus import menu, prev_page, next_page
+
+import discord
+import discord.utils
+from redbot.core import Config, checks, commands
+from redbot.core.utils.menus import menu, next_page, prev_page
 
 CUSTOM_CONTROLS = {"⬅️": prev_page, "➡️": next_page}
 

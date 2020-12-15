@@ -1,8 +1,8 @@
 """discord red-bot reactrole cog"""
 import discord
-from redbot.core import checks, commands, Config
+from redbot.core import Config, checks, commands
 from redbot.core.utils.chat_formatting import pagify
-from redbot.core.utils.menus import menu, prev_page, close_menu, next_page
+from redbot.core.utils.menus import close_menu, menu, next_page, prev_page
 
 CUSTOM_CONTROLS = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}
 

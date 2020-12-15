@@ -1,7 +1,8 @@
 """discord red-bot verify"""
+from datetime import datetime, timedelta
+
 import discord
-from datetime import timedelta, datetime
-from redbot.core import commands, checks, Config
+from redbot.core import Config, checks, commands
 
 
 class VerifyCog(commands.Cog):

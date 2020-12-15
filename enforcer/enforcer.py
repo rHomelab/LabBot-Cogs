@@ -1,9 +1,10 @@
 """discord red-bot enforcer"""
-import discord
-from redbot.core import commands, Config, checks
-from redbot.core.utils.chat_formatting import pagify
-from redbot.core.utils.menus import menu, prev_page, close_menu, next_page
 from datetime import datetime
+
+import discord
+from redbot.core import Config, checks, commands
+from redbot.core.utils.chat_formatting import pagify
+from redbot.core.utils.menus import close_menu, menu, next_page, prev_page
 
 KEY_ENABLED = "enabled"
 KEY_MINCHARS = "minchars"

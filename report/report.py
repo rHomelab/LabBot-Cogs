@@ -1,7 +1,7 @@
 """discord red-bot report cog"""
-from redbot.core import commands, Config, checks
-from redbot.core.utils.chat_formatting import escape
 import discord
+from redbot.core import Config, checks, commands
+from redbot.core.utils.chat_formatting import escape
 
 
 class ReportCog(commands.Cog):

@@ -1,7 +1,8 @@
 """discord red-bot feed"""
+import random
+
 import discord
 from redbot.core import commands
-import random
 
 food = (
     "🍇",
