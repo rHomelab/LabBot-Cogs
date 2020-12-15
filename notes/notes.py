@@ -51,10 +51,10 @@ class NotesCog(commands.Cog):
         userid = user if type(user) is str else user.id
 
         # Save note to list
-        async with self.settings.guild(ctx.guild).notes() as li:
-            li.append(
+        async with self.settings.guild(ctx.guild).notes() as notes:
+            notes.append(
                 {
-                    "id": len(li) + 1,
+                    "id": len(notes) + 1,
                     "member": userid,
                     "message": message,
                     "deleted": False,
@@ -81,10 +81,10 @@ class NotesCog(commands.Cog):
         current_date = datetime.utcnow()
         userid = user if type(user) is str else user.id
 
-        async with self.settings.guild(ctx.guild).warnings() as li:
-            li.append(
+        async with self.settings.guild(ctx.guild).warnings() as guilds:
+            guilds.append(
                 {
-                    "id": len(li) + 1,
+                    "id": len(guilds) + 1,
                     "member": userid,
                     "message": message,
                     "deleted": False,
@@ -102,9 +102,9 @@ class NotesCog(commands.Cog):
         Example:
         - `[p]notes delete <note id>`
         """
-        async with self.settings.guild(ctx.guild).notes() as li:
+        async with self.settings.guild(ctx.guild).notes() as notes:
             try:
-                note = li[note_id - 1]
+                note = notes[note_id - 1]
                 if not note["deleted"]:
                     # User must be an admin or owner of the note
                     if not (
@@ -130,9 +130,9 @@ class NotesCog(commands.Cog):
         Example:
         - `[p]warnings delete <warning id>`
         """
-        async with self.settings.guild(ctx.guild).warnings() as li:
+        async with self.settings.guild(ctx.guild).warnings() as warnings:
             try:
-                warning = li[warning_id - 1]
+                warning = warnings[warning_id - 1]
                 if not warning["deleted"]:
                     # User must be an admin or owner of the warning
                     if not (
@@ -166,10 +166,10 @@ class NotesCog(commands.Cog):
         if user is not None:
             userid = user if type(user) is str else user.id
 
-        async with self.settings.guild(ctx.guild).notes() as li:
-            li = sorted(li, key=lambda x: x["date"], reverse=True)
+        async with self.settings.guild(ctx.guild).notes() as discord_notes:
+            discord_notes = sorted(discord_notes, key=lambda x: x["date"], reverse=True)
 
-            for note in li:
+            for note in discord_notes:
                 if note["deleted"]:
                     # Ignore deleteds
                     continue
@@ -202,10 +202,10 @@ class NotesCog(commands.Cog):
                 )
 
         warnings = []
-        async with self.settings.guild(ctx.guild).warnings() as li:
-            li = sorted(li, key=lambda x: x["date"], reverse=True)
+        async with self.settings.guild(ctx.guild).warnings() as discord_warnings:
+            discord_warnings = sorted(discord_warnings, key=lambda x: x["date"], reverse=True)
 
-            for warning in li:
+            for warning in discord_warnings:
                 if warning["deleted"]:
                     # Ignore deleteds
                     continue
@@ -287,11 +287,11 @@ class NotesCog(commands.Cog):
         data = discord.Embed(colour=(await ctx.embed_colour()))
         data.title = "Notes Status"
 
-        async with self.settings.guild(ctx.guild).notes() as li:
-            data.add_field(name="Notes", value=f"{len(li)} notes")
+        async with self.settings.guild(ctx.guild).notes() as notes:
+            data.add_field(name="Notes", value=f"{len(notes)} notes")
 
-        async with self.settings.guild(ctx.guild).warnings() as li:
-            data.add_field(name="Warnings", value=f"{len(li)} warnings")
+        async with self.settings.guild(ctx.guild).warnings() as warnings:
+            data.add_field(name="Warnings", value=f"{len(warnings)} warnings")
         try:
             await ctx.send(embed=data)
         except discord.Forbidden:

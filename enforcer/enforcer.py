@@ -73,24 +73,24 @@ class EnforcerCog(commands.Cog):
         return None
 
     async def _reset_attribute(self, channel: discord.TextChannel, attribute):
-        async with self.settings.guild(channel.guild).channels() as li:
-            for ch in li:
-                if ch["id"] == channel.id:
-                    del ch[attribute]
+        async with self.settings.guild(channel.guild).channels() as channels:
+            for _channel in channels:
+                if _channel["id"] == channel.id:
+                    del _channel[attribute]
 
     async def _set_attribute(self, channel: discord.TextChannel, attribute, value):
         added = False
-        async with self.settings.guild(channel.guild).channels() as li:
+        async with self.settings.guild(channel.guild).channels() as channels:
             # Check if attribute already exists
-            for ch in li:
-                if ch["id"] == channel.id:
-                    ch[attribute] = value
+            for _channel in channels:
+                if _channel["id"] == channel.id:
+                    _channel[attribute] = value
                     added = True
                     break
 
             if added is False:
                 # Attribute does not exist for channel
-                li.append({"id": channel.id, attribute: value})
+                channels.append({"id": channel.id, attribute: value})
 
     @_enforcer.command("configure")
     async def enforcer_configure(
@@ -153,58 +153,58 @@ class EnforcerCog(commands.Cog):
 
         delete = None
 
-        async with self.settings.guild(message.guild).channels() as li:
-            for ch in li:
-                if not ch["id"] == message.channel.id:
+        async with self.settings.guild(message.guild).channels() as channels:
+            for channel in channels:
+                if not channel["id"] == message.channel.id:
                     # Not relating to this channel
                     continue
 
-                if KEY_ENABLED not in ch or not ch[KEY_ENABLED]:
+                if KEY_ENABLED not in channel or not channel[KEY_ENABLED]:
                     # Enforcing not enabled here
                     continue
 
-                if KEY_MINCHARS in ch:
-                    if len(message.content) < ch[KEY_MINCHARS]:
+                if KEY_MINCHARS in channel:
+                    if len(message.content) < channel[KEY_MINCHARS]:
                         # They breached minchars attribute
                         delete = "Not enough characters"
                         break
 
-                if KEY_NOMEDIA in ch and ch[KEY_NOMEDIA] is True:
+                if KEY_NOMEDIA in channel and channel[KEY_NOMEDIA] is True:
                     if len(message.attachments) > 0:
                         # They breached nomedia attribute
                         delete = "No media attached"
                         break
 
-                if KEY_REQUIREMEDIA in ch and ch[KEY_REQUIREMEDIA] is True:
+                if KEY_REQUIREMEDIA in channel and channel[KEY_REQUIREMEDIA] is True:
                     if len(message.attachments) == 0:
                         # They breached requiremedia attribute
                         delete = "Requires media attached"
                         break
 
-                if KEY_NOTEXT in ch and ch[KEY_NOTEXT] is True:
+                if KEY_NOTEXT in channel and channel[KEY_NOTEXT] is True:
                     if len(message.content) > 0:
                         # They breached notext attribute
                         delete = "Message had no text"
                         break
 
-                if KEY_MINDISCORDAGE in ch:
+                if KEY_MINDISCORDAGE in channel:
                     if author.created_at is None:
                         # They didn't have a created_at date?
                         break
 
                     delta = datetime.utcnow() - author.created_at
-                    if ch[KEY_MINDISCORDAGE] > delta.seconds:
+                    if channel[KEY_MINDISCORDAGE] > delta.seconds:
                         # They breached minimum discord age
                         delete = "User not in server long enough"
                         break
 
-                if KEY_MINGUILDAGE in ch:
+                if KEY_MINGUILDAGE in channel:
                     if author.joined_at is None:
                         # They didn't have a joined_at date?
                         break
 
                     delta = datetime.utcnow() - author.joined_at
-                    if ch[KEY_MINGUILDAGE] > delta.seconds:
+                    if channel[KEY_MINGUILDAGE] > delta.seconds:
                         # They breached minimum guild age
                         delete = "User account not old enough"
                         break
@@ -237,8 +237,8 @@ class EnforcerCog(commands.Cog):
         - `[p]enforcer status`
         """
         messages = []
-        async with self.settings.guild(ctx.guild).channels() as li:
-            for channel_obj in li:
+        async with self.settings.guild(ctx.guild).channels() as channels:
+            for channel_obj in channels:
                 channel = ctx.guild.get_channel(channel_obj["id"])
 
                 conf_str = ""
