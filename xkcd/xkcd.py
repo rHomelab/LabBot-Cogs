@@ -42,7 +42,7 @@ class Xkcd(commands.Cog):
         
         xkcdEmbed = discord.Embed(title='xkcd Comic: #{}'.format(comicJson["num"]), colour=ctx.guild.me.colour)
         xkcdEmbed.add_field(name="Comic Title", value=comicJson["safe_title"])
-        xkcdEmbed.add_field(name="Publish Date", value=comicJson["year"]+"-"+comicJson["month"]+"-"+comicJson["day"])
+        xkcdEmbed.add_field(name="Publish Date", value=f"{comicJson['year']}-{comicJson['month']}-{comicJson['day']}")
         #If there is alt text add it to the embed, otherwise don't
         if comicJson["alt"] != "":
             xkcdEmbed.add_field(name="Comic Alt Text", value=comicJson["alt"])
