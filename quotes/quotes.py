@@ -60,7 +60,7 @@ class QuotesCog(commands.Cog):
         messages = []
         # Collect the messages
         async with ctx.channel.typing():
-            for i in range(len(message_ids)):
+            for i, elem in enumerate(message_ids):
                 if len(messages) != i:
                     error_embed = self.make_error_embed(
                         ctx,
@@ -70,7 +70,7 @@ class QuotesCog(commands.Cog):
                     return
                 for channel in ctx.guild.channels:
                     try:
-                        m = await channel.fetch_message(int(message_ids[i]))
+                        m = await channel.fetch_message(int(elem))
                         messages.append(m)
                     # Could be ValueError if the ID isn't int convertible or NotFound if it's not a valid ID
                     except Exception:

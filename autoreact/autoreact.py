@@ -427,13 +427,13 @@ class AutoReactCog(commands.Cog):
                 embed = discord.Embed(
                     title=object_type.capitalize(), colour=ctx.guild.me.colour
                 )
-                for i in range(len(section)):
+                for i, elem in enumerate(section):
                     embed.add_field(name="Index", value=count, inline=True)
                     embed.add_field(
-                        name="Phrase", value=section[i]["phrase"], inline=True
+                        name="Phrase", value=elem["phrase"], inline=True
                     )
                     embed.add_field(
-                        name="Reaction", value=section[i]["reaction"], inline=True
+                        name="Reaction", value=elem["reaction"], inline=True
                     )
                     count += 1
                 embed_list.append(embed)
@@ -444,13 +444,13 @@ class AutoReactCog(commands.Cog):
                 embed = discord.Embed(
                     title=object_type.capitalize(), colour=ctx.guild.me.colour
                 )
-                for i in range(len(section)):
+                for i, elem in enumerate(section):
                     embed.add_field(
-                        name="Channel", value=f"<#{section[i]['channel']}>", inline=True
+                        name="Channel", value=f"<#{elem['channel']}>", inline=True
                     )
                     embed.add_field(
                         name="Reactions",
-                        value=" ".join(section[i]["reactions"]),
+                        value=" ".join(elem["reactions"]),
                         inline=True,
                     )
                     embed.add_field(name="​", value="​", inline=True)  # ZWJ field
