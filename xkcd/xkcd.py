@@ -44,7 +44,7 @@ class Xkcd(commands.Cog):
         xkcdEmbed.add_field(name="Comic Title", value=comicJson["safe_title"])
         xkcdEmbed.add_field(name="Publish Date", value=f"{comicJson['year']}-{comicJson['month']}-{comicJson['day']}")
         #If there is alt text add it to the embed, otherwise don't
-        if comicJson["alt"] != "":
+        if not comicJson["alt"]:
             xkcdEmbed.add_field(name="Comic Alt Text", value=comicJson["alt"])
         else:
             pass
