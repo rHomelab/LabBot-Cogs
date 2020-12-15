@@ -21,14 +21,12 @@ class PurgeCog(commands.Cog):
             "count": 0,
             "lastrun": None,
             "enabled": False,
-            "logchannel": None
+            "logchannel": None,
         }
 
         self.settings.register_guild(**default_guild_settings)
 
-        self.purge_task = self.bot.loop.create_task(
-            self.check_purgeable_users()
-        )
+        self.purge_task = self.bot.loop.create_task(self.check_purgeable_users())
 
     def cog_unload(self):
         self.purge_task.cancel()
@@ -62,9 +60,7 @@ class PurgeCog(commands.Cog):
                     continue
 
                 # Set the last run
-                await self.settings.guild(guild).lastrun.set(
-                    cur_epoch.timestamp()
-                )
+                await self.settings.guild(guild).lastrun.set(cur_epoch.timestamp())
 
                 # Only run if kick_members permission is given
                 if not guild.me.guild_permissions.kick_members:
@@ -85,8 +81,10 @@ class PurgeCog(commands.Cog):
                 try:
                     await output.send(embed=data)
                 except discord.Forbidden:
-                    await output.send("I need the `Embed links` permission " +
-                                      "to send a purge board.")
+                    await output.send(
+                        "I need the `Embed links` permission "
+                        + "to send a purge board."
+                    )
 
             await asyncio.sleep(60)
 
@@ -102,9 +100,7 @@ class PurgeCog(commands.Cog):
             result = await self._purge_user(user)
             if not result:
                 pass
-            new_list = (users_kicked +
-                        "\n" +
-                        await self._get_safe_username(user))
+            new_list = users_kicked + "\n" + await self._get_safe_username(user)
             if len(new_list) > 2048:
                 break
             users_kicked = new_list
@@ -116,7 +112,7 @@ class PurgeCog(commands.Cog):
         return data
 
     async def _get_safe_username(self, user: discord.Member):
-        replaced_name = user.name.replace('`', "")
+        replaced_name = user.name.replace("`", "")
         return f"{replaced_name}#{user.discriminator}"
 
     async def _purge_user(self, user: discord.Member):
@@ -140,8 +136,7 @@ class PurgeCog(commands.Cog):
         members = []
         for member in guild.members:
             # If user has a role other than @everyone, they're safe
-            roles = [role for role in member.roles
-                     if guild.default_role != role]
+            roles = [role for role in member.roles if guild.default_role != role]
             if len(roles) > 0:
                 continue
 
@@ -167,9 +162,9 @@ class PurgeCog(commands.Cog):
         pass
 
     @_purge.command("logchannel")
-    async def purge_logchannel(self,
-                               ctx: commands.Context,
-                               channel: discord.TextChannel):
+    async def purge_logchannel(
+        self, ctx: commands.Context, channel: discord.TextChannel
+    ):
         """Logs details of purging to this channel.
         The bot must have permission to write to this channel.
 
@@ -196,8 +191,9 @@ class PurgeCog(commands.Cog):
         try:
             await ctx.send(embed=data)
         except discord.Forbidden:
-            await ctx.send("I need the `Embed links` permission to send " +
-                           "a purge board.")
+            await ctx.send(
+                "I need the `Embed links` permission to send " + "a purge board."
+            )
 
     @_purge.command("simulate")
     async def purge_simulate(self, ctx: commands.Context):
@@ -214,9 +210,7 @@ class PurgeCog(commands.Cog):
         data.description = ""
 
         for user in users:
-            new_desc = (data.description +
-                        "\n" +
-                        await self._get_safe_username(user))
+            new_desc = data.description + "\n" + await self._get_safe_username(user)
             if len(new_desc) > 2048:
                 break
             data.description = new_desc
@@ -224,13 +218,13 @@ class PurgeCog(commands.Cog):
         try:
             await ctx.send(embed=data)
         except discord.Forbidden:
-            await ctx.send("I need the `Embed links` permission to " +
-                           "send a purge simulation board.")
+            await ctx.send(
+                "I need the `Embed links` permission to "
+                + "send a purge simulation board."
+            )
 
     @_purge.command("exclude")
-    async def purge_exclude_user(self,
-                                 ctx: commands.Context,
-                                 user: discord.Member):
+    async def purge_exclude_user(self, ctx: commands.Context, user: discord.Member):
         """Excludes an otherwise eligible user from the purge.
 
         Example:
@@ -250,9 +244,7 @@ class PurgeCog(commands.Cog):
             await ctx.send("That user is already safe from pruning!")
 
     @_purge.command("include")
-    async def purge_include_user(self,
-                                 ctx: commands.Context,
-                                 user: discord.Member):
+    async def purge_include_user(self, ctx: commands.Context, user: discord.Member):
         """Includes a possibly-eligible user in the purge checks.
 
         Example:
@@ -359,13 +351,9 @@ class PurgeCog(commands.Cog):
             last_run_friendly = last_run.strftime("%Y-%m-%d %H:%M:%SZ")
         data.add_field(name="Last Run", value=f"{last_run_friendly}")
 
-        if (
-            purge_last_run is not None or
-            purge_enabled
-        ) and purge_schedule is not None:
+        if (purge_last_run is not None or purge_enabled) and purge_schedule is not None:
             next_date = croniter(
-                purge_schedule,
-                purge_last_run or datetime.utcnow()
+                purge_schedule, purge_last_run or datetime.utcnow()
             ).get_next(datetime)
             next_run_friendly = next_date.strftime("%Y-%m-%d %H:%M:%SZ")
 
@@ -377,5 +365,6 @@ class PurgeCog(commands.Cog):
         try:
             await ctx.send(embed=data)
         except discord.Forbidden:
-            await ctx.send("I need the `Embed links` permission to " +
-                           "send a purge status.")
+            await ctx.send(
+                "I need the `Embed links` permission to " + "send a purge status."
+            )

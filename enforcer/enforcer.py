@@ -23,33 +23,16 @@ class EnforcerCog(commands.Cog):
         self.bot = bot
         self.settings = Config.get_conf(self, identifier=987342593)
         self.attributes = {
-            KEY_ENABLED: {
-                "type": "bool"
-            },
-            KEY_MINCHARS: {
-                "type": "number"
-            },
-            KEY_NOTEXT: {
-                "type": "bool"
-            },
-            KEY_NOMEDIA: {
-                "type": "bool"
-            },
-            KEY_REQUIREMEDIA: {
-                "type": "bool"
-            },
-            KEY_MINDISCORDAGE: {
-                "type": "number"
-            },
-            KEY_MINGUILDAGE: {
-                "type": "number"
-            }
+            KEY_ENABLED: {"type": "bool"},
+            KEY_MINCHARS: {"type": "number"},
+            KEY_NOTEXT: {"type": "bool"},
+            KEY_NOMEDIA: {"type": "bool"},
+            KEY_REQUIREMEDIA: {"type": "bool"},
+            KEY_MINDISCORDAGE: {"type": "number"},
+            KEY_MINGUILDAGE: {"type": "number"},
         }
 
-        default_guild_settings = {
-            "channels": [],
-            "logchannel": None
-        }
+        default_guild_settings = {"channels": [], "logchannel": None}
 
         self.settings.register_guild(**default_guild_settings)
 
@@ -61,9 +44,7 @@ class EnforcerCog(commands.Cog):
 
     @_enforcer.command("logchannel")
     async def enforcer_logchannel(
-        self,
-        ctx: commands.Context,
-        channel: discord.TextChannel
+        self, ctx: commands.Context, channel: discord.TextChannel
     ):
         """Sets the channel to post the enforcer logs.
 
@@ -78,19 +59,9 @@ class EnforcerCog(commands.Cog):
         attribute_type = self.attributes[attribute]["type"]
 
         if attribute_type == "bool":
-            if value in [
-                "true",
-                "1",
-                "yes",
-                "y"
-            ]:
+            if value in ["true", "1", "yes", "y"]:
                 return True
-            elif value in [
-                "false",
-                "0",
-                "no",
-                "n"
-            ]:
+            elif value in ["false", "0", "no", "n"]:
                 return False
             else:
                 raise ValueError()
@@ -107,12 +78,7 @@ class EnforcerCog(commands.Cog):
                 if ch["id"] == channel.id:
                     del ch[attribute]
 
-    async def _set_attribute(
-        self,
-        channel: discord.TextChannel,
-        attribute,
-        value
-    ):
+    async def _set_attribute(self, channel: discord.TextChannel, attribute, value):
         added = False
         async with self.settings.guild(channel.guild).channels() as li:
             # Check if attribute already exists
@@ -124,10 +90,7 @@ class EnforcerCog(commands.Cog):
 
             if added is False:
                 # Attribute does not exist for channel
-                li.append({
-                    "id": channel.id,
-                    attribute: value
-                })
+                li.append({"id": channel.id, attribute: value})
 
     @_enforcer.command("configure")
     async def enforcer_configure(
@@ -136,7 +99,7 @@ class EnforcerCog(commands.Cog):
         channel: discord.TextChannel,
         attribute: str,
         *,
-        value: str = None
+        value: str = None,
     ):
         """Allows configuration of a channel
 
@@ -174,9 +137,7 @@ class EnforcerCog(commands.Cog):
             return
 
         await self._set_attribute(channel, attribute, value)
-        await ctx.send(
-            f"Channel has now configured the {attribute} attribute."
-        )
+        await ctx.send(f"Channel has now configured the {attribute} attribute.")
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -256,8 +217,7 @@ class EnforcerCog(commands.Cog):
                 log = message.guild.get_channel(log_id)
                 data = discord.Embed(color=discord.Color.orange())
                 data.set_author(
-                    name=f"Message Enforced - {author}",
-                    icon_url=author.avatar_url
+                    name=f"Message Enforced - {author}", icon_url=author.avatar_url
                 )
                 data.add_field(name="Enforced Reason", value=f"{delete}")
                 if log is not None:
@@ -265,15 +225,12 @@ class EnforcerCog(commands.Cog):
                         await log.send(embed=data)
                     except discord.Forbidden:
                         await log.send(
-                            "**Message Enforced** - " +
-                            f"{author.id} - {author} - Reason: {delete}"
+                            "**Message Enforced** - "
+                            + f"{author.id} - {author} - Reason: {delete}"
                         )
 
     @_enforcer.command("status")
-    async def enforcer_status(
-        self,
-        ctx: commands.Context
-    ):
+    async def enforcer_status(self, ctx: commands.Context):
         """Prints the status of the enforcement cog
 
         Example:
@@ -290,9 +247,7 @@ class EnforcerCog(commands.Cog):
                         conf_str = conf_str + f"{key} - {channel_obj[key]}\n"
 
                 messages.append(
-                    f"📝{channel.mention} - " +
-                    f"Configuration\n " +
-                    conf_str
+                    f"📝{channel.mention} - " + f"Configuration\n " + conf_str
                 )
 
         # Pagify implementation
@@ -301,7 +256,7 @@ class EnforcerCog(commands.Cog):
         embeds = []
         i = 0
         for page in pages:
-            i = i+1
+            i = i + 1
 
             data = discord.Embed(colour=(await ctx.embed_colour()))
             data.title = f"Enforcement Configuration - Page {i}/{len(pages)}"
