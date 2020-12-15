@@ -9,6 +9,7 @@ ignore =
 disable=
     C0114, # missing-module-docstring
     R0201, # no-self-use
+    unsubscriptable-object # remove when pylint is upgraded to 2.6
 
 [FORMAT]
 max-line-length=150

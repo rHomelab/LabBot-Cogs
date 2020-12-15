@@ -48,14 +48,14 @@ class NotesCog(commands.Cog):
         - `[p]notes add <user> <message>`
         """
         current_date = datetime.utcnow()
-        userid = user if type(user) is str else user.id
+        user_id = user if isinstance(user, str) else user.id
 
         # Save note to list
         async with self.settings.guild(ctx.guild).notes() as notes:
             notes.append(
                 {
                     "id": len(notes) + 1,
-                    "member": userid,
+                    "member": user_id,
                     "message": message,
                     "deleted": False,
                     "reporter": ctx.author.id,
@@ -79,13 +79,13 @@ class NotesCog(commands.Cog):
         - `[p]warnings add <user> <message>`
         """
         current_date = datetime.utcnow()
-        userid = user if type(user) is str else user.id
+        user_id = user if isinstance(user, str) else user.id
 
         async with self.settings.guild(ctx.guild).warnings() as guilds:
             guilds.append(
                 {
                     "id": len(guilds) + 1,
-                    "member": userid,
+                    "member": user_id,
                     "message": message,
                     "deleted": False,
                     "reporter": ctx.author.id,
@@ -162,9 +162,9 @@ class NotesCog(commands.Cog):
         - `[p]notes list`
         """
         notes = []
-        userid = None
+        user_id = None
         if user is not None:
-            userid = user if type(user) is str else user.id
+            user_id = user if isinstance(user, str) else user.id
 
         async with self.settings.guild(ctx.guild).notes() as discord_notes:
             discord_notes = sorted(discord_notes, key=lambda x: x["date"], reverse=True)
@@ -173,7 +173,7 @@ class NotesCog(commands.Cog):
                 if note["deleted"]:
                     # Ignore deleteds
                     continue
-                if not (user is None or note["member"] == userid):
+                if not (user is None or note["member"] == user_id):
                     # Ignore notes that don't relate to the target
                     continue
 
@@ -209,7 +209,7 @@ class NotesCog(commands.Cog):
                 if warning["deleted"]:
                     # Ignore deleteds
                     continue
-                if not (user is None or warning["member"] == userid):
+                if not (user is None or warning["member"] == user_id):
                     # Ignore warnings that don't relate to the target
                     continue
 
