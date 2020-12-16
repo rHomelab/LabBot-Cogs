@@ -15,11 +15,48 @@ class ReactRoleCog(commands.Cog):
         self.settings = Config.get_conf(self, identifier=124123498)
 
         default_guild_settings = {
-            "roles": [],
+            "roles": [], # {message: message.id, reaction: str(reaction), role: role.id, channel: channel.id}
             "enabled": True
         }
 
         self.settings.register_guild(**default_guild_settings)
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        all_guild_config = await self.config.all_guilds()
+        # All guilds in the config that have the cog enabled and a populated roles list
+        guilds = [all_guild_config[i]['roles'] for i in all_guild_config if all_guild_config[i]['enabled'] and all_guild_config[i]['roles']]
+
+        for guild in guilds:
+            unique_messages = set([i['message'] for i in guild])
+            # Reaction/role pairs grouped by message ID
+            grouped_messages = [[d for d in guild if d['message'] == m] for m in unique_messages]
+
+            for message_group in grouped_messages:
+                # Grab the message object from the first item in the list
+                # This is fine because the list will always have at least one item
+                channel = self.bot.get_channel(message_group[0]['channel'])
+                message = await channel.fetch_message(message_group[0]['message'])
+                reaction_links = {i['reaction']: i['role'] for i in message_group}
+
+                for reaction in [i for i in message.reactions if str(i) in reaction_links]:
+                    # Iterate over all users for each reaction that is also in our config
+                    async for user in reaction.users():
+                        if user.bot:
+                            continue
+
+                        # Fetch the message object
+                        member = channel.guild.get_member(user.id)
+                        if not member:
+                            try:
+                                member = await channel.guild.fetch_member(user.id)
+                            except discord.HTTPException:
+                                continue # If member not found (possibly left the guild)
+
+                        # Add the role if not applied already
+                        if (role_id := reaction_links[reaction]) not in [i.id for i in member.roles]:
+                            role = channel.guild.get_role(role_id)
+                            await member.add_roles(role)
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
@@ -36,7 +73,7 @@ class ReactRoleCog(commands.Cog):
             return
 
         guild = self.bot.get_guild(payload.guild_id)
-        if guild is None:
+        if not guild:
             # Guild shouldn't be none
             return
 
@@ -194,11 +231,11 @@ class ReactRoleCog(commands.Cog):
 
         # Pagify implementation
         # https://github.com/Cog-Creators/Red-DiscordBot/blob/9698baf6e74f6b34f946189f05e2559a60e83706/redbot/core/utils/chat_formatting.py#L208
-        pages = [page for page in pagify("\n\n".join(messages), shorten_by=58)]
+        pages = list(pagify("\n\n".join(messages), shorten_by=58))
         embeds = []
         index = 0
         for page in pages:
-            index = index+1
+            index += 1
 
             data = discord.Embed(colour=(await ctx.embed_colour()))
             data.title = f"React Roles - Page {index}/{len(pages)}"
