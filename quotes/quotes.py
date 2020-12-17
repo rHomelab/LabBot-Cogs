@@ -163,8 +163,8 @@ class QuotesCog(commands.Cog):
         channels = []
 
         for channel in [i.channel for i in messages]:
-            if f"<#{channel.id}>" not in channels:
-                channels.append(f"<#{channel.id}>")
+            if channel.mention not in channels:
+                channels.append(channel.mention)
 
         quote_embed = discord.Embed(
             description=formatted_quote,
