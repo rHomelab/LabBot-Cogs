@@ -24,7 +24,7 @@ class Convert(commands.Cog):
 
         try:
             answer = question.to(dst)
-        except DimensionalityError:
+        except:
             msg = "*Unable to convert {}*".format(question.to_compact())
         else:
             msg = "{} is {}".format(question.to_compact(), answer.to_compact())
