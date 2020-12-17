@@ -64,7 +64,7 @@ class QuotesCog(commands.Cog):
                 if len(messages) != i:
                     error_embed = self.make_error_embed(
                         ctx,
-                        custom_msg=f"Could not find message with ID `{message_ids[i-1]}`",
+                        custom_msg=f"Could not find message with ID `{message_ids[i - 1]}`",
                     )
                     await ctx.send(embed=error_embed)
                     return
@@ -73,16 +73,10 @@ class QuotesCog(commands.Cog):
                         message = await channel.fetch_message(int(elem))
                         messages.append(message)
                     # Could be ValueError if the ID isn't int convertible or NotFound if it's not a valid ID
-                    except Exception:
+                    except ValueError:
                         continue
-
-            if len(messages) < len(message_ids):
-                error_embed = self.make_error_embed(
-                    ctx,
-                    custom_msg=f"Could not find message with ID `{message_ids[-1]}`",
-                )
-                await ctx.send(embed=error_embed)
-                return
+                    except NotFound:
+                        continue
 
             authors = []
             for i in messages:
