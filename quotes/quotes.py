@@ -75,7 +75,7 @@ class QuotesCog(commands.Cog):
                     # Could be ValueError if the ID isn't int convertible or NotFound if it's not a valid ID
                     except ValueError:
                         continue
-                    except NotFound:
+                    except discord.NotFound:
                         continue
 
             authors = []
