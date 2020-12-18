@@ -10,9 +10,13 @@ class Convert(commands.Cog):
 
     @commands.command()
     async def convert(self, ctx, *unit):
-        """Convert to different kinds of units to other units
+        """Convert from different kinds of units to other units using pint
 
-        example - `[p]convert 5kg to lb`"""
+        Example:
+        - `[p]convert <from> to <to>`
+        - `[p]convert 23cm to in`
+        - `[p]convert 5in + 5ft to cm`
+        """
 
         try:
             src, dst = ' '.join(unit).split(' to ')
