@@ -22,6 +22,7 @@ class VerifyCog(commands.Cog):
             "logchannel": None,
             "welcomechannel": None,
             "welcomemsg": None,
+            "blocks": [],
         }
 
         self.settings.register_guild(**default_guild_settings)
@@ -223,6 +224,38 @@ class VerifyCog(commands.Cog):
         await self.settings.guild(ctx.guild).logchannel.set(channel.id)
         await ctx.send(f"Verify log message channel set to `{channel.name}`")
 
+    @_verify.command("block")
+    async def verify_block(self, ctx: commands.Context, user: discord.Member):
+        """Blocks the user from verification
+
+        Example:
+        - `[p]verify block 126694389572435968`
+        - `[p]verify block @Sneezey#2695`
+        """
+        async with self.settings.guild(ctx.guild).blocks() as blocked_users:
+            if user.id not in blocked_users:
+                blocked_users.append(user.id)
+                await ctx.send(f"{user.mention} has been blocked from verifying")
+            else:
+                await ctx.send(
+                    f"{user.mention} has already been blocked from verifying"
+                )
+
+    @_verify.command("unblock")
+    async def verify_unlock(self, ctx: commands.Context, user: discord.Member):
+        """Unblocks the user from verification
+
+        Example:
+        - `[p]verify unblock 126694389572435968`
+        - `[p]verify unblock @Sneezey#2695`
+        """
+        async with self.settings.guild(ctx.guild).blocks() as blocked_users:
+            if user.id in blocked_users:
+                blocked_users.remove(user.id)
+                await ctx.send(f"{user.mention} has been unblocked from verifying")
+            else:
+                await ctx.send(f"{user.mention} wasn't blocked from verifying")
+
     @_verify.command("status")
     async def verify_status(self, ctx: commands.Context):
         """Status of the cog.
@@ -280,6 +313,10 @@ class VerifyCog(commands.Cog):
         if welcomemsg:
             welcomemsg = welcomemsg.replace("`", "")
             data.add_field(name="Welcome Msg", value=f"`{welcomemsg}`")
+
+        async with self.settings.guild(ctx.guild).blocks() as blocked_users:
+            blocked_count = len(blocked_users)
+            data.add_field(name="# Users Blocked", value=f"`{blocked_count}`")
 
         try:
             await ctx.send(embed=data)
