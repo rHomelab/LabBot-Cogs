@@ -1,5 +1,4 @@
 from redbot.core import commands
-from redbot.core.utils.chat_formatting import pagify
 import discord
 from pint import UnitRegistry
 
@@ -13,21 +12,16 @@ class Convert(commands.Cog):
     async def convert(self, ctx, *unit):
         """Convert to different kinds of units to other units
 
-        Uses pint to support most units available"""
+        example - `[p]convert 5kg to lb`"""
 
         try:
             src, dst = ' '.join(unit).split(' to ')
-
             question = self.__ureg(src)
-        except:
-            return
-
-        try:
             answer = question.to(dst)
         except:
-            msg = "*Unable to convert {}*".format(question.to_compact())
+            colour = await ctx.embed_colour()
+            error_embed = discord.Embed(title='Error', description=f"*Unable to convert {question.to_compact()}*", colour=colour)
+            await ctx.send(embed=error_embed)
         else:
-            msg = "{} is {}".format(question.to_compact(), answer.to_compact())
-
-        for page in pagify(msg):
-            await ctx.send(page)
+            msg = f"{question.to_compact()} is {answer.to_compact()}"
+            await ctx.send(msg)
