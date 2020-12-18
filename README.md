@@ -41,6 +41,7 @@ This is a joint project involving any of the [Homelab Discord](https://discord.g
 #### Other
 
 * [Issy](https://github.issy.dev)
+* [TheDevFreak](https://github.com/TheDevFreak)
 * [McTwist](https://github.com/McTwist)
 
 ## Cog Summaries
