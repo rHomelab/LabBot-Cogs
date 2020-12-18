@@ -78,13 +78,12 @@ class VerifyCog(commands.Cog):
             await message.channel.send(wrongmsg)
             return
 
-        await self._verify_user(server, author)
+        if await self._verify_user(server, author):
+            await self._log_verify_message(server, author, None)
 
-        await self._log_verify_message(server, author, None)
-
-        role_id = await self.settings.guild(server).role()
-        role = server.get_role(role_id)
-        await self._cleanup(message, role)
+            role_id = await self.settings.guild(server).role()
+            role = server.get_role(role_id)
+            await self._cleanup(message, role)
 
     async def _cleanup(self, verify: discord.Message, role: discord.Role):
         # Deletion logic for the purge of messages
@@ -348,11 +347,15 @@ class VerifyCog(commands.Cog):
             # Already verified
             return
 
-        await self._verify_user(ctx.guild, user)
-        await self._log_verify_message(ctx.guild, user, ctx.author, reason=reason)
+        if await self._verify_user(ctx.guild, user):
+            await self._log_verify_message(ctx.guild, user, ctx.author, reason=reason)
 
     async def _verify_user(self, server: discord.Guild, user: discord.Member):
         """Private method for verifying a user"""
+        async with self.settings.guild(server).blocks() as blocked_users:
+            if user.id in blocked_users:
+                return False
+
         role_id = await self.settings.guild(server).role()
         role = server.get_role(role_id)
         await user.add_roles(role)
@@ -363,11 +366,11 @@ class VerifyCog(commands.Cog):
 
         welcomemsg = await self.settings.guild(server).welcomemsg()
         welcomechannel = await self.settings.guild(server).welcomechannel()
-        if not welcomechannel:
-            return
+        if welcomechannel:
+            welcomemsg = welcomemsg.replace("{user}", user.mention)
+            await server.get_channel(welcomechannel).send(welcomemsg)
 
-        welcomemsg = welcomemsg.replace("{user}", user.mention)
-        await server.get_channel(welcomechannel).send(welcomemsg)
+        return True
 
     async def _log_verify_message(
         self,
