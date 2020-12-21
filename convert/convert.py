@@ -24,7 +24,7 @@ class Convert(commands.Cog):
             answer = question.to(dst)
         except:
             colour = await ctx.embed_colour()
-            error_embed = discord.Embed(title='Error', description=f"*Unable to convert {question.to_compact()}*", colour=colour)
+            error_embed = discord.Embed(title='Error', description=f"Unable to convert `{' '.join(unit)}`", colour=colour)
             await ctx.send(embed=error_embed)
         else:
             msg = f"{question.to_compact()} is {answer.to_compact()}"
