@@ -11,6 +11,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
 - [Cog Documentation](#cog-documentation)
   - [AutoReact](#autoreact)
   - [AutoReply](#autoreply)
+  - [Convert](#convert)
   - [Enforcer](#autoreply)
   - [Feed](#feed)
   - [Notes](#notes)
@@ -42,11 +43,13 @@ This is a joint project involving any of the [Homelab Discord](https://discord.g
 
 * [Issy](https://github.issy.dev)
 * [TheDevFreak](https://github.com/TheDevFreak)
+* [McTwist](https://github.com/McTwist)
 
 ## Cog Summaries
 
 - **[AutoReact](#autoreact):** React to specific phrases with one or more emotes.
 - **[AutoReply](#autoreply):** Automatically replies to messages that match a trigger phrase.
+- **[Convert](#convert):** Converts any unit to an another unit.
 - **[Enforcer](#enforcer):** Allows you to enforce certain characteristics on a channel.
 - **[Feed](#feed):** This allows users to feed each other.
 - **[Notes](#notes):** Manage notes and warnings against users.
@@ -71,6 +74,12 @@ This cog allows mods to add auto reactions to certain phrases.
 This cog automatically responds to messages that match specific trigger phrases, set by admins.
 
 `[p]autoreact`
+
+### Convert
+
+Converts any unit to an another unit.
+
+`[p]convert`
 
 ### Enforcer
 
