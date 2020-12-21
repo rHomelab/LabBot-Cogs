@@ -22,6 +22,7 @@ class VerifyCog(commands.Cog):
             "logchannel": None,
             "welcomechannel": None,
             "welcomemsg": None,
+            "blocks": [],
         }
 
         self.settings.register_guild(**default_guild_settings)
@@ -77,13 +78,12 @@ class VerifyCog(commands.Cog):
             await message.channel.send(wrongmsg)
             return
 
-        await self._verify_user(server, author)
+        if await self._verify_user(server, author):
+            await self._log_verify_message(server, author, None)
 
-        await self._log_verify_message(server, author, None)
-
-        role_id = await self.settings.guild(server).role()
-        role = server.get_role(role_id)
-        await self._cleanup(message, role)
+            role_id = await self.settings.guild(server).role()
+            role = server.get_role(role_id)
+            await self._cleanup(message, role)
 
     async def _cleanup(self, verify: discord.Message, role: discord.Role):
         # Deletion logic for the purge of messages
@@ -223,6 +223,38 @@ class VerifyCog(commands.Cog):
         await self.settings.guild(ctx.guild).logchannel.set(channel.id)
         await ctx.send(f"Verify log message channel set to `{channel.name}`")
 
+    @_verify.command("block")
+    async def verify_block(self, ctx: commands.Context, user: discord.Member):
+        """Blocks the user from verification
+
+        Example:
+        - `[p]verify block 126694389572435968`
+        - `[p]verify block @Sneezey#2695`
+        """
+        async with self.settings.guild(ctx.guild).blocks() as blocked_users:
+            if user.id not in blocked_users:
+                blocked_users.append(user.id)
+                await ctx.send(f"{user.mention} has been blocked from verifying")
+            else:
+                await ctx.send(
+                    f"{user.mention} has already been blocked from verifying"
+                )
+
+    @_verify.command("unblock")
+    async def verify_unlock(self, ctx: commands.Context, user: discord.Member):
+        """Unblocks the user from verification
+
+        Example:
+        - `[p]verify unblock 126694389572435968`
+        - `[p]verify unblock @Sneezey#2695`
+        """
+        async with self.settings.guild(ctx.guild).blocks() as blocked_users:
+            if user.id in blocked_users:
+                blocked_users.remove(user.id)
+                await ctx.send(f"{user.mention} has been unblocked from verifying")
+            else:
+                await ctx.send(f"{user.mention} wasn't blocked from verifying")
+
     @_verify.command("status")
     async def verify_status(self, ctx: commands.Context):
         """Status of the cog.
@@ -281,6 +313,10 @@ class VerifyCog(commands.Cog):
             welcomemsg = welcomemsg.replace("`", "")
             data.add_field(name="Welcome Msg", value=f"`{welcomemsg}`")
 
+        async with self.settings.guild(ctx.guild).blocks() as blocked_users:
+            blocked_count = len(blocked_users)
+            data.add_field(name="# Users Blocked", value=f"`{blocked_count}`")
+
         try:
             await ctx.send(embed=data)
         except discord.Forbidden:
@@ -311,11 +347,15 @@ class VerifyCog(commands.Cog):
             # Already verified
             return
 
-        await self._verify_user(ctx.guild, user)
-        await self._log_verify_message(ctx.guild, user, ctx.author, reason=reason)
+        if await self._verify_user(ctx.guild, user):
+            await self._log_verify_message(ctx.guild, user, ctx.author, reason=reason)
 
     async def _verify_user(self, server: discord.Guild, user: discord.Member):
         """Private method for verifying a user"""
+        async with self.settings.guild(server).blocks() as blocked_users:
+            if user.id in blocked_users:
+                return False
+
         role_id = await self.settings.guild(server).role()
         role = server.get_role(role_id)
         await user.add_roles(role)
@@ -326,11 +366,11 @@ class VerifyCog(commands.Cog):
 
         welcomemsg = await self.settings.guild(server).welcomemsg()
         welcomechannel = await self.settings.guild(server).welcomechannel()
-        if not welcomechannel:
-            return
+        if welcomechannel:
+            welcomemsg = welcomemsg.replace("{user}", user.mention)
+            await server.get_channel(welcomechannel).send(welcomemsg)
 
-        welcomemsg = welcomemsg.replace("{user}", user.mention)
-        await server.get_channel(welcomechannel).send(welcomemsg)
+        return True
 
     async def _log_verify_message(
         self,

@@ -21,6 +21,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
   - [Reactrole](#reactrole)
   - [Report](#report)
   - [Verify](#verify)
+  - [xkcd](#xkcd)
 - [License](#license)
 
 ## Authors
@@ -58,6 +59,7 @@ This is a joint project involving any of the [Homelab Discord](https://discord.g
 - **[Reactrole](#reactrole):** Allows roles to be applied and removed using reactions.
 - **[Report](#report):** Allows users to report issues.
 - **[Verify](#verify):** Allows users to verify themselves.
+- **[xkcd](#xkcd):** Allows users to look at xkcd comics.
 
 ## Cog Documentation
 
@@ -133,6 +135,12 @@ This cog will allow members to send a report into a channel where it can be revi
 This cog will allow users to prove they're not a bot by having to read rules and complete an action. They will then be given the verified role if they can complete this.
 
 `[p]verify`
+
+### xkcd
+
+This cog allows users to look at xkcd comics
+
+`[p]xkcd <comicnumber>`
 
 ## License
 
