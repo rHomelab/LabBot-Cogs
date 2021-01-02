@@ -1,6 +1,7 @@
-from redbot.core import commands
 import discord
 from pint import UnitRegistry
+from redbot.core import commands
+
 
 class Convert(commands.Cog):
     """Convert related commands."""
@@ -19,12 +20,16 @@ class Convert(commands.Cog):
         """
 
         try:
-            src, dst = ' '.join(unit).split(' to ')
+            src, dst = " ".join(unit).split(" to ")
             question = self.__ureg(src)
             answer = question.to(dst)
         except:
             colour = await ctx.embed_colour()
-            error_embed = discord.Embed(title='Error', description=f"Unable to convert `{' '.join(unit)}`", colour=colour)
+            error_embed = discord.Embed(
+                title="Error",
+                description=f"Unable to convert `{' '.join(unit)}`",
+                colour=colour,
+            )
             await ctx.send(embed=error_embed)
         else:
             msg = f"{question.to_compact()} is {answer.to_compact()}"
