@@ -151,14 +151,15 @@ Copyright (c) 2018-2020 tigattack, contributors and original authors.
 
 ## Contributing
 
-### Setting up Flake8 pre-commit hook
+### Linting your code
 
-This will reject the commit unless the code passes flake8 standards.
+The CI will fail unless your code is [PEP8](https://www.python.org/dev/peps/pep-0008/) complient
 
 ```bash
-pip install flake8
-flake8 --install-hook git
-git config --bool flake8.strict true
+pip install -r requirements-ci.txt
+isort . # This will fix the order of imports
+black . # This will auto-format and fix a lot of common mistakes
+pylint * # This will show general pep8-violations
 ```
 
 ### Making changes
