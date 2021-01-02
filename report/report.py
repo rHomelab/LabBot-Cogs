@@ -1,7 +1,7 @@
 """discord red-bot report cog"""
-from redbot.core import commands, Config, checks
-from redbot.core.utils.chat_formatting import escape
 import discord
+from redbot.core import Config, checks, commands
+from redbot.core.utils.chat_formatting import escape
 
 
 class ReportCog(commands.Cog):
@@ -11,9 +11,7 @@ class ReportCog(commands.Cog):
         self.bot = bot
         self.settings = Config.get_conf(self, identifier=1092901)
 
-        default_guild_settings = {
-            "logchannel": None
-        }
+        default_guild_settings = {"logchannel": None}
 
         self.settings.register_guild(**default_guild_settings)
 
@@ -24,7 +22,9 @@ class ReportCog(commands.Cog):
         pass
 
     @_reports.command("logchannel")
-    async def reports_logchannel(self, ctx: commands.Context, channel: discord.TextChannel):
+    async def reports_logchannel(
+        self, ctx: commands.Context, channel: discord.TextChannel
+    ):
         """Sets the channel to post the reports
 
         Example:
@@ -76,22 +76,27 @@ class ReportCog(commands.Cog):
             return
 
         data = self.make_report_embed(ctx, message)
-        mod_pings = ' '.join([i.mention for i in log.members if not i.bot and str(i.status) in ['online', 'idle']])
-        if not mod_pings: # If no online/idle mods
-            mod_pings = ' '.join([i.mention for i in log.members if not i.bot])
+        mod_pings = " ".join(
+            [
+                i.mention
+                for i in log.members
+                if not i.bot and str(i.status) in ["online", "idle"]
+            ]
+        )
+        if not mod_pings:  # If no online/idle mods
+            mod_pings = " ".join([i.mention for i in log.members if not i.bot])
         await log.send(content=mod_pings, embed=data)
 
     def make_report_embed(self, ctx: commands.Context, message: str):
         """Construct the embed to be sent"""
         data = discord.Embed(color=discord.Color.orange())
-        data.set_author(
-            name=f"Report",
-            icon_url=ctx.author.avatar_url
-        )
+        data.set_author(name="Report", icon_url=ctx.author.avatar_url)
         data.add_field(name="Reporter", value=ctx.author.mention)
         data.add_field(name="Channel", value=ctx.channel.mention)
-        data.add_field(name="Timestamp",
-                       value=ctx.message.created_at.strftime("%Y-%m-%d %H:%I"))
-        data.add_field(name="Message", value=escape(
-            message or "<no message>"), inline=False)
+        data.add_field(
+            name="Timestamp", value=ctx.message.created_at.strftime("%Y-%m-%d %H:%I")
+        )
+        data.add_field(
+            name="Message", value=escape(message or "<no message>"), inline=False
+        )
         return data

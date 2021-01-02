@@ -1,7 +1,8 @@
 """discord red-bot verify"""
+from datetime import datetime, timedelta
+
 import discord
-from datetime import timedelta, datetime
-from redbot.core import commands, checks, Config
+from redbot.core import Config, checks, commands
 
 
 class VerifyCog(commands.Cog):
@@ -87,18 +88,18 @@ class VerifyCog(commands.Cog):
 
     async def _cleanup(self, verify: discord.Message, role: discord.Role):
         # Deletion logic for the purge of messages
-        def _should_delete(m):
+        def _should_delete(message):
             return (
                 # Delete messages by the verify-ee
-                m.author == verify.author
+                message.author == verify.author
                 or
                 # Delete messages if it might mention the verify-ee
                 (
                     # The user must be in the mentions
-                    verify.author in m.mentions
+                    verify.author in message.mentions
                     and
                     # The mentions have all been verified
-                    len([u for u in m.mentions if role not in u.roles]) == 0
+                    len([u for u in message.mentions if role not in u.roles]) == 0
                 )
             )
 
@@ -193,7 +194,7 @@ class VerifyCog(commands.Cog):
         """
         if mintime < 0:
             # Not a valid value
-            await ctx.send(f"Verify minimum time was below 0 seconds")
+            await ctx.send("Verify minimum time was below 0 seconds")
             return
 
         await self.settings.guild(ctx.guild).mintime.set(mintime)
