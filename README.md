@@ -97,7 +97,7 @@ This cog allows users to feed each other.
 ### Google
 This cog allows users to send google links to each other.
 
-`[p]feed <user>`
+`[p]google <query>`
 
 ### Notes
 
