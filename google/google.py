@@ -1,8 +1,5 @@
-import random
-
 import discord
 from redbot.core import commands
-from redbot.core.utils.chat_formatting import pagify
 import urllib.parse
 
 class Google(commands.Cog):
