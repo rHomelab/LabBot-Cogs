@@ -14,6 +14,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
   - [Convert](#convert)
   - [Enforcer](#autoreply)
   - [Feed](#feed)
+  - [Google](#google)
   - [Notes](#notes)
   - [Penis](#penis)
   - [Purge](#purge)
