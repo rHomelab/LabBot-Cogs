@@ -1,6 +1,5 @@
-import discord
-from redbot.core import commands
 import urllib.parse
+from redbot.core import commands
 
 class Google(commands.Cog):
     """Google Command"""
