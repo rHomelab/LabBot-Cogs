@@ -53,6 +53,7 @@ This is a joint project involving any of the [Homelab Discord](https://discord.g
 - **[Convert](#convert):** Converts any unit to an another unit.
 - **[Enforcer](#enforcer):** Allows you to enforce certain characteristics on a channel.
 - **[Feed](#feed):** This allows users to feed each other.
+- **[Google](#google):** Send a google link to someone.
 - **[Notes](#notes):** Manage notes and warnings against users.
 - **[Penis](#penis):** Allows users to check the size of their penis.
 - **[Purge](#purge):** This will purge users based on criteria.
@@ -91,6 +92,9 @@ This cog allows you to enforce certain characteristics on a channel.
 ### Feed
 
 This cog allows users to feed each other.
+
+### Google
+This cog allows users to send google links to each other.
 
 `[p]feed <user>`
 
