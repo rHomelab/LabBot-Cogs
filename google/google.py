@@ -9,7 +9,7 @@ class Google(commands.Cog):
     def __init__(self):
         pass
 
-    @commands.command(aliases=["lmgtfy"])
+    @commands.command()
     async def google(self, ctx, *, query):
         """Send a google link with provided query"""
         await ctx.send("https://google.com/search?q=" + urllib.parse.quote_plus(query))
