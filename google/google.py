@@ -6,9 +6,6 @@ from redbot.core import commands
 class Google(commands.Cog):
     """Google Command"""
 
-    def __init__(self):
-        pass
-
     @commands.command()
     async def google(self, ctx, *, query):
         """Send a google link with provided query"""
