@@ -65,7 +65,7 @@ class AutoReactCog(commands.Cog):
         """Remove autoreact pairs, channels, or whitelisted channels"""
 
     @commands.guild_only()
-    @_autoreact.command(name="view")
+    @_autoreact.command(name="view", aliases=["list"])
     async def _view(self, ctx, *, object_type):
         """View the configuration for the autoreact cog
 
