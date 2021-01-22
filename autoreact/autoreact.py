@@ -189,7 +189,7 @@ class AutoReactCog(commands.Cog):
     # Remove commands
 
     @commands.guild_only()
-    @_remove.command(name="reaction")
+    @_remove.command(name="reaction", aliases=["delete"])
     async def _remove_reaction(self, ctx, num: int):
         """Remove a reaction pair
 
