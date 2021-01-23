@@ -90,6 +90,39 @@ This cog allows you to enforce certain characteristics on a channel.
 
 `[p]enforcer`
 
+There are numerous attributes than can be used to restrict messages/content into a channel.
+
+While some attributes are available in discord via role-based permissions, sometimes a bot may be better off enforcing content in a pinch.
+
+#### Configure Enforcer
+`[p]enforcer configure <channel> <attribute> [value]`
+
+Example:
+- `[p]enforcer configure #channel enabled true`
+
+|Attribute|Type|Description|
+|-|-|-|
+|`enabled`|`bool`|Whether to enable enforcements on a channel|
+|`minchars`|`int`|How many characters a message must contain to be allowed into the channel|
+|`notext`|`bool`|The sent message must have *no* text, i.e. should be an image-only message|
+|`requiremedia`|`bool`|The sent message must contain an attached image|
+|`nomedia`|`bool`|The sent message must **not** contain an attached image|
+|`minimumguildage`|`int`|How old a server member must be part of the guild, in seconds, before they are able to contribute to the channel|
+|`minimumdiscordage`|`int`|How old a member's discord account must be, in seconds, before they are able to contribute to the channel|
+
+An example enforcement would be a channel to show off server pictures.
+In which case, you could allow members to post a set of images with a description of their setup.
+
+In which case, the following would be appropriate
+
+```
+[p]enforcer logchannel #admin-log
+[p]enforcer configure #serverpics requiremedia true
+[p]enforcer configure #serverpics minimumguildage 600
+[p]enforcer configure #serverpics minchars 20
+[p]enforcer configure enabled true
+```
+
 ### Feed
 
 This cog allows users to feed each other.
@@ -106,6 +139,14 @@ Manage notes and warnings against users.
 `[p]notes`
 `[p]warnings`
 
+Notes can be used for long-term storage information of problematic users or for future reference.
+
+When using listing the notes of a user, the warnings will be prioritised as they will be deemed more important.
+
+It is possible to add notes to a user who has not joined or has left. Notes are stored against a user's ID and not necessarily requiring the user to be part of the server.
+
+Deleting a note does not actually delete the note. It simply marks it in the datastore as deleted. This can allow future recovery of notes if a bad party is attempting to wipe existing notes, but will not be visible in lists of normal use.
+
 ### Penis
 
 This cog allows users to check the size of their penis.
@@ -117,6 +158,18 @@ This cog allows users to check the size of their penis.
 This cog will purge users that hold no roles as a way to combat accounts being created and left in an un-verified state.
 
 `[p]purge`
+
+- `[p]purge schedule "0 */6 * * *"` - It is possible to run the purge on a schedule. By default, it is **disabled**, but configured for `0 */6 * * *` which is a crontab for every 6 hours. E.g. will run at `00:00`, `06:00`, `12:00` and `18:00` every day.
+
+- `[p]purge minage 5` It will attempt to prune users that hold *no* roles, that have been part of the server for at least `<minage>` days (default to 5). `<minage>` can be altered to fit your servers requirements to ensure that people that joined but never verified, are not clogging up mention lists and to keep activity ratios high.
+
+By default, purge's schedule is disabled and must be enabled to prune unverified users.
+
+- `[p]purge simulate` - It's possible to do a simulated purge by running `[p]purge simulate`. This will retrieve the list of users it would prune, had it run as normal. This allows moderators to test out configuration without performing any permanent actions.
+
+- `[p]purge exclude @Sneezey#2695` - If a user does not hold any roles for any reason, but you wish to exclude them from the purge, it is possible to add this user to the `exclude` list. This action can also be undone with the `include` subcommand.
+
+- `[p]purge status` - To check how many users have been purged any any other configuration items, the status command allows you to see the values in an easy-to-see embed.
 
 ### Quotes
 
@@ -135,6 +188,12 @@ Allows roles to be applied and removed using reactions.
 This cog will allow members to send a report into a channel where it can be reviewed and actioned upon by moderators.
 
 `[p]report`
+
+- `[p]reports logchannel #admin-log` - For reports to be able to be taken, a log channel must be set which will receive an embed upon a user using the report command.
+
+- `[p]report [message]` - A report can be sent to the logchannel for any moderators to see and action upon when they are ready.
+
+- `[p]emergency [message]` - An emergency can be requested which will ping all members in the configured logchannel if they are online.
 
 ### Verify
 
