@@ -51,7 +51,7 @@ class AutoReactCog(commands.Cog):
 
     # Command groups
 
-    @checks.admin()
+    @checks.mod()
     @commands.group(name="autoreact", pass_context=True)
     async def _autoreact(self, ctx):
         """Automagically add reactions to messages containing certain phrases"""
@@ -65,7 +65,7 @@ class AutoReactCog(commands.Cog):
         """Remove autoreact pairs, channels, or whitelisted channels"""
 
     @commands.guild_only()
-    @_autoreact.command(name="view")
+    @_autoreact.command(name="view", aliases=["list"])
     async def _view(self, ctx, *, object_type):
         """View the configuration for the autoreact cog
 
@@ -189,7 +189,7 @@ class AutoReactCog(commands.Cog):
     # Remove commands
 
     @commands.guild_only()
-    @_remove.command(name="reaction")
+    @_remove.command(name="reaction", aliases=["delete"])
     async def _remove_reaction(self, ctx, num: int):
         """Remove a reaction pair
 
