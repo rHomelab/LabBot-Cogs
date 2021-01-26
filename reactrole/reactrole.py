@@ -1,8 +1,8 @@
 """discord red-bot reactrole cog"""
 import discord
-from redbot.core import checks, commands, Config
+from redbot.core import Config, checks, commands
 from redbot.core.utils.chat_formatting import pagify
-from redbot.core.utils.menus import menu, prev_page, close_menu, next_page
+from redbot.core.utils.menus import close_menu, menu, next_page, prev_page
 
 CUSTOM_CONTROLS = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}
 
@@ -14,10 +14,7 @@ class ReactRoleCog(commands.Cog):
         self.bot = bot
         self.settings = Config.get_conf(self, identifier=124123498)
 
-        default_guild_settings = {
-            "roles": [],
-            "enabled": True
-        }
+        default_guild_settings = {"roles": [], "enabled": True}
 
         self.settings.register_guild(**default_guild_settings)
 
@@ -44,11 +41,10 @@ class ReactRoleCog(commands.Cog):
             # Go no further if disabled
             return
 
-        async with self.settings.guild(guild).roles() as li:
-            for item in li:
-                if (
-                    item["message"] == payload.message_id and
-                    item["reaction"] == str(payload.emoji)
+        async with self.settings.guild(guild).roles() as roles:
+            for item in roles:
+                if item["message"] == payload.message_id and item["reaction"] == str(
+                    payload.emoji
                 ):
                     role = guild.get_role(item["role"])
                     await payload.member.add_roles(role)
@@ -73,11 +69,10 @@ class ReactRoleCog(commands.Cog):
             # Go no further if disabled
             return
 
-        async with self.settings.guild(guild).roles() as li:
-            for item in li:
-                if (
-                    item["message"] == payload.message_id and
-                    item["reaction"] == str(payload.emoji)
+        async with self.settings.guild(guild).roles() as roles:
+            for item in roles:
+                if item["message"] == payload.message_id and item["reaction"] == str(
+                    payload.emoji
                 ):
                     role = guild.get_role(item["role"])
                     await member.remove_roles(role)
@@ -95,23 +90,23 @@ class ReactRoleCog(commands.Cog):
         ctx: commands.Context,
         message: discord.Message,
         reaction: str,
-        role: discord.Role
+        role: discord.Role,
     ):
         """Creates a new react role
 
         Example:
         - `[p]reactrole add <message id> <reaction> <role>`
         """
-        async with self.settings.guild(ctx.guild).roles() as li:
+        async with self.settings.guild(ctx.guild).roles() as roles:
             added = False
 
-            for item in li:
+            for item in roles:
                 # Check if a result already exists
                 if (
-                    item["message"] == message.id and
-                    item["reaction"] == str(reaction) and
-                    item["role"] == role.id and
-                    item["channel"] == message.channel.id
+                    item["message"] == message.id
+                    and item["reaction"] == str(reaction)
+                    and item["role"] == role.id
+                    and item["channel"] == message.channel.id
                 ):
                     added = True
 
@@ -121,12 +116,14 @@ class ReactRoleCog(commands.Cog):
                 try:
                     await message.add_reaction(str(reaction))
 
-                    li.append({
-                        "message": message.id,
-                        "reaction": str(reaction),
-                        "role": role.id,
-                        "channel": message.channel.id
-                    })
+                    roles.append(
+                        {
+                            "message": message.id,
+                            "reaction": str(reaction),
+                            "role": role.id,
+                            "channel": message.channel.id,
+                        }
+                    )
                     await ctx.send("Configured React Role.")
                 except Exception:
                     await ctx.send("Unable to add emoji message to message")
@@ -137,27 +134,27 @@ class ReactRoleCog(commands.Cog):
         ctx: commands.Context,
         message: discord.Message,
         reaction: str,
-        role: discord.Role
+        role: discord.Role,
     ):
         """Removes a configured react role
 
         Example:
         - `[p]reactrole remove <message id> <reaction> <role>`
         """
-        async with self.settings.guild(ctx.guild).roles() as li:
+        async with self.settings.guild(ctx.guild).roles() as roles:
             exists = False
 
-            for item in li:
+            for item in roles:
                 # Check if a result already exists
                 if (
-                    item["message"] == message.id and
-                    item["reaction"] == str(reaction) and
-                    item["role"] == role.id and
-                    item["channel"] == message.channel.id
+                    item["message"] == message.id
+                    and item["reaction"] == str(reaction)
+                    and item["role"] == role.id
+                    and item["channel"] == message.channel.id
                 ):
                     exists = item
 
-            li.remove(exists)
+            roles.remove(exists)
 
             if exists:
                 await ctx.send("React Role removed.")
@@ -165,10 +162,7 @@ class ReactRoleCog(commands.Cog):
                 await ctx.send("React Role didn't exist.")
 
     @_reactrole.command("list")
-    async def reactrole_list(
-        self,
-        ctx: commands.Context
-    ):
+    async def reactrole_list(self, ctx: commands.Context):
         """Shows a list of react roles configured
 
         Example:
@@ -178,27 +172,26 @@ class ReactRoleCog(commands.Cog):
         enabled = await self.settings.guild(ctx.guild).enabled()
         messages.append(f"Enabled: {enabled}")
 
-        async with self.settings.guild(ctx.guild).roles() as li:
-            for item in li:
+        async with self.settings.guild(ctx.guild).roles() as roles:
+            for item in roles:
                 try:
                     role = ctx.guild.get_role(item["role"])
                     channel = ctx.guild.get_channel(item["channel"])
                     message = await channel.fetch_message(item["message"])
                     messages.append(
-                        f'📝 {message.jump_url} '
-                        f'- {role.name} - {item["reaction"]}\n'
+                        f"📝 {message.jump_url} " f'- {role.name} - {item["reaction"]}\n'
                     )
-                except Exception as e:
-                    print(e)
+                except Exception as exc:
+                    print(exc)
                     messages.append("Failed to retrieve 1 result.")
 
         # Pagify implementation
         # https://github.com/Cog-Creators/Red-DiscordBot/blob/9698baf6e74f6b34f946189f05e2559a60e83706/redbot/core/utils/chat_formatting.py#L208
-        pages = [page for page in pagify("\n\n".join(messages), shorten_by=58)]
+        pages = pagify("\n\n".join(messages), shorten_by=58)
         embeds = []
         index = 0
         for page in pages:
-            index = index+1
+            index = index + 1
 
             data = discord.Embed(colour=(await ctx.embed_colour()))
             data.title = f"React Roles - Page {index}/{len(pages)}"

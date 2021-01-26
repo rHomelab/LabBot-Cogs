@@ -1,9 +1,10 @@
 """discord red-bot enforcer"""
-import discord
-from redbot.core import commands, Config, checks
-from redbot.core.utils.chat_formatting import pagify
-from redbot.core.utils.menus import menu, prev_page, close_menu, next_page
 from datetime import datetime
+
+import discord
+from redbot.core import Config, checks, commands
+from redbot.core.utils.chat_formatting import pagify
+from redbot.core.utils.menus import close_menu, menu, next_page, prev_page
 
 KEY_ENABLED = "enabled"
 KEY_MINCHARS = "minchars"
@@ -23,33 +24,16 @@ class EnforcerCog(commands.Cog):
         self.bot = bot
         self.settings = Config.get_conf(self, identifier=987342593)
         self.attributes = {
-            KEY_ENABLED: {
-                "type": "bool"
-            },
-            KEY_MINCHARS: {
-                "type": "number"
-            },
-            KEY_NOTEXT: {
-                "type": "bool"
-            },
-            KEY_NOMEDIA: {
-                "type": "bool"
-            },
-            KEY_REQUIREMEDIA: {
-                "type": "bool"
-            },
-            KEY_MINDISCORDAGE: {
-                "type": "number"
-            },
-            KEY_MINGUILDAGE: {
-                "type": "number"
-            }
+            KEY_ENABLED: {"type": "bool"},
+            KEY_MINCHARS: {"type": "number"},
+            KEY_NOTEXT: {"type": "bool"},
+            KEY_NOMEDIA: {"type": "bool"},
+            KEY_REQUIREMEDIA: {"type": "bool"},
+            KEY_MINDISCORDAGE: {"type": "number"},
+            KEY_MINGUILDAGE: {"type": "number"},
         }
 
-        default_guild_settings = {
-            "channels": [],
-            "logchannel": None
-        }
+        default_guild_settings = {"channels": [], "logchannel": None}
 
         self.settings.register_guild(**default_guild_settings)
 
@@ -61,9 +45,7 @@ class EnforcerCog(commands.Cog):
 
     @_enforcer.command("logchannel")
     async def enforcer_logchannel(
-        self,
-        ctx: commands.Context,
-        channel: discord.TextChannel
+        self, ctx: commands.Context, channel: discord.TextChannel
     ):
         """Sets the channel to post the enforcer logs.
 
@@ -78,23 +60,12 @@ class EnforcerCog(commands.Cog):
         attribute_type = self.attributes[attribute]["type"]
 
         if attribute_type == "bool":
-            if value in [
-                "true",
-                "1",
-                "yes",
-                "y"
-            ]:
+            if value in ["true", "1", "yes", "y"]:
                 return True
-            elif value in [
-                "false",
-                "0",
-                "no",
-                "n"
-            ]:
+            if value in ["false", "0", "no", "n"]:
                 return False
-            else:
-                raise ValueError()
-        elif attribute_type == "number":
+            raise ValueError()
+        if attribute_type == "number":
             value = int(value)
 
             return value
@@ -102,32 +73,24 @@ class EnforcerCog(commands.Cog):
         return None
 
     async def _reset_attribute(self, channel: discord.TextChannel, attribute):
-        async with self.settings.guild(channel.guild).channels() as li:
-            for ch in li:
-                if ch["id"] == channel.id:
-                    del ch[attribute]
+        async with self.settings.guild(channel.guild).channels() as channels:
+            for _channel in channels:
+                if _channel["id"] == channel.id:
+                    del _channel[attribute]
 
-    async def _set_attribute(
-        self,
-        channel: discord.TextChannel,
-        attribute,
-        value
-    ):
+    async def _set_attribute(self, channel: discord.TextChannel, attribute, value):
         added = False
-        async with self.settings.guild(channel.guild).channels() as li:
+        async with self.settings.guild(channel.guild).channels() as channels:
             # Check if attribute already exists
-            for ch in li:
-                if ch["id"] == channel.id:
-                    ch[attribute] = value
+            for _channel in channels:
+                if _channel["id"] == channel.id:
+                    _channel[attribute] = value
                     added = True
                     break
 
             if added is False:
                 # Attribute does not exist for channel
-                li.append({
-                    "id": channel.id,
-                    attribute: value
-                })
+                channels.append({"id": channel.id, attribute: value})
 
     @_enforcer.command("configure")
     async def enforcer_configure(
@@ -136,7 +99,7 @@ class EnforcerCog(commands.Cog):
         channel: discord.TextChannel,
         attribute: str,
         *,
-        value: str = None
+        value: str = None,
     ):
         """Allows configuration of a channel
 
@@ -174,9 +137,7 @@ class EnforcerCog(commands.Cog):
             return
 
         await self._set_attribute(channel, attribute, value)
-        await ctx.send(
-            f"Channel has now configured the {attribute} attribute."
-        )
+        await ctx.send(f"Channel has now configured the {attribute} attribute.")
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -192,58 +153,58 @@ class EnforcerCog(commands.Cog):
 
         delete = None
 
-        async with self.settings.guild(message.guild).channels() as li:
-            for ch in li:
-                if not ch["id"] == message.channel.id:
+        async with self.settings.guild(message.guild).channels() as channels:
+            for channel in channels:
+                if not channel["id"] == message.channel.id:
                     # Not relating to this channel
                     continue
 
-                if KEY_ENABLED not in ch or not ch[KEY_ENABLED]:
+                if KEY_ENABLED not in channel or not channel[KEY_ENABLED]:
                     # Enforcing not enabled here
                     continue
 
-                if KEY_MINCHARS in ch:
-                    if len(message.content) < ch[KEY_MINCHARS]:
+                if KEY_MINCHARS in channel:
+                    if len(message.content) < channel[KEY_MINCHARS]:
                         # They breached minchars attribute
                         delete = "Not enough characters"
                         break
 
-                if KEY_NOMEDIA in ch and ch[KEY_NOMEDIA] is True:
+                if KEY_NOMEDIA in channel and channel[KEY_NOMEDIA] is True:
                     if len(message.attachments) > 0:
                         # They breached nomedia attribute
                         delete = "No media attached"
                         break
 
-                if KEY_REQUIREMEDIA in ch and ch[KEY_REQUIREMEDIA] is True:
+                if KEY_REQUIREMEDIA in channel and channel[KEY_REQUIREMEDIA] is True:
                     if len(message.attachments) == 0:
                         # They breached requiremedia attribute
                         delete = "Requires media attached"
                         break
 
-                if KEY_NOTEXT in ch and ch[KEY_NOTEXT] is True:
+                if KEY_NOTEXT in channel and channel[KEY_NOTEXT] is True:
                     if len(message.content) > 0:
                         # They breached notext attribute
                         delete = "Message had no text"
                         break
 
-                if KEY_MINDISCORDAGE in ch:
+                if KEY_MINDISCORDAGE in channel:
                     if author.created_at is None:
                         # They didn't have a created_at date?
                         break
 
                     delta = datetime.utcnow() - author.created_at
-                    if ch[KEY_MINDISCORDAGE] > delta.seconds:
+                    if channel[KEY_MINDISCORDAGE] > delta.seconds:
                         # They breached minimum discord age
                         delete = "User not in server long enough"
                         break
 
-                if KEY_MINGUILDAGE in ch:
+                if KEY_MINGUILDAGE in channel:
                     if author.joined_at is None:
                         # They didn't have a joined_at date?
                         break
 
                     delta = datetime.utcnow() - author.joined_at
-                    if ch[KEY_MINGUILDAGE] > delta.seconds:
+                    if channel[KEY_MINGUILDAGE] > delta.seconds:
                         # They breached minimum guild age
                         delete = "User account not old enough"
                         break
@@ -256,8 +217,7 @@ class EnforcerCog(commands.Cog):
                 log = message.guild.get_channel(log_id)
                 data = discord.Embed(color=discord.Color.orange())
                 data.set_author(
-                    name=f"Message Enforced - {author}",
-                    icon_url=author.avatar_url
+                    name=f"Message Enforced - {author}", icon_url=author.avatar_url
                 )
                 data.add_field(name="Enforced Reason", value=f"{delete}")
                 if log is not None:
@@ -265,43 +225,38 @@ class EnforcerCog(commands.Cog):
                         await log.send(embed=data)
                     except discord.Forbidden:
                         await log.send(
-                            "**Message Enforced** - " +
-                            f"{author.id} - {author} - Reason: {delete}"
+                            "**Message Enforced** - "
+                            + f"{author.id} - {author} - Reason: {delete}"
                         )
 
     @_enforcer.command("status")
-    async def enforcer_status(
-        self,
-        ctx: commands.Context
-    ):
+    async def enforcer_status(self, ctx: commands.Context):
         """Prints the status of the enforcement cog
 
         Example:
         - `[p]enforcer status`
         """
         messages = []
-        async with self.settings.guild(ctx.guild).channels() as li:
-            for channel_obj in li:
+        async with self.settings.guild(ctx.guild).channels() as channels:
+            for channel_obj in channels:
                 channel = ctx.guild.get_channel(channel_obj["id"])
 
                 conf_str = ""
-                for key in self.attributes.keys():
+                for key in self.attributes:
                     if key in channel_obj:
                         conf_str = conf_str + f"{key} - {channel_obj[key]}\n"
 
                 messages.append(
-                    f"📝{channel.mention} - " +
-                    f"Configuration\n " +
-                    conf_str
+                    f"📝{channel.mention} - " + "Configuration\n " + conf_str
                 )
 
         # Pagify implementation
         # https://github.com/Cog-Creators/Red-DiscordBot/blob/9698baf6e74f6b34f946189f05e2559a60e83706/redbot/core/utils/chat_formatting.py#L208
-        pages = [page for page in pagify("\n\n".join(messages), shorten_by=58)]
+        pages = pagify("\n\n".join(messages), shorten_by=58)
         embeds = []
         i = 0
         for page in pages:
-            i = i+1
+            i = i + 1
 
             data = discord.Embed(colour=(await ctx.embed_colour()))
             data.title = f"Enforcement Configuration - Page {i}/{len(pages)}"
