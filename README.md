@@ -6,7 +6,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
 
 ## Table of Contents
 
-- [Authors](#authors)
+- [Contributors](#Contributors)
 - [Cog Summaries](#cog-summaries)
 - [Cog Documentation](#cog-documentation)
   - [AutoReact](#autoreact)
@@ -25,24 +25,22 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
   - [xkcd](#xkcd)
 - [License](#license)
 
-## Authors
+## Contributors
 
 This is a joint project involving any of the [Homelab Discord](https://discord.gg/homelab) admins, moderators, and community members that would like to get involved.
 
-### Contributors
+A number of people have contributed to this project: Members of the moderation team, former members of the moderation team, and members of the wider community.
 
-#### Admins
+A massive thank you to all who've helped out with this project ❤️
+
+### Moderation Team
 
 * [tigattack](https://github.com/tigattack)
-* [Sneezey](https://github.com/kdavis)
-
-#### Moderators
-
-* [DanTho](https://github.com/dannyt66)
-
-#### Other
-
 * [Issy](https://github.issy.dev)
+
+### Other
+* [Sneezey](https://github.com/kdavis)
+* [DanTho](https://github.com/dannyt66)
 * [BeryJu](https://github.com/BeryJu)
 * [TheDevFreak](https://github.com/TheDevFreak)
 * [McTwist](https://github.com/McTwist)
