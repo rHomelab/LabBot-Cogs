@@ -56,6 +56,12 @@ class ReportCog(commands.Cog):
         data = self.make_report_embed(ctx, message)
         await log.send(embed=data)
 
+        report_reply = self.make_reporter_reply(ctx, message, False)
+        if ctx.channel.type == discord.ChannelType.private:
+            await ctx.send(embed=report_reply)
+        else:
+            await ctx.author.send(embed=report_reply)
+
     @commands.command("emergency")
     @commands.guild_only()
     async def cmd_emergency(self, ctx: commands.Context, *, message: str = None):
@@ -87,6 +93,12 @@ class ReportCog(commands.Cog):
             mod_pings = " ".join([i.mention for i in log.members if not i.bot])
         await log.send(content=mod_pings, embed=data)
 
+        report_reply = self.make_reporter_reply(ctx, message, True)
+        if ctx.channel.type == discord.ChannelType.private:
+            await ctx.send(embed=report_reply)
+        else:
+            await ctx.author.send(embed=report_reply)
+
     def make_report_embed(self, ctx: commands.Context, message: str):
         """Construct the embed to be sent"""
         data = discord.Embed(color=discord.Color.orange())
@@ -100,3 +112,14 @@ class ReportCog(commands.Cog):
             name="Message", value=escape(message or "<no message>"), inline=False
         )
         return data
+
+    def make_reporter_reply(self, ctx: commands.Context, message: str, emergency: bool) -> discord.Embed:
+        report_reply_embed = discord.Embed(
+            title="Report Received", colour=discord.Color.orange() if emergency else ctx.guild.me.colour
+        )
+        report_reply_embed.add_field(name="Server", value=ctx.guild.name)
+        if ctx.channel.type != discord.ChannelType.private:
+            report_reply_embed.add_field(name="Channel", value=ctx.channel.name)
+        report_reply_embed.add_field(name="Emergency", value=str(emergency))
+        report_reply_embed.add_field(name="Report Message", value=message)
+        return report_reply_embed
