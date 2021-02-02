@@ -57,10 +57,10 @@ class ReportCog(commands.Cog):
         await log.send(embed=data)
 
         report_reply = self.make_reporter_reply(ctx, message, False)
-        if ctx.channel.type == discord.ChannelType.private:
-            await ctx.send(embed=report_reply)
-        else:
+        try:
             await ctx.author.send(embed=report_reply)
+        except discord.Forbidden:
+            pass
 
     @commands.command("emergency")
     @commands.guild_only()
@@ -94,10 +94,10 @@ class ReportCog(commands.Cog):
         await log.send(content=mod_pings, embed=data)
 
         report_reply = self.make_reporter_reply(ctx, message, True)
-        if ctx.channel.type == discord.ChannelType.private:
-            await ctx.send(embed=report_reply)
-        else:
+        try:
             await ctx.author.send(embed=report_reply)
+        except discord.Forbidden:
+            pass
 
     def make_report_embed(self, ctx: commands.Context, message: str):
         """Construct the embed to be sent"""
@@ -114,12 +114,14 @@ class ReportCog(commands.Cog):
         return data
 
     def make_reporter_reply(self, ctx: commands.Context, message: str, emergency: bool) -> discord.Embed:
-        report_reply_embed = discord.Embed(
-            title="Report Received", colour=discord.Color.orange() if emergency else ctx.guild.me.colour
+        data = discord.Embed(color=discord.Color.red() if emergency else discord.Color.orange())
+        data.set_author(name="Report Received", icon_url=ctx.author.avatar_url)
+        data.add_field(name="Server", value=ctx.guild.name)
+        data.add_field(name="Channel", value=ctx.channel.mention)
+        data.add_field(
+            name="Timestamp", value=ctx.message.created_at.strftime("%Y-%m-%d %H:%I")
         )
-        report_reply_embed.add_field(name="Server", value=ctx.guild.name)
-        if ctx.channel.type != discord.ChannelType.private:
-            report_reply_embed.add_field(name="Channel", value=ctx.channel.name)
-        report_reply_embed.add_field(name="Emergency", value=str(emergency))
-        report_reply_embed.add_field(name="Report Message", value=message)
-        return report_reply_embed
+        data.add_field(
+            name="Message", value=escape(message or "<no message>"), inline=False
+        )
+        return data
