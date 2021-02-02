@@ -1,6 +1,7 @@
 """discord red-bot report cog"""
-import discord
 from distutils.util import strtobool
+
+import discord
 from redbot.core import Config, checks, commands
 from redbot.core.utils.chat_formatting import escape
 
