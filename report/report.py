@@ -113,8 +113,13 @@ class ReportCog(commands.Cog):
         )
         return data
 
-    def make_reporter_reply(self, ctx: commands.Context, message: str, emergency: bool) -> discord.Embed:
-        data = discord.Embed(color=discord.Color.red() if emergency else discord.Color.orange())
+    def make_reporter_reply(
+        self, ctx: commands.Context, message: str, emergency: bool
+    ) -> discord.Embed:
+        """Construct the reply embed to be sent"""
+        data = discord.Embed(
+            color=discord.Color.red() if emergency else discord.Color.orange()
+        )
         data.set_author(name="Report Received", icon_url=ctx.author.avatar_url)
         data.add_field(name="Server", value=ctx.guild.name)
         data.add_field(name="Channel", value=ctx.channel.mention)
