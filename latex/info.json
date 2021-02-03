@@ -1,0 +1,12 @@
+{
+    "AUTHOR": "portalBlock",
+    "SHORT": "Render LaTeX",
+    "DESCRIPTION": "Render LaTeX data.",
+    "DISABLED": false,
+    "NAME": "latex",
+    "TAGS": [
+        "reply",
+        "utility"
+    ],
+    "INSTALL_MSG": "Usage: `[p]latex <LaTeX>`"
+}
