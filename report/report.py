@@ -1,4 +1,6 @@
 """discord red-bot report cog"""
+from distutils.util import strtobool
+
 import discord
 from redbot.core import Config, checks, commands
 from redbot.core.utils.chat_formatting import escape
@@ -11,7 +13,7 @@ class ReportCog(commands.Cog):
         self.bot = bot
         self.settings = Config.get_conf(self, identifier=1092901)
 
-        default_guild_settings = {"logchannel": None}
+        default_guild_settings = {"logchannel": None, "confirmations": True}
 
         self.settings.register_guild(**default_guild_settings)
 
@@ -34,6 +36,21 @@ class ReportCog(commands.Cog):
         await self.settings.guild(ctx.guild).logchannel.set(channel.id)
         await ctx.send(f"Reports log message channel set to `{channel.name}`")
 
+    @_reports.command("confirm")
+    async def reports_confirm(self, ctx: commands.Context, option: str):
+        """Changes if confirmations should be sent to reporters upon a report/emergency.
+
+        Example:
+        - `[p]reports confirm <True|False>`
+        """
+        try:
+            option = bool(strtobool(option))
+        except ValueError:
+            await ctx.send("Invalid option. Use: `[p]reports confirm <True|False>`")
+            return
+        await self.settings.guild(ctx.guild).confirmations.set(option)
+        await ctx.send(f"Send report confirmations: `{option}`")
+
     @commands.command("report")
     @commands.guild_only()
     async def cmd_report(self, ctx: commands.Context, *, message: str = None):
@@ -55,6 +72,14 @@ class ReportCog(commands.Cog):
 
         data = self.make_report_embed(ctx, message)
         await log.send(embed=data)
+
+        confirm = await self.settings.guild(ctx.guild).confirmations()
+        if confirm:
+            report_reply = self.make_reporter_reply(ctx, message, False)
+            try:
+                await ctx.author.send(embed=report_reply)
+            except discord.Forbidden:
+                pass
 
     @commands.command("emergency")
     @commands.guild_only()
@@ -87,11 +112,37 @@ class ReportCog(commands.Cog):
             mod_pings = " ".join([i.mention for i in log.members if not i.bot])
         await log.send(content=mod_pings, embed=data)
 
+        confirm = await self.settings.guild(ctx.guild).confirmations()
+        if confirm:
+            report_reply = self.make_reporter_reply(ctx, message, True)
+            try:
+                await ctx.author.send(embed=report_reply)
+            except discord.Forbidden:
+                pass
+
     def make_report_embed(self, ctx: commands.Context, message: str):
         """Construct the embed to be sent"""
         data = discord.Embed(color=discord.Color.orange())
         data.set_author(name="Report", icon_url=ctx.author.avatar_url)
         data.add_field(name="Reporter", value=ctx.author.mention)
+        data.add_field(name="Channel", value=ctx.channel.mention)
+        data.add_field(
+            name="Timestamp", value=ctx.message.created_at.strftime("%Y-%m-%d %H:%I")
+        )
+        data.add_field(
+            name="Message", value=escape(message or "<no message>"), inline=False
+        )
+        return data
+
+    def make_reporter_reply(
+        self, ctx: commands.Context, message: str, emergency: bool
+    ) -> discord.Embed:
+        """Construct the reply embed to be sent"""
+        data = discord.Embed(
+            color=discord.Color.red() if emergency else discord.Color.orange()
+        )
+        data.set_author(name="Report Received", icon_url=ctx.author.avatar_url)
+        data.add_field(name="Server", value=ctx.guild.name)
         data.add_field(name="Channel", value=ctx.channel.mention)
         data.add_field(
             name="Timestamp", value=ctx.message.created_at.strftime("%Y-%m-%d %H:%I")
