@@ -55,7 +55,7 @@ class ReactRoleCog(commands.Cog):
         Member removes reaction from a message
         """
         guild = self.bot.get_guild(payload.guild_id)
-        if guild is None:
+        if not guild:
             # Guild shouldn't be none
             return
 
@@ -189,23 +189,19 @@ class ReactRoleCog(commands.Cog):
         # https://github.com/Cog-Creators/Red-DiscordBot/blob/9698baf6e74f6b34f946189f05e2559a60e83706/redbot/core/utils/chat_formatting.py#L208
         pages = pagify("\n\n".join(messages), shorten_by=58)
         embeds = []
-        index = 0
-        for page in pages:
-            index = index + 1
-
-            data = discord.Embed(colour=(await ctx.embed_colour()))
-            data.title = f"React Roles - Page {index}/{len(pages)}"
-            data.description = page
-
-            embeds.append(data)
+        for index, page in enumerate(pages):
+            embed = discord.Embed(
+                title=f"React Roles - Page {index + 1}/{len(list(pages))}",
+                description=page,
+                colour=(await ctx.embed_colour()),
+            )
+            embeds.append(embed)
 
         await menu(
             ctx,
             pages=embeds,
             controls=CUSTOM_CONTROLS,
-            message=None,
-            page=0,
-            timeout=30,
+            timeout=30.0,
         )
 
     @_reactrole.command("enable")
