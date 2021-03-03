@@ -219,14 +219,13 @@ class EnforcerCog(commands.Cog):
                 data.set_author(
                     name=f"Message Enforced - {author}", icon_url=author.avatar_url
                 )
-                data.add_field(name="Enforced Reason", value=f"{delete}")
+                data.add_field(name="Enforced Reason", value=delete)
                 if log is not None:
                     try:
                         await log.send(embed=data)
                     except discord.Forbidden:
                         await log.send(
-                            "**Message Enforced** - "
-                            + f"{author.id} - {author} - Reason: {delete}"
+                            f"**Message Enforced** - {author.id} - {author} - Reason: {delete}"
                         )
 
     @_enforcer.command("status")
@@ -241,37 +240,33 @@ class EnforcerCog(commands.Cog):
             for channel_obj in channels:
                 channel = ctx.guild.get_channel(channel_obj["id"])
 
-                conf_str = ""
-                for key in self.attributes:
-                    if key in channel_obj:
-                        conf_str = conf_str + f"{key} - {channel_obj[key]}\n"
-
-                messages.append(
-                    f"📝{channel.mention} - " + "Configuration\n " + conf_str
+                conf_str = "\n".join(
+                    f"{key} - {channel_obj[key]}"
+                    for key in self.attributes
+                    if key in channel_obj
                 )
+
+                messages.append(f"📝{channel.mention} - Configuration\n{conf_str}")
 
         # Pagify implementation
         # https://github.com/Cog-Creators/Red-DiscordBot/blob/9698baf6e74f6b34f946189f05e2559a60e83706/redbot/core/utils/chat_formatting.py#L208
         pages = pagify("\n\n".join(messages), shorten_by=58)
         embeds = []
-        i = 0
-        for page in pages:
-            i = i + 1
 
-            data = discord.Embed(colour=(await ctx.embed_colour()))
-            data.title = f"Enforcement Configuration - Page {i}/{len(pages)}"
-            data.description = page
+        for index, page in enumerate(pages):
+            embed = discord.Embed(
+                title=f"Enforcement Configuration - Page {index + 1}/{len(list(pages))}",
+                description=page,
+                colour=(await ctx.embed_colour()),
+            )
+            embeds.append(embed)
 
-            embeds.append(data)
-
-        if len(embeds) > 0:
+        if embeds:
             await menu(
                 ctx,
                 pages=embeds,
                 controls=CUSTOM_CONTROLS,
-                message=None,
-                page=0,
-                timeout=30,
+                timeout=30.0,
             )
         else:
             ctx.send("No configurations found")
