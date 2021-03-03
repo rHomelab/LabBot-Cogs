@@ -12,9 +12,10 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
   - [AutoReact](#autoreact)
   - [AutoReply](#autoreply)
   - [Convert](#convert)
-  - [Enforcer](#autoreply)
+  - [Enforcer](#enforcer)
   - [Feed](#feed)
   - [Google](#google)
+  - [LaTeX](#latex)
   - [Notes](#notes)
   - [Penis](#penis)
   - [Purge](#purge)
@@ -50,7 +51,7 @@ A massive thank you to all who've helped out with this project ❤️
 
 - **[AutoReact](#autoreact):** React to specific phrases with one or more emotes.
 - **[AutoReply](#autoreply):** Automatically replies to messages that match a trigger phrase.
-- **[Convert](#convert):** Converts any unit to an another unit.
+- **[Convert](#convert):** Converts any unit to any another unit.
 - **[Enforcer](#enforcer):** Allows you to enforce certain characteristics on a channel.
 - **[Feed](#feed):** This allows users to feed each other.
 - **[Google](#google):** Send a google link to someone.
@@ -80,7 +81,7 @@ This cog automatically responds to messages that match specific trigger phrases,
 
 ### Convert
 
-Converts any unit to an another unit.
+Converts any unit to any another unit.
 
 `[p]convert`
 
@@ -166,7 +167,7 @@ This cog will purge users that hold no roles as a way to combat accounts being c
 
 - `[p]purge schedule "0 */6 * * *"` - It is possible to run the purge on a schedule. By default, it is **disabled**, but configured for `0 */6 * * *` which is a crontab for every 6 hours. E.g. will run at `00:00`, `06:00`, `12:00` and `18:00` every day.
 
-- `[p]purge minage 5` It will attempt to prune users that hold *no* roles, that have been part of the server for at least `<minage>` days (default to 5). `<minage>` can be altered to fit your servers requirements to ensure that people that joined but never verified, are not clogging up mention lists and to keep activity ratios high.
+- `[p]purge minage 5` It will attempt to prune users that hold *no* roles, that have been part of the server for at least `<minage>` days (default to 5). `<minage>` can be altered to fit your server's requirements to ensure that people that joined but never verified, are not clogging up mention lists and to keep activity ratios high.
 
 By default, purge's schedule is disabled and must be enabled to prune unverified users.
 
@@ -174,7 +175,7 @@ By default, purge's schedule is disabled and must be enabled to prune unverified
 
 - `[p]purge exclude @Sneezey#2695` - If a user does not hold any roles for any reason, but you wish to exclude them from the purge, it is possible to add this user to the `exclude` list. This action can also be undone with the `include` subcommand.
 
-- `[p]purge status` - To check how many users have been purged any any other configuration items, the status command allows you to see the values in an easy-to-see embed.
+- `[p]purge status` - To check how many users have been purged any other configuration items, the status command allows you to see the values in an easy-to-see embed.
 
 ### Quotes
 
@@ -222,7 +223,7 @@ Copyright (c) 2018-2020 tigattack, contributors and original authors.
 
 ### Linting your code
 
-The CI will fail unless your code is [PEP8](https://www.python.org/dev/peps/pep-0008/) complient
+The CI will fail unless your code is [PEP8](https://www.python.org/dev/peps/pep-0008/) compliant.
 
 ```bash
 pip install -r requirements-ci.txt
@@ -233,5 +234,5 @@ pylint * # This will show general pep8-violations
 
 ### Making changes
 
-When suggesting changes, please [open an issue](https://gitlab.com/homelab-mods/LabBot/-/issues/new?issue%5Bassignee_id%5D=&issue%5Bmilestone_id%5D=) so it can be reviewed by the team who can then suggest how and if the idea is to be implmented.
-When submitting changes, please [create a merge request](https://gitlab.com/homelab-mods/LabBot/-/merge_requests/new) targetting the develop branch.
+When suggesting changes, please [open an issue](https://gitlab.com/homelab-mods/LabBot/-/issues/new?issue%5Bassignee_id%5D=&issue%5Bmilestone_id%5D=) so it can be reviewed by the team who can then suggest how and if the idea is to be implemented.
+When submitting changes, please [create a merge request](https://gitlab.com/homelab-mods/LabBot/-/merge_requests/new) targeting the develop branch.
