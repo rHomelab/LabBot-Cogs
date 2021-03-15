@@ -240,16 +240,14 @@ class ReportCog(commands.Cog):
 
     def make_report_embed(self, ctx: commands.Context, message: str):
         """Construct the embed to be sent"""
-        data = discord.Embed(color=discord.Color.orange())
+        data = discord.Embed(
+            color=discord.Color.orange(),
+            description=escape(message or "<no message>"),
+            timestamp=message.created_at
+        )
         data.set_author(name="Report", icon_url=ctx.author.avatar_url)
         data.add_field(name="Reporter", value=ctx.author.mention)
         data.add_field(name="Channel", value=ctx.channel.mention)
-        data.add_field(
-            name="Timestamp", value=ctx.message.created_at.strftime("%Y-%m-%d %H:%I")
-        )
-        data.add_field(
-            name="Message", value=escape(message or "<no message>"), inline=False
-        )
         return data
 
     def make_reporter_reply(
@@ -257,15 +255,14 @@ class ReportCog(commands.Cog):
     ) -> discord.Embed:
         """Construct the reply embed to be sent"""
         data = discord.Embed(
-            color=discord.Color.red() if emergency else discord.Color.orange()
+            color=discord.Color.red() if emergency else discord.Color.orange(),
+            description=escape(message or "<no message>"),
+            timestamp=message.created_at
         )
         data.set_author(name="Report Received", icon_url=ctx.author.avatar_url)
         data.add_field(name="Server", value=ctx.guild.name)
         data.add_field(name="Channel", value=ctx.channel.mention)
         data.add_field(
             name="Timestamp", value=ctx.message.created_at.strftime("%Y-%m-%d %H:%I")
-        )
-        data.add_field(
-            name="Message", value=escape(message or "<no message>"), inline=False
         )
         return data
