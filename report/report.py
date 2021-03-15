@@ -13,7 +13,12 @@ class ReportCog(commands.Cog):
         self.bot = bot
         self.settings = Config.get_conf(self, identifier=1092901)
 
-        default_guild_settings = {"logchannel": None, "confirmations": True}
+        default_guild_settings = {
+            "logchannel": None,
+            "confirmations": True,
+            # {"id": str, "emergencies": bool, "reports": bool} both bools default to True
+            "channels": []
+        }
 
         self.settings.register_guild(**default_guild_settings)
 
@@ -21,6 +26,12 @@ class ReportCog(commands.Cog):
     @commands.guild_only()
     @checks.mod()
     async def _reports(self, ctx: commands.Context):
+        pass
+
+    @commands.group("emergencies")
+    @commands.guild_only()
+    @checks.mod()
+    async def _emergencies(self, ctx: commands.Context):
         pass
 
     @_reports.command("logchannel")
@@ -59,6 +70,10 @@ class ReportCog(commands.Cog):
         Example:
         - `[p]report <message>`
         """
+        pre_check = await self.enabled_channel_check(ctx, "reports")
+        if not pre_check:
+            return
+
         # Pre-emptively delete the message for privacy reasons
         await ctx.message.delete()
 
@@ -89,6 +104,10 @@ class ReportCog(commands.Cog):
         Example:
         - `[p]emergency <message>`
         """
+        pre_check = await self.enabled_channel_check(ctx, "emergencies")
+        if not pre_check:
+            return
+
         # Pre-emptively delete the message for privacy reasons
         await ctx.message.delete()
 
@@ -119,6 +138,92 @@ class ReportCog(commands.Cog):
                 await ctx.author.send(embed=report_reply)
             except discord.Forbidden:
                 pass
+
+    @_reports.command("channel")
+    async def reports_channel(self, ctx: commands.Context, rule: str, channel: discord.TextChannel):
+        """Allows/denies the use of reports in specific channels
+
+        Example:
+        - `[p]reports channel <allow|deny> <channel>`
+        - `[p]reports channel deny #general
+        """
+        supported_rules = ("deny", "allow")
+        if rule.lower() not in supported_rules:
+            await ctx.send("Rule argument must be `allow` or `deny`")
+            return
+
+        bool_conversion = bool(supported_rules.index(rule.lower()))
+
+        async with self.settings.guild(ctx.guild).channels() as channels:
+            data = filter(
+                lambda x: x['id'] == str(ctx.channel.id),
+                channels
+            )
+            if data:
+                next(data)["reports"] = bool_conversion
+            else:
+                channels.append({
+                    "id": str(ctx.channel.id),
+                    "reports": bool_conversion,
+                    "emergencies": True
+                })
+
+        await ctx.send("Reports {} in {}".format(
+            "allowed" if bool_conversion else "denied",
+            channel.mention
+        ))
+
+    @_emergencies.command("channel")
+    async def emergencies_channel(self, ctx: commands.Context, rule: str, channel: discord.TextChannel):
+        """Allows/denies the use of emergencies in specific channels
+
+        Example:
+        - `[p]emergencies channel <allow|deny> <channel>`
+        - `[p]emergencies channel deny #general
+        """
+        supported_rules = ("deny", "allow")
+        if rule.lower() not in supported_rules:
+            await ctx.send("Rule argument must be `allow` or `deny`")
+            return
+
+        bool_conversion = bool(supported_rules.index(rule.lower()))
+
+        async with self.settings.guild(ctx.guild).channels() as channels:
+            data = filter(
+                lambda x: x['id'] == str(ctx.channel.id),
+                channels
+            )
+            if data:
+                next(data)["emergencies"] = bool_conversion
+            else:
+                channels.append({
+                    "id": str(ctx.channel.id),
+                    "reports": True,
+                    "emergencies": bool_conversion
+                })
+
+        await ctx.send("Emergencies {} in {}".format(
+            "allowed" if bool_conversion else "denied",
+            channel.mention
+        ))
+
+    async def enabled_channel_check(self, ctx: commands.Context, invoking_cmd: str) -> bool:
+        """Checks that reports/emergency commands are enabled in the current channel"""
+        async with self.settings.guild(ctx.guild).channels() as channels:
+            channel = filter(
+                lambda x: channel['id'] == str(ctx.channel.id),
+                channels
+            )
+            if channel:
+                return next(channel)[invoking_cmd]
+            else:
+                # Insert an entry for this channel if it doesn't exist
+                channels.append({
+                    "id": str(ctx.channel.id),
+                    "emergencies": True,
+                    "reports": True
+                })
+                return True
 
     def make_report_embed(self, ctx: commands.Context, message: str):
         """Construct the embed to be sent"""
