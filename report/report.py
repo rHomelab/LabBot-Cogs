@@ -157,7 +157,10 @@ class ReportCog(commands.Cog):
         bool_conversion = bool(supported_rules.index(rule.lower()))
 
         async with self.settings.guild(ctx.guild).channels() as channels:
-            data = filter(lambda c: c["id"] == str(ctx.channel.id), channels)
+            data = list(filter(
+                lambda c: c["id"] == str(ctx.channel.id),
+                channels
+            ))
             if data:
                 next(data)["reports"] = bool_conversion
             else:
@@ -193,7 +196,10 @@ class ReportCog(commands.Cog):
         bool_conversion = bool(supported_rules.index(rule.lower()))
 
         async with self.settings.guild(ctx.guild).channels() as channels:
-            data = filter(lambda c: c["id"] == str(ctx.channel.id), channels)
+            data = list(filter(
+                lambda c: c["id"] == str(ctx.channel.id),
+                channels
+            ))
             if data:
                 next(data)["emergencies"] = bool_conversion
             else:
@@ -216,8 +222,10 @@ class ReportCog(commands.Cog):
     ) -> bool:
         """Checks that reports/emergency commands are enabled in the current channel"""
         async with self.settings.guild(ctx.guild).channels() as channels:
-            channel = filter(lambda c: c["id"] == str(
-                ctx.channel.id), channels)
+            channel = list(filter(
+                lambda c: c["id"] == str(ctx.channel.id),
+                channels
+            ))
 
             if channel:
                 return next(channel)[invoking_cmd]
