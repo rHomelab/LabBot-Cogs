@@ -158,7 +158,7 @@ class ReportCog(commands.Cog):
 
         async with self.settings.guild(ctx.guild).channels() as channels:
             data = list(filter(
-                lambda c: c["id"] == str(ctx.channel.id),
+                lambda c: c["id"] == str(channel.id),
                 channels
             ))
             if data:
@@ -166,7 +166,7 @@ class ReportCog(commands.Cog):
             else:
                 channels.append(
                     {
-                        "id": str(ctx.channel.id),
+                        "id": str(channel.id),
                         "reports": bool_conversion,
                         "emergencies": True,
                     }
@@ -197,7 +197,7 @@ class ReportCog(commands.Cog):
 
         async with self.settings.guild(ctx.guild).channels() as channels:
             data = list(filter(
-                lambda c: c["id"] == str(ctx.channel.id),
+                lambda c: c["id"] == str(channel.id),
                 channels
             ))
             if data:
@@ -205,7 +205,7 @@ class ReportCog(commands.Cog):
             else:
                 channels.append(
                     {
-                        "id": str(ctx.channel.id),
+                        "id": str(channel.id),
                         "reports": True,
                         "emergencies": bool_conversion,
                     }
