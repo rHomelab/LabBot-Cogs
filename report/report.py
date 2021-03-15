@@ -162,7 +162,7 @@ class ReportCog(commands.Cog):
                 channels
             ))
             if data:
-                next(data)["reports"] = bool_conversion
+                data[0]["reports"] = bool_conversion
             else:
                 channels.append(
                     {
@@ -201,7 +201,7 @@ class ReportCog(commands.Cog):
                 channels
             ))
             if data:
-                next(data)["emergencies"] = bool_conversion
+                data[0]["emergencies"] = bool_conversion
             else:
                 channels.append(
                     {
@@ -228,7 +228,7 @@ class ReportCog(commands.Cog):
             ))
 
             if channel:
-                return next(channel)[invoking_cmd]
+                return channel[0][invoking_cmd]
 
             # Insert an entry for this channel if it doesn't exist
             channels.append({
