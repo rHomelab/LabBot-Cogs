@@ -157,10 +157,7 @@ class ReportCog(commands.Cog):
         bool_conversion = bool(supported_rules.index(rule.lower()))
 
         async with self.settings.guild(ctx.guild).channels() as channels:
-            data = list(filter(
-                lambda c: c["id"] == str(channel.id),
-                channels
-            ))
+            data = list(filter(lambda c: c["id"] == str(channel.id), channels))
             if data:
                 data[0]["reports"] = bool_conversion
             else:
@@ -196,10 +193,7 @@ class ReportCog(commands.Cog):
         bool_conversion = bool(supported_rules.index(rule.lower()))
 
         async with self.settings.guild(ctx.guild).channels() as channels:
-            data = list(filter(
-                lambda c: c["id"] == str(channel.id),
-                channels
-            ))
+            data = list(filter(lambda c: c["id"] == str(channel.id), channels))
             if data:
                 data[0]["emergencies"] = bool_conversion
             else:
@@ -222,20 +216,15 @@ class ReportCog(commands.Cog):
     ) -> bool:
         """Checks that reports/emergency commands are enabled in the current channel"""
         async with self.settings.guild(ctx.guild).channels() as channels:
-            channel = list(filter(
-                lambda c: c["id"] == str(ctx.channel.id),
-                channels
-            ))
+            channel = list(filter(lambda c: c["id"] == str(ctx.channel.id), channels))
 
             if channel:
                 return channel[0][invoking_cmd]
 
             # Insert an entry for this channel if it doesn't exist
-            channels.append({
-                "id": str(ctx.channel.id),
-                "emergencies": True,
-                "reports": True
-            })
+            channels.append(
+                {"id": str(ctx.channel.id), "emergencies": True, "reports": True}
+            )
             return True
 
     def make_report_embed(self, ctx: commands.Context, message: str):
@@ -243,7 +232,7 @@ class ReportCog(commands.Cog):
         data = discord.Embed(
             color=discord.Color.orange(),
             description=escape(message or "<no message>"),
-            timestamp=ctx.message.created_at
+            timestamp=ctx.message.created_at,
         )
         data.set_author(name="Report", icon_url=ctx.author.avatar_url)
         data.add_field(name="Reporter", value=ctx.author.mention)
@@ -257,7 +246,7 @@ class ReportCog(commands.Cog):
         data = discord.Embed(
             color=discord.Color.red() if emergency else discord.Color.orange(),
             description=escape(message or "<no message>"),
-            timestamp=ctx.message.created_at
+            timestamp=ctx.message.created_at,
         )
         data.set_author(name="Report Received", icon_url=ctx.author.avatar_url)
         data.add_field(name="Server", value=ctx.guild.name)
