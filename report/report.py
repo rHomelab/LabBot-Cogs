@@ -248,7 +248,6 @@ class ReportCog(commands.Cog):
         data.set_author(name="Report", icon_url=ctx.author.avatar_url)
         data.add_field(name="Reporter", value=ctx.author.mention)
         data.add_field(name="Channel", value=ctx.channel.mention)
-        data.set_footer(text="Timestamp")
         return data
 
     def make_reporter_reply(
@@ -263,5 +262,4 @@ class ReportCog(commands.Cog):
         data.set_author(name="Report Received", icon_url=ctx.author.avatar_url)
         data.add_field(name="Server", value=ctx.guild.name)
         data.add_field(name="Channel", value=ctx.channel.mention)
-        data.set_footer("Timestamp")
         return data
