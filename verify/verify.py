@@ -2,7 +2,9 @@
 from datetime import datetime, timedelta
 
 import discord
+import Levenshtein as lev
 from redbot.core import Config, checks, commands
+from redbot.core.utils.mod import is_mod_or_superior
 
 
 class VerifyCog(commands.Cog):
@@ -24,6 +26,7 @@ class VerifyCog(commands.Cog):
             "welcomechannel": None,
             "welcomemsg": None,
             "blocks": [],
+            "fuzziness": 0,
         }
 
         self.settings.register_guild(**default_guild_settings)
@@ -38,6 +41,10 @@ class VerifyCog(commands.Cog):
         valid_user = isinstance(author, discord.Member) and not author.bot
         if not valid_user:
             # User is a bot. Ignore.
+            return
+
+        if is_mod_or_superior(self.bot, message):
+            # User is a mod/admin
             return
 
         server = message.guild
@@ -62,15 +69,19 @@ class VerifyCog(commands.Cog):
             await message.channel.send(tooquick)
             return
 
-        verify_msg = await self.settings.guild(server).message()
-        if message.content != verify_msg:
+        fuzziness_setting = await self.settings(server).message().fuzziness()
+        verify_msg = await self.settings.guild(server).message().lower()
+        fuzziness_check = lev.distance(verify_msg, message.content.lower()) / len(verify_msg) * 100 > fuzziness_setting
+        if message.content.lower() != verify_msg and fuzziness_check:
             # User did not post the perfect message.
             wrongmsg = await self.settings.guild(server).wrongmsg()
 
             await self._log_verify_message(server, author, None, failmessage="User wrote wrong message")
 
             if not wrongmsg:
+                # wrongmsg has not been configured
                 return
+
             wrongmsg = wrongmsg.replace("{user}", f"{author.mention}")
             await message.channel.send(wrongmsg)
             return
@@ -260,60 +271,54 @@ class VerifyCog(commands.Cog):
         Example:
         - `[p]verify status`
         """
-        data = discord.Embed(colour=(await ctx.embed_colour()))
-
         count = await self.settings.guild(ctx.guild).count()
-        data.add_field(name="Verified", value=f"{count} users")
-
         role_id = await self.settings.guild(ctx.guild).role()
+        channel_id = await self.settings.guild(ctx.guild).channel()
+        log_id = await self.settings.guild(ctx.guild).logchannel()
+        mintime = await self.settings.guild(ctx.guild).mintime()
+        message = await self.settings.guild(ctx.guild).message().replace("`", "")
+        tooquick = await self.settings.guild(ctx.guild).tooquick().replace("`", "")
+        wrongmsg = await self.settings.guild(ctx.guild).wrongmsg().replace("`", "")
+        welcomechannel = await self.settings.guild(ctx.guild).welcomechannel()
+        welcomemsg = await self.settings.guild(ctx.guild).welcomemsg().replace("`", "")
+        blocked_users = await self.settings.guild(ctx.guild).blocks()
+        fuzziness = await self.settings.guild(ctx.guild).fuzziness()
+
+        embed = discord.Embed(colour=(await ctx.embed_colour()))
+        embed.add_field(name="Verified", value=f"{count} users")
+
         if role_id:
             role = ctx.guild.get_role(role_id)
-            data.add_field(name="Role", value=role.mention)
+            embed.add_field(name="Role", value=role.mention)
 
-        channel_id = await self.settings.guild(ctx.guild).channel()
         if channel_id:
             channel = ctx.guild.get_channel(channel_id)
+            embed.add_field(name="Channel", value=channel.mention)
 
-            data.add_field(name="Channel", value=channel.mention)
-
-        log_id = await self.settings.guild(ctx.guild).logchannel()
         if log_id:
             log = ctx.guild.get_channel(log_id)
+            embed.add_field(name="Log", value=log.mention)
 
-            data.add_field(name="Log", value=log.mention)
+        embed.add_field(name="Min Time", value=f"{mintime} secs")
+        embed.add_field(name="Message", value=f"`{message}`")
+        embed.add_field(name="Too Quick Msg", value=f"`{tooquick}`")
 
-        mintime = await self.settings.guild(ctx.guild).mintime()
-        data.add_field(name="Min Time", value=f"{mintime} secs")
-
-        message = await self.settings.guild(ctx.guild).message()
-        message = message.replace("`", "")
-        data.add_field(name="Message", value=f"`{message}`")
-
-        tooquick = await self.settings.guild(ctx.guild).tooquick()
-        tooquick = tooquick.replace("`", "")
-        data.add_field(name="Too Quick Msg", value=f"`{tooquick}`")
-
-        wrongmsg = await self.settings.guild(ctx.guild).wrongmsg()
         if wrongmsg:
-            wrongmsg = wrongmsg.replace("`", "")
-            data.add_field(name="Wrong Msg", value=f"`{wrongmsg}`")
+            embed.add_field(name="Wrong Msg", value=f"`{wrongmsg}`")
 
-        welcomechannel = await self.settings.guild(ctx.guild).welcomechannel()
         if welcomechannel:
             welcome = ctx.guild.get_channel(welcomechannel)
-            data.add_field(name="Welcome Channel", value=welcome.mention)
+            embed.add_field(name="Welcome Channel", value=welcome.mention)
 
-        welcomemsg = await self.settings.guild(ctx.guild).welcomemsg()
         if welcomemsg:
-            welcomemsg = welcomemsg.replace("`", "")
-            data.add_field(name="Welcome Msg", value=f"`{welcomemsg}`")
+            embed.add_field(name="Welcome Msg", value=f"`{welcomemsg}`")
 
-        async with self.settings.guild(ctx.guild).blocks() as blocked_users:
-            blocked_count = len(blocked_users)
-            data.add_field(name="# Users Blocked", value=f"`{blocked_count}`")
+        embed.add_field(name="# Users Blocked", value=f"`{len(blocked_users)}`")
+
+        embed.add_field(name="Fuzzy Matching Threshold", value=f"`{fuzziness}%`")
 
         try:
-            await ctx.send(embed=data)
+            await ctx.send(embed=embed)
         except discord.Forbidden:
             await ctx.send("I need the `Embed links` permission to send a verify status.")
 
@@ -362,6 +367,24 @@ class VerifyCog(commands.Cog):
             await server.get_channel(welcomechannel).send(welcomemsg)
 
         return True
+
+    @_verify.command("fuzzymatching")
+    async def _set_fuzziness(self, ctx, fuzziness: int):
+        """Sets the threshold for fuzzy matching of the verify message
+        This command takes the `fuzziness` arg as a number from 0 - 100, with 0 requiring an exact match
+        Verify checks are case insensitive regardless of fuzziness level
+
+        Example:
+        - `[p]verify fuzzymatching <fuzziness>`
+        - `[p]verify fuzzymatching 50`
+        """
+        if fuzziness not in range(101):
+            await ctx.send("Number must be in range 0 - 100")
+            return
+
+        async with self.settings.guild(ctx.guild).fuzziness() as fuzzy_setting:
+            fuzzy_setting = fuzziness
+            await ctx.send(f"Fuzzy matching threshold for verification set to `{fuzziness}%`")
 
     async def _log_verify_message(
         self,
