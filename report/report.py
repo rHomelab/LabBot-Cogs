@@ -13,7 +13,12 @@ class ReportCog(commands.Cog):
         self.bot = bot
         self.settings = Config.get_conf(self, identifier=1092901)
 
-        default_guild_settings = {"logchannel": None, "confirmations": True}
+        default_guild_settings = {
+            "logchannel": None,
+            "confirmations": True,
+            # {"id": str, "allowed": bool} bool defaults to True
+            "channels": [],
+        }
 
         self.settings.register_guild(**default_guild_settings)
 
@@ -59,6 +64,10 @@ class ReportCog(commands.Cog):
         Example:
         - `[p]report <message>`
         """
+        pre_check = await self.enabled_channel_check(ctx, "reports")
+        if not pre_check:
+            return
+
         # Pre-emptively delete the message for privacy reasons
         await ctx.message.delete()
 
@@ -89,6 +98,10 @@ class ReportCog(commands.Cog):
         Example:
         - `[p]emergency <message>`
         """
+        pre_check = await self.enabled_channel_check(ctx, "emergencies")
+        if not pre_check:
+            return
+
         # Pre-emptively delete the message for privacy reasons
         await ctx.message.delete()
 
@@ -120,18 +133,63 @@ class ReportCog(commands.Cog):
             except discord.Forbidden:
                 pass
 
+    @_reports.command("channel")
+    async def reports_channel(
+        self, ctx: commands.Context, rule: str, channel: discord.TextChannel
+    ):
+        """Allows/denies the use of reports/emergencies in specific channels
+
+        Example:
+        - `[p]reports channel <allow|deny> <channel>`
+        - `[p]reports channel deny #general
+        """
+        supported_rules = ("deny", "allow")
+        if rule.lower() not in supported_rules:
+            await ctx.send("Rule argument must be `allow` or `deny`")
+            return
+
+        bool_conversion = bool(supported_rules.index(rule.lower()))
+
+        async with self.settings.guild(ctx.guild).channels() as channels:
+            data = list(filter(lambda c: c["id"] == str(channel.id), channels))
+            if data:
+                data[0]["allowed"] = bool_conversion
+            else:
+                channels.append(
+                    {
+                        "id": str(channel.id),
+                        "allowed": bool_conversion,
+                    }
+                )
+
+        await ctx.send(
+            "Reports {} in {}".format(
+                "allowed" if bool_conversion else "denied", channel.mention
+            )
+        )
+
+    async def enabled_channel_check(self, ctx: commands.Context) -> bool:
+        """Checks that reports/emergency commands are enabled in the current channel"""
+        async with self.settings.guild(ctx.guild).channels() as channels:
+            channel = list(filter(lambda c: c["id"] == str(ctx.channel.id), channels))
+
+            if channel:
+                return channel[0]["allowed"]
+
+            # Insert an entry for this channel if it doesn't exist
+            channels.append({"id": str(ctx.channel.id), "allowed": True})
+            return True
+
     def make_report_embed(self, ctx: commands.Context, message: str):
         """Construct the embed to be sent"""
-        data = discord.Embed(color=discord.Color.orange())
+        data = discord.Embed(
+            color=discord.Color.orange(),
+            description=escape(message or "<no message>"),
+            timestamp=ctx.message.created_at,
+        )
         data.set_author(name="Report", icon_url=ctx.author.avatar_url)
         data.add_field(name="Reporter", value=ctx.author.mention)
         data.add_field(name="Channel", value=ctx.channel.mention)
-        data.add_field(
-            name="Timestamp", value=ctx.message.created_at.strftime("%Y-%m-%d %H:%I")
-        )
-        data.add_field(
-            name="Message", value=escape(message or "<no message>"), inline=False
-        )
         return data
 
     def make_reporter_reply(
@@ -139,15 +197,11 @@ class ReportCog(commands.Cog):
     ) -> discord.Embed:
         """Construct the reply embed to be sent"""
         data = discord.Embed(
-            color=discord.Color.red() if emergency else discord.Color.orange()
+            color=discord.Color.red() if emergency else discord.Color.orange(),
+            description=escape(message or "<no message>"),
+            timestamp=ctx.message.created_at,
         )
         data.set_author(name="Report Received", icon_url=ctx.author.avatar_url)
         data.add_field(name="Server", value=ctx.guild.name)
         data.add_field(name="Channel", value=ctx.channel.mention)
-        data.add_field(
-            name="Timestamp", value=ctx.message.created_at.strftime("%Y-%m-%d %H:%I")
-        )
-        data.add_field(
-            name="Message", value=escape(message or "<no message>"), inline=False
-        )
         return data

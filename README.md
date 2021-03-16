@@ -193,9 +193,11 @@ Allows roles to be applied and removed using reactions.
 
 This cog will allow members to send a report into a channel where it can be reviewed and actioned upon by moderators.
 
-`[p]report`
-
 - `[p]reports logchannel #admin-log` - For reports to be able to be taken, a log channel must be set which will receive an embed upon a user using the report command.
+
+- `[p]reports channel [allow|deny] [channel]` - Disallow the `report`/`emergency` commands to be used in certain channels
+
+- `[p]reports confirm [true|false]` - When a report is issued, this sets whether the bot will DM the user with confirmation or not
 
 - `[p]report [message]` - A report can be sent to the logchannel for any moderators to see and action upon when they are ready.
 
