@@ -4,6 +4,8 @@ from redbot.core import commands
 
 
 class RoleInfoCog(commands.Cog):
+    """Roleinfo cog"""
+
     @commands.command("roleinfo")
     async def role_info_cmd(self, ctx: commands.Context, role: discord.Role):
         """Displays info about a role in the server
@@ -18,6 +20,7 @@ class RoleInfoCog(commands.Cog):
         await ctx.send(embed=embed)
 
     async def make_role_embed(self, role: discord.Role) -> discord.Embed:
+        """Generate the role info embed"""
         embed = discord.Embed(title=f"Role info",
                               colour=role.colour, timestamp=role.created_at)
         embed.add_field(name="Name", value=role.name)
