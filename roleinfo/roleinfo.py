@@ -20,7 +20,7 @@ class RoleInfoCog(commands.Cog):
         - `[p]roleinfo verified`
         - `[p]roleinfo @verified`
         """
-        role_check = is_mod(self.bot, ctx.author) or role <= max(ctx.author.roles)
+        role_check = await is_mod(self.bot, ctx.author) or role <= max(ctx.author.roles)
         if role_check:
             embed = await self.make_role_embed(role)
             await ctx.send(embed=embed)
