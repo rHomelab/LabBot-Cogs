@@ -28,5 +28,5 @@ class RoleInfoCog(commands.Cog):
         embed.add_field(name="Mentionable", value="Yes" if role.mentionable else "No")
         embed.add_field(name="Position", value=role.position + 1)
         embed.add_field(name="ID", value=role.id)
-        embed.set_footer("Created")
+        embed.set_footer(text="Created")
         return embed
