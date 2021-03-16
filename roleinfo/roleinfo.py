@@ -1,10 +1,14 @@
 """discord red-bot roleinfo cog"""
 import discord
 from redbot.core import commands
+from redbot.core.utils.mod import is_mod_or_superior as is_mod
 
 
 class RoleInfoCog(commands.Cog):
     """Roleinfo cog"""
+
+    def __init__(self, bot):
+        self.bot = bot
 
     @commands.command("roleinfo")
     async def role_info_cmd(self, ctx: commands.Context, role: discord.Role):
@@ -16,6 +20,7 @@ class RoleInfoCog(commands.Cog):
         - `[p]roleinfo verified`
         - `[p]roleinfo @verified`
         """
+        role_check = is_mod(self.bot, ctx.author) or role.position >= ctx.author.roles[-1].position
         embed = await self.make_role_embed(role)
         await ctx.send(embed=embed)
 
@@ -26,7 +31,7 @@ class RoleInfoCog(commands.Cog):
         embed.add_field(name="Members", value=len(role.members))
         embed.add_field(name="Hoist", value="Yes" if role.hoist else "No")
         embed.add_field(name="Mentionable", value="Yes" if role.mentionable else "No")
-        embed.add_field(name="Position", value=role.position + 1)
+        embed.add_field(name="Position", value=len(role.guild.roles) - role.position)
         embed.add_field(name="ID", value=role.id)
         embed.set_footer(text="Created")
         return embed
