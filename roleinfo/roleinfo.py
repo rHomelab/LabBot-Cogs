@@ -14,15 +14,17 @@ class RoleInfoCog(commands.Cog):
         - `[p]roleinfo verified`
         - `[p]roleinfo @verified`
         """
-        embed = self.make_role_embed(role)
+        embed = await self.make_role_embed(role)
         await ctx.send(embed=embed)
 
     async def make_role_embed(self, role: discord.Role) -> discord.Embed:
-        embed = discord.Embed(title=f"Role info", colour=role.colour, timestamp=role.created_at)
+        embed = discord.Embed(title=f"Role info",
+                              colour=role.colour, timestamp=role.created_at)
         embed.add_field(name="Name", value=role.name)
         embed.add_field(name="Members", value=len(role.members))
         embed.add_field(name="Hoist", value="Yes" if role.hoist else "No")
-        embed.add_field(name="Mentionable", value="Yes" if role.mentionable else "No")
+        embed.add_field(name="Mentionable",
+                        value="Yes" if role.mentionable else "No")
         embed.add_field(name="Position", value=role.position + 1)
         embed.add_field(name="ID", value=role.id)
         embed.set_footer("Created")
