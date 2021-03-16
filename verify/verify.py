@@ -161,11 +161,13 @@ class VerifyCog(commands.Cog):
 
     @_verify.command("wrongmsg")
     async def verify_wrongmsg(self, ctx: commands.Context, message: str):
-        """The message to reply if they input the wrong verify message
+        """The message to reply if they input the wrong verify message.
+        Using `{user}` in the message will mention the user and allow
+        the message to be deleted automatically once the user is verified.
 
         Example:
         - `[p]verify wrongmsg "<message>"`
-        - `[p]verify wrongmsg "Wrong verification message!"`
+        - `[p]verify wrongmsg "{user} Wrong verification message!"`
 
         If `<message>` is empty, no message will be posted.
         """
