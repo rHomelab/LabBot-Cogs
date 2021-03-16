@@ -41,7 +41,7 @@ jobs:
           pip install -r requirements-ci.txt
       - name: Lint with black
         run: |
-          black --check .
+          black --diff .
   lint-pylint:
     runs-on: ubuntu-latest
 
