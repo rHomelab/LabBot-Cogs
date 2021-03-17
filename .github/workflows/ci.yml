@@ -5,7 +5,6 @@ on: [pull_request]
 jobs:
   lint-flake8:
     runs-on: ubuntu-latest
-
     steps:
       # Checkout the repository at the current branch
       - uses: actions/checkout@v2
@@ -24,9 +23,9 @@ jobs:
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
   lint-black:
     runs-on: ubuntu-latest
-
     steps:
       # Checkout the repository at the current branch
       - uses: actions/checkout@v2
@@ -42,9 +41,9 @@ jobs:
       - name: Lint with black
         run: |
           black --diff .
+
   lint-pylint:
     runs-on: ubuntu-latest
-
     steps:
       # Checkout the repository at the current branch
       - uses: actions/checkout@v2
@@ -59,10 +58,10 @@ jobs:
           pip install -r requirements-ci.txt
       - name: Lint with pylint
         run: |
-          pylint --msg-template='::warning file={path},line={line},col={column}::{msg}' * || exit 0
+          pylint --msg-template='::warning file={path},line={line},col={column}::{msg}' */ || exit 0
+
   lint-isort:
     runs-on: ubuntu-latest
-
     steps:
       # Checkout the repository at the current branch
       - uses: actions/checkout@v2
