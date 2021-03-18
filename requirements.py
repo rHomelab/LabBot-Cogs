@@ -1,3 +1,4 @@
+"""Pipeline script for extracting imports from cogs"""
 from glob import glob
 from json import loads
 
