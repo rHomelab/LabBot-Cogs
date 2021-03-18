@@ -29,9 +29,7 @@ class ReportCog(commands.Cog):
         pass
 
     @_reports.command("logchannel")
-    async def reports_logchannel(
-        self, ctx: commands.Context, channel: discord.TextChannel
-    ):
+    async def reports_logchannel(self, ctx: commands.Context, channel: discord.TextChannel):
         """Sets the channel to post the reports
 
         Example:
@@ -114,13 +112,7 @@ class ReportCog(commands.Cog):
             return
 
         data = self.make_report_embed(ctx, message)
-        mod_pings = " ".join(
-            [
-                i.mention
-                for i in log.members
-                if not i.bot and str(i.status) in ["online", "idle"]
-            ]
-        )
+        mod_pings = " ".join([i.mention for i in log.members if not i.bot and str(i.status) in ["online", "idle"]])
         if not mod_pings:  # If no online/idle mods
             mod_pings = " ".join([i.mention for i in log.members if not i.bot])
         await log.send(content=mod_pings, embed=data)
@@ -134,9 +126,7 @@ class ReportCog(commands.Cog):
                 pass
 
     @_reports.command("channel")
-    async def reports_channel(
-        self, ctx: commands.Context, rule: str, channel: discord.TextChannel
-    ):
+    async def reports_channel(self, ctx: commands.Context, rule: str, channel: discord.TextChannel):
         """Allows/denies the use of reports/emergencies in specific channels
 
         Example:
@@ -162,11 +152,7 @@ class ReportCog(commands.Cog):
                     }
                 )
 
-        await ctx.send(
-            "Reports {} in {}".format(
-                "allowed" if bool_conversion else "denied", channel.mention
-            )
-        )
+        await ctx.send("Reports {} in {}".format("allowed" if bool_conversion else "denied", channel.mention))
 
     async def enabled_channel_check(self, ctx: commands.Context) -> bool:
         """Checks that reports/emergency commands are enabled in the current channel"""
@@ -192,9 +178,7 @@ class ReportCog(commands.Cog):
         data.add_field(name="Channel", value=ctx.channel.mention)
         return data
 
-    def make_reporter_reply(
-        self, ctx: commands.Context, message: str, emergency: bool
-    ) -> discord.Embed:
+    def make_reporter_reply(self, ctx: commands.Context, message: str, emergency: bool) -> discord.Embed:
         """Construct the reply embed to be sent"""
         data = discord.Embed(
             color=discord.Color.red() if emergency else discord.Color.orange(),

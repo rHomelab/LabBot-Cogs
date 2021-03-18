@@ -45,13 +45,9 @@ class Xkcd(commands.Cog):
 
     def make_comic_embed(self, ctx: commands.Context, data: dict) -> discord.Embed:
         """Generate embed for xkcd comic"""
-        xkcd_embed = discord.Embed(
-            title=f"xkcd Comic: #{data['num']}", colour=ctx.guild.me.colour
-        )
+        xkcd_embed = discord.Embed(title=f"xkcd Comic: #{data['num']}", colour=ctx.guild.me.colour)
         xkcd_embed.add_field(name="Comic Title", value=data["safe_title"])
-        xkcd_embed.add_field(
-            name="Publish Date", value=f"{data['year']}-{data['month']}-{data['day']}"
-        )
+        xkcd_embed.add_field(name="Publish Date", value=f"{data['year']}-{data['month']}-{data['day']}")
         # If there is alt text add it to the embed, otherwise don't
         if not data["alt"]:
             xkcd_embed.add_field(name="Comic Alt Text", value=data["alt"])

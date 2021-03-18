@@ -23,7 +23,7 @@ class Convert(commands.Cog):
             src, dst = " ".join(unit).split(" to ")
             question = self.__ureg(src)
             answer = question.to(dst)
-        except:
+        except Exception:
             colour = await ctx.embed_colour()
             error_embed = discord.Embed(
                 title="Error",
