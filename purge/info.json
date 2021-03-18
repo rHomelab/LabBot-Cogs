@@ -8,5 +8,8 @@
         "purge",
         "inactive"
     ],
+    "REQUIREMENTS": [
+        "croniter"
+    ],
     "INSTALL_MSG": "Usage: `[p]purge`"
 }
