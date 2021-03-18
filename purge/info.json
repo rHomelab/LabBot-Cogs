@@ -5,8 +5,8 @@
     "DISABLED": false,
     "NAME": "purge",
     "TAGS": [
-      "purge",
-      "inactive"
+        "purge",
+        "inactive"
     ],
     "INSTALL_MSG": "Usage: `[p]purge`"
-  }
+}

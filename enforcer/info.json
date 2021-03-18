@@ -1,9 +1,13 @@
 {
-  "AUTHOR": "Sneezey",
-  "SHORT": "Channel Enforcement",
-  "DESCRIPTION": "Allows you to enforce certain characteristics on a channel",
-  "DISABLED": false,
-  "NAME": "enforcer",
-  "TAGS": ["channel", "enforcement", "enforce"],
-  "INSTALL_MSG": "Usage: `[p]enforcer`"
+    "AUTHOR": "Sneezey",
+    "SHORT": "Channel Enforcement",
+    "DESCRIPTION": "Allows you to enforce certain characteristics on a channel",
+    "DISABLED": false,
+    "NAME": "enforcer",
+    "TAGS": [
+        "channel",
+        "enforcement",
+        "enforce"
+    ],
+    "INSTALL_MSG": "Usage: `[p]enforcer`"
 }
