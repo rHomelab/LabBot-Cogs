@@ -107,10 +107,7 @@ class NotesCog(commands.Cog):
                 note = notes[note_id - 1]
                 if not note["deleted"]:
                     # User must be an admin or owner of the note
-                    if not (
-                        note["reporter"] == ctx.author.id
-                        or await is_admin_or_superior(ctx.bot, ctx.author)
-                    ):
+                    if not (note["reporter"] == ctx.author.id or await is_admin_or_superior(ctx.bot, ctx.author)):
                         await ctx.send("You don't have permission to do this.")
                         return
 
@@ -135,10 +132,7 @@ class NotesCog(commands.Cog):
                 warning = warnings[warning_id - 1]
                 if not warning["deleted"]:
                     # User must be an admin or owner of the warning
-                    if not (
-                        warning["reporter"] == ctx.author.id
-                        or await is_admin_or_superior(self, ctx.author)
-                    ):
+                    if not (warning["reporter"] == ctx.author.id or await is_admin_or_superior(self, ctx.author)):
                         await ctx.send("You don't have permission to do this.")
                         return
 
@@ -152,9 +146,7 @@ class NotesCog(commands.Cog):
             await ctx.send("Warning not found.")
 
     @_notes.command("list")
-    async def notes_list(
-        self, ctx: commands.Context, *, user: typing.Union[discord.Member, str] = None
-    ):
+    async def notes_list(self, ctx: commands.Context, *, user: typing.Union[discord.Member, str] = None):
         """Lists notes and warnings for everyone or a specific user.
 
         Example:
@@ -196,16 +188,12 @@ class NotesCog(commands.Cog):
                 date = datetime.utcfromtimestamp(note["date"])
                 display_time = date.strftime("%Y-%m-%d %H:%M:%SZ")
                 notes.append(
-                    f"📝#{note['id']} **{member} - Added by {modname}** "
-                    + f"- {display_time}\n "
-                    + f"{note['message']}"
+                    f"📝#{note['id']} **{member} - Added by {modname}** " + f"- {display_time}\n " + f"{note['message']}"
                 )
 
         warnings = []
         async with self.settings.guild(ctx.guild).warnings() as discord_warnings:
-            discord_warnings = sorted(
-                discord_warnings, key=lambda x: x["date"], reverse=True
-            )
+            discord_warnings = sorted(discord_warnings, key=lambda x: x["date"], reverse=True)
 
             for warning in discord_warnings:
                 if warning["deleted"]:
@@ -217,9 +205,7 @@ class NotesCog(commands.Cog):
 
                 member = None
                 try:
-                    member = (
-                        ctx.guild.get_member(warning["member"]) or warning["member"]
-                    )
+                    member = ctx.guild.get_member(warning["member"]) or warning["member"]
                 except Exception:
                     member = warning["member"]
 
@@ -236,9 +222,7 @@ class NotesCog(commands.Cog):
                 date = datetime.utcfromtimestamp(warning["date"])
                 display_time = date.strftime("%Y-%m-%d %H:%M:%SZ")
                 warnings.append(
-                    f"⚠️#{warning['id']} **{member} - Added by {modname}** "
-                    + f"- {display_time}\n "
-                    + f"{warning['message']}"
+                    f"⚠️#{warning['id']} **{member} - Added by {modname}** " + f"- {display_time}\n " + f"{warning['message']}"
                 )
 
         messages = "\n\n".join(warnings + notes)
@@ -250,15 +234,9 @@ class NotesCog(commands.Cog):
         for page in pages:
             data = discord.Embed(colour=(await ctx.embed_colour()))
             if user is not None:
-                data.title = (
-                    f"Notes for {user} - {len(warnings)} "
-                    + f"warnings, {len(notes)} notes"
-                )
+                data.title = f"Notes for {user} - {len(warnings)} " + f"warnings, {len(notes)} notes"
             else:
-                data.title = (
-                    f"All notes and warnings - {len(warnings)} "
-                    + f"warnings, {len(notes)} notes"
-                )
+                data.title = f"All notes and warnings - {len(warnings)} " + f"warnings, {len(notes)} notes"
             data.description = page
 
             embeds.append(data)
@@ -297,6 +275,4 @@ class NotesCog(commands.Cog):
         try:
             await ctx.send(embed=data)
         except discord.Forbidden:
-            await ctx.send(
-                "I need the `Embed links` permission to " + "send a notes status."
-            )
+            await ctx.send("I need the `Embed links` permission to " + "send a notes status.")

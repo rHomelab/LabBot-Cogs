@@ -54,23 +54,17 @@ class AutoReplyCog(commands.Cog):
                 return message.author == ctx.author and message.channel == ctx.channel
 
             try:
-                msg = await self.bot.wait_for(
-                    "message", check=reply_check, timeout=5 * 60
-                )
+                msg = await self.bot.wait_for("message", check=reply_check, timeout=5 * 60)
             except asyncio.TimeoutError:
                 await message_object.delete()
                 return
             else:
                 trigger = msg.content
 
-            message_object1 = await ctx.send(
-                "Please enter the response for this trigger"
-            )
+            message_object1 = await ctx.send("Please enter the response for this trigger")
 
             try:
-                msg = await self.bot.wait_for(
-                    "message", check=reply_check, timeout=5 * 60
-                )
+                msg = await self.bot.wait_for("message", check=reply_check, timeout=5 * 60)
             except asyncio.TimeoutError:
                 await message_object1.delete()
                 await message_object.delete()
@@ -89,10 +83,7 @@ class AutoReplyCog(commands.Cog):
         """View the configuration for the autoreply cog"""
         triggers = await self.ordered_list_from_config(ctx.guild)
         embed_list = [
-            self.make_trigger_embed(
-                ctx, triggers[i], {"current": i + 1, "max": len(triggers)}
-            )
-            for i in range(len(triggers))
+            self.make_trigger_embed(ctx, triggers[i], {"current": i + 1, "max": len(triggers)}) for i in range(len(triggers))
         ]
 
         if len(embed_list) > 1:
@@ -134,16 +125,10 @@ class AutoReplyCog(commands.Cog):
             await message_object.add_reaction(i)
 
         def reaction_check(reaction, user):
-            return (
-                (user == ctx.author)
-                and (reaction.message.id == message_object.id)
-                and (reaction.emoji in emojis)
-            )
+            return (user == ctx.author) and (reaction.message.id == message_object.id) and (reaction.emoji in emojis)
 
         try:
-            reaction, _ = await self.bot.wait_for(
-                "reaction_add", timeout=180.0, check=reaction_check
-            )
+            reaction, _ = await self.bot.wait_for("reaction_add", timeout=180.0, check=reaction_check)
         except asyncio.TimeoutError:
             try:
                 await message_object.clear_reactions()
@@ -181,16 +166,8 @@ class AutoReplyCog(commands.Cog):
         return error_embed
 
     def make_removal_success_embed(self, ctx, trigger_dict: dict):
-        trigger = (
-            trigger_dict["trigger"][:1010]
-            if len(trigger_dict["trigger"]) > 1010
-            else trigger_dict["trigger"]
-        )
-        response = (
-            trigger_dict["response"][:1010]
-            if len(trigger_dict["response"]) > 1010
-            else trigger_dict["response"]
-        )
+        trigger = trigger_dict["trigger"][:1010] if len(trigger_dict["trigger"]) > 1010 else trigger_dict["trigger"]
+        response = trigger_dict["response"][:1010] if len(trigger_dict["response"]) > 1010 else trigger_dict["response"]
         desc = f"**Trigger:**\n{trigger}\n**Response:**\n{response}"
         embed = discord.Embed(
             title="Autoreply trigger removed",
@@ -200,16 +177,8 @@ class AutoReplyCog(commands.Cog):
         return embed
 
     def make_trigger_embed(self, ctx, trigger_dict: dict, index=None):
-        trigger = (
-            trigger_dict["trigger"][:1010]
-            if len(trigger_dict["trigger"]) > 1010
-            else trigger_dict["trigger"]
-        )
-        response = (
-            trigger_dict["response"][:1010]
-            if len(trigger_dict["response"]) > 1010
-            else trigger_dict["response"]
-        )
+        trigger = trigger_dict["trigger"][:1010] if len(trigger_dict["trigger"]) > 1010 else trigger_dict["trigger"]
+        response = trigger_dict["response"][:1010] if len(trigger_dict["response"]) > 1010 else trigger_dict["response"]
         desc = f"**Trigger:**\n{trigger}\n**Response:**\n{response}"
         embed = discord.Embed(description=desc, colour=ctx.guild.me.colour)
         if index:

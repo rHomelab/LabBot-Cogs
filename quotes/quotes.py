@@ -86,10 +86,7 @@ class QuotesCog(commands.Cog):
 
             if len(set(authors)) > 1:
                 formatted_quote = "\n".join(
-                    [
-                        f"**{i.author.nick if i.author.nick else i.author.name}:** {i.content}"
-                        for i in messages
-                    ]
+                    [f"**{i.author.nick if i.author.nick else i.author.name}:** {i.content}" for i in messages]
                 )
             else:
                 formatted_quote = "\n".join([i.content for i in messages])
@@ -110,9 +107,7 @@ class QuotesCog(commands.Cog):
                 return
 
         try:
-            message_object = await ctx.send(
-                embed=quote_embed, content="Are you sure you want to send this quote?"
-            )
+            message_object = await ctx.send(embed=quote_embed, content="Are you sure you want to send this quote?")
         # If sending the quote failed for any reason. For example, quote exceeded the character limit
         except Exception as err:
             error_embed = self.make_error_embed(ctx, custom_msg=err)
@@ -123,16 +118,10 @@ class QuotesCog(commands.Cog):
             await message_object.add_reaction(emoji)
 
         def reaction_check(reaction, user):
-            return (
-                (user == ctx.author)
-                and (reaction.message.id == message_object.id)
-                and (reaction.emoji in emojis)
-            )
+            return (user == ctx.author) and (reaction.message.id == message_object.id) and (reaction.emoji in emojis)
 
         try:
-            reaction, _ = await self.bot.wait_for(
-                "reaction_add", timeout=180.0, check=reaction_check
-            )
+            reaction, _ = await self.bot.wait_for("reaction_add", timeout=180.0, check=reaction_check)
         except asyncio.TimeoutError:
             try:
                 await message_object.clear_reactions()
@@ -144,9 +133,7 @@ class QuotesCog(commands.Cog):
                 await message_object.clear_reactions()
                 return
             await quote_channel.send(embed=quote_embed)
-            success_embed = discord.Embed(
-                description="Your quote has been sent", colour=ctx.guild.me.colour
-            )
+            success_embed = discord.Embed(description="Your quote has been sent", colour=ctx.guild.me.colour)
             await ctx.send(embed=success_embed)
 
     # Helper functions
@@ -172,23 +159,15 @@ class QuotesCog(commands.Cog):
             timestamp=messages[0].created_at,
         )
         quote_embed.add_field(name="Authors", value=author_list, inline=False)
-        quote_embed.add_field(
-            name="Submitted by", value=ctx.author.mention, inline=True
-        )
+        quote_embed.add_field(name="Submitted by", value=ctx.author.mention, inline=True)
         if len(channels) > 1:
-            quote_embed.add_field(
-                name="Channels", value="\n".join(channels), inline=True
-            )
+            quote_embed.add_field(name="Channels", value="\n".join(channels), inline=True)
         else:
             quote_embed.add_field(name="Channel", value=channels[0], inline=True)
-        quote_embed.add_field(
-            name="Link", value=f"[Jump to quote]({messages[0].jump_url})", inline=True
-        )
+        quote_embed.add_field(name="Link", value=f"[Jump to quote]({messages[0].jump_url})", inline=True)
         return quote_embed
 
-    def make_error_embed(
-        self, ctx, error_type: str = "", custom_msg: str = None
-    ) -> discord.Embed:
+    def make_error_embed(self, ctx, error_type: str = "", custom_msg: str = None) -> discord.Embed:
         """Generate error message embeds"""
         error_msgs = {
             "NoChannelSet": f"""There is no quotes channel configured for this server.
@@ -204,6 +183,4 @@ class QuotesCog(commands.Cog):
         elif custom_msg:
             error_msg = custom_msg
 
-        return discord.Embed(
-            title="Error", description=error_msg, colour=ctx.guild.me.colour
-        )
+        return discord.Embed(title="Error", description=error_msg, colour=ctx.guild.me.colour)

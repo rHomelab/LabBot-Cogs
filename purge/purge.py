@@ -82,10 +82,7 @@ class PurgeCog(commands.Cog):
                 try:
                     await output.send(embed=data)
                 except discord.Forbidden:
-                    await output.send(
-                        "I need the `Embed links` permission "
-                        + "to send a purge board."
-                    )
+                    await output.send("I need the `Embed links` permission " + "to send a purge board.")
 
             await asyncio.sleep(60)
 
@@ -163,9 +160,7 @@ class PurgeCog(commands.Cog):
         pass
 
     @_purge.command("logchannel")
-    async def purge_logchannel(
-        self, ctx: commands.Context, channel: discord.TextChannel
-    ):
+    async def purge_logchannel(self, ctx: commands.Context, channel: discord.TextChannel):
         """Logs details of purging to this channel.
         The bot must have permission to write to this channel.
 
@@ -192,9 +187,7 @@ class PurgeCog(commands.Cog):
         try:
             await ctx.send(embed=data)
         except discord.Forbidden:
-            await ctx.send(
-                "I need the `Embed links` permission to send " + "a purge board."
-            )
+            await ctx.send("I need the `Embed links` permission to send " + "a purge board.")
 
     @_purge.command("simulate")
     async def purge_simulate(self, ctx: commands.Context):
@@ -219,10 +212,7 @@ class PurgeCog(commands.Cog):
         try:
             await ctx.send(embed=data)
         except discord.Forbidden:
-            await ctx.send(
-                "I need the `Embed links` permission to "
-                + "send a purge simulation board."
-            )
+            await ctx.send("I need the `Embed links` permission to " + "send a purge simulation board.")
 
     @_purge.command("exclude")
     async def purge_exclude_user(self, ctx: commands.Context, user: discord.Member):
@@ -353,9 +343,7 @@ class PurgeCog(commands.Cog):
         data.add_field(name="Last Run", value=f"{last_run_friendly}")
 
         if (purge_last_run is not None or purge_enabled) and purge_schedule is not None:
-            next_date = croniter(
-                purge_schedule, purge_last_run or datetime.utcnow()
-            ).get_next(datetime)
+            next_date = croniter(purge_schedule, purge_last_run or datetime.utcnow()).get_next(datetime)
             next_run_friendly = next_date.strftime("%Y-%m-%d %H:%M:%SZ")
 
             data.add_field(name="Next Run", value=f"{next_run_friendly}")
@@ -366,6 +354,4 @@ class PurgeCog(commands.Cog):
         try:
             await ctx.send(embed=data)
         except discord.Forbidden:
-            await ctx.send(
-                "I need the `Embed links` permission to " + "send a purge status."
-            )
+            await ctx.send("I need the `Embed links` permission to " + "send a purge status.")

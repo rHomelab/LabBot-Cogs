@@ -57,9 +57,7 @@ class VerifyCog(commands.Cog):
             tooquick = await self.settings.guild(server).tooquick()
             tooquick = tooquick.replace("{user}", f"{author.mention}")
 
-            await self._log_verify_message(
-                server, author, None, failmessage="User tried too quickly"
-            )
+            await self._log_verify_message(server, author, None, failmessage="User tried too quickly")
 
             await message.channel.send(tooquick)
             return
@@ -69,9 +67,7 @@ class VerifyCog(commands.Cog):
             # User did not post the perfect message.
             wrongmsg = await self.settings.guild(server).wrongmsg()
 
-            await self._log_verify_message(
-                server, author, None, failmessage="User wrote wrong message"
-            )
+            await self._log_verify_message(server, author, None, failmessage="User wrote wrong message")
 
             if not wrongmsg:
                 return
@@ -214,9 +210,7 @@ class VerifyCog(commands.Cog):
         await ctx.send(f"Verify message channel set to `{channel.name}`")
 
     @_verify.command("logchannel")
-    async def verify_logchannel(
-        self, ctx: commands.Context, channel: discord.TextChannel
-    ):
+    async def verify_logchannel(self, ctx: commands.Context, channel: discord.TextChannel):
         """Sets the channel to post the verification logs
 
         Example:
@@ -239,9 +233,7 @@ class VerifyCog(commands.Cog):
                 blocked_users.append(user.id)
                 await ctx.send(f"{user.mention} has been blocked from verifying")
             else:
-                await ctx.send(
-                    f"{user.mention} has already been blocked from verifying"
-                )
+                await ctx.send(f"{user.mention} has already been blocked from verifying")
 
     @_verify.command("unblock")
     async def verify_unlock(self, ctx: commands.Context, user: discord.Member):
@@ -323,16 +315,12 @@ class VerifyCog(commands.Cog):
         try:
             await ctx.send(embed=data)
         except discord.Forbidden:
-            await ctx.send(
-                "I need the `Embed links` permission to send a verify status."
-            )
+            await ctx.send("I need the `Embed links` permission to send a verify status.")
 
     @commands.command(name="v")
     @commands.guild_only()
     @checks.mod()
-    async def verify_manual(
-        self, ctx: commands.Context, user: discord.Member, *, reason: str = None
-    ):
+    async def verify_manual(self, ctx: commands.Context, user: discord.Member, *, reason: str = None):
         """Manually verifies a user
 
         Example:

@@ -43,9 +43,7 @@ class ReactRoleCog(commands.Cog):
 
         async with self.settings.guild(guild).roles() as roles:
             for item in roles:
-                if item["message"] == payload.message_id and item["reaction"] == str(
-                    payload.emoji
-                ):
+                if item["message"] == payload.message_id and item["reaction"] == str(payload.emoji):
                     role = guild.get_role(item["role"])
                     await payload.member.add_roles(role)
 
@@ -71,9 +69,7 @@ class ReactRoleCog(commands.Cog):
 
         async with self.settings.guild(guild).roles() as roles:
             for item in roles:
-                if item["message"] == payload.message_id and item["reaction"] == str(
-                    payload.emoji
-                ):
+                if item["message"] == payload.message_id and item["reaction"] == str(payload.emoji):
                     role = guild.get_role(item["role"])
                     await member.remove_roles(role)
 
@@ -178,9 +174,7 @@ class ReactRoleCog(commands.Cog):
                     role = ctx.guild.get_role(item["role"])
                     channel = ctx.guild.get_channel(item["channel"])
                     message = await channel.fetch_message(item["message"])
-                    messages.append(
-                        f"📝 {message.jump_url} " f'- {role.name} - {item["reaction"]}\n'
-                    )
+                    messages.append(f"📝 {message.jump_url} " f'- {role.name} - {item["reaction"]}\n')
                 except Exception as exc:
                     print(exc)
                     messages.append("Failed to retrieve 1 result.")
