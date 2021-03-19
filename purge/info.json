@@ -5,8 +5,11 @@
     "DISABLED": false,
     "NAME": "purge",
     "TAGS": [
-      "purge",
-      "inactive"
+        "purge",
+        "inactive"
+    ],
+    "REQUIREMENTS": [
+        "croniter"
     ],
     "INSTALL_MSG": "Usage: `[p]purge`"
-  }
+}

@@ -1,9 +1,15 @@
 {
-    "author" : ["McTwist"],
-    "description" : "Usage: [p]convert <from> to <to>\nWill try to convert a unit to something else comparable.",
-    "short": "Convert a unit to any other similar unit.",
-    "disabled": false,
-    "name" : "Convert",
-    "tags" : ["utility"],
-    "requirements": ["pint"]
+    "AUTHOR": [
+        "McTwist"
+    ],
+    "DESCRIPTION": "Usage: [p]convert <from> to <to>\nWill try to convert a unit to something else comparable.",
+    "SHORT": "Convert a unit to any other similar unit.",
+    "DISABLED": false,
+    "NAME": "Convert",
+    "TAGS": [
+        "utility"
+    ],
+    "REQUIREMENTS": [
+        "pint"
+    ]
 }

@@ -5,9 +5,9 @@
     "DISABLED": false,
     "NAME": "notes",
     "TAGS": [
-      "notes",
-      "mod",
-      "log"
+        "notes",
+        "mod",
+        "log"
     ],
     "INSTALL_MSG": "Usage: `[p]notes`"
-  }
+}

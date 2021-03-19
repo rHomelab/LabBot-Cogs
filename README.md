@@ -1,6 +1,11 @@
 # LabBot Cogs
 
-<img src=LabBot.png width="256" height="256">
+<p align="center">
+    <img src=LabBot.png width="256" height="256">
+</p>
+<p align="center">
+    <img src="https://img.shields.io/github/workflow/status/rhomelab/labbot-cogs/CI?style=for-the-badge">
+</p>
 
 Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homelab](https://reddit.com/r/Homelab) Discord server bot.
 
@@ -213,7 +218,13 @@ Allows you to view info on a role
 
 This cog will allow users to prove they're not a bot by having to read rules and complete an action. They will then be given the verified role if they can complete this.
 
-`[p]verify`
+- `[p]verify block <user>` - Add the specified user to the verification blocklist.
+- `[p]verify channel <channel>` - Set the channel in which the cog listens for verification attemps.
+- `[p]verify logchannel <channel>` - Set the channel in which the cog logs verification attemps.
+- `[p]verify message <message>` - Set the verification string (e.g. `I agree to the rules`.
+- `[p]verify role <role>` - Set the role to which users are added upon successful verification.
+
+Further configuration options can be seen with `[p]verify help`
 
 ### xkcd
 

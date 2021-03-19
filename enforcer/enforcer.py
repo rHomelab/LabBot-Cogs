@@ -44,9 +44,7 @@ class EnforcerCog(commands.Cog):
         pass
 
     @_enforcer.command("logchannel")
-    async def enforcer_logchannel(
-        self, ctx: commands.Context, channel: discord.TextChannel
-    ):
+    async def enforcer_logchannel(self, ctx: commands.Context, channel: discord.TextChannel):
         """Sets the channel to post the enforcer logs.
 
         Example:
@@ -216,17 +214,13 @@ class EnforcerCog(commands.Cog):
             if log_id is not None:
                 log = message.guild.get_channel(log_id)
                 data = discord.Embed(color=discord.Color.orange())
-                data.set_author(
-                    name=f"Message Enforced - {author}", icon_url=author.avatar_url
-                )
+                data.set_author(name=f"Message Enforced - {author}", icon_url=author.avatar_url)
                 data.add_field(name="Enforced Reason", value=delete)
                 if log is not None:
                     try:
                         await log.send(embed=data)
                     except discord.Forbidden:
-                        await log.send(
-                            f"**Message Enforced** - {author.id} - {author} - Reason: {delete}"
-                        )
+                        await log.send(f"**Message Enforced** - {author.id} - {author} - Reason: {delete}")
 
     @_enforcer.command("status")
     async def enforcer_status(self, ctx: commands.Context):
@@ -240,11 +234,7 @@ class EnforcerCog(commands.Cog):
             for channel_obj in channels:
                 channel = ctx.guild.get_channel(channel_obj["id"])
 
-                conf_str = "\n".join(
-                    f"{key} - {channel_obj[key]}"
-                    for key in self.attributes
-                    if key in channel_obj
-                )
+                conf_str = "\n".join(f"{key} - {channel_obj[key]}" for key in self.attributes if key in channel_obj)
 
                 messages.append(f"📝{channel.mention} - Configuration\n{conf_str}")
 
