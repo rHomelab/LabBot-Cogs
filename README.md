@@ -208,6 +208,12 @@ This cog will allow members to send a report into a channel where it can be revi
 
 - `[p]emergency [message]` - An emergency can be requested which will ping all members in the configured logchannel if they are online.
 
+### Roleinfo
+
+Allows you to view info on a role
+
+- `[p]roleinfo <role>`
+
 ### Verify
 
 This cog will allow users to prove they're not a bot by having to read rules and complete an action. They will then be given the verified role if they can complete this.

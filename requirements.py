@@ -9,8 +9,8 @@ with open("requirements.txt", "r") as f:
 for filename in glob("*/info.json"):
     with open(filename, "r") as f:
         info = loads(f.read())
-    if 'REQUIREMENTS' in info:
-        requirements.extend(info['REQUIREMENTS'])
+    if "REQUIREMENTS" in info:
+        requirements.extend(info["REQUIREMENTS"])
 
 
 with open("requirements.txt", "w") as f:
