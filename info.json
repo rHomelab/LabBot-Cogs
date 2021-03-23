@@ -1,5 +1,5 @@
 {
-    "AUTHOR" : [
+    "author" : [
     	"tigattack",
     	"Issy",
     	"portalBlock",
@@ -9,7 +9,7 @@
     	"TheDevFreak",
     	"McTwist"
     ],
-    "SHORT" : "r/Homelab's LabBot Cogs repository.",
-    "DESCRIPTION" : "r/Homelab's LabBot Cogs repository, developed and maintaine by the Homelab community.",
-    "INSTALL_MSG" : "Thanks for adding r/Homelab's LabBot Cogs repository!"
+    "short" : "r/Homelab's LabBot Cogs repository.",
+    "description" : "r/Homelab's LabBot Cogs repository, developed and maintaine by the Homelab community.",
+    "install_msg" : "Thanks for adding r/Homelab's LabBot Cogs repository!"
 }
