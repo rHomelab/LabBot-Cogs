@@ -53,6 +53,8 @@ if __name__ == "__main__":
             try:
                 validate(schema_path, filename)
             except fastjsonschema.exceptions.JsonSchemaValueException as error:
+                error_count += 1
+
                 if error.rule == "additionalProperties" and error.rule_definition == False:
                     error_keys = list_from_str(error.message)
                     if len(error_keys) > 1:
@@ -60,6 +62,7 @@ if __name__ == "__main__":
                     else:
                         line, col = get_key_pos(filename, error_keys[0])
                     print(OUTPUT.format(level="error", file=filename, line=line, col=col, message=error.message))
+
                 else:
                     key_name = error.path[-1]
                     line, col = get_key_pos(filename, key_name)
