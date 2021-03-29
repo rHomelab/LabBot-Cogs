@@ -15,7 +15,7 @@ jobs:
       - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip
-          python3 requirements.py
+          python3 .github/scripts/compile_requirements.py
           pip install -r requirements.txt
           pip install -r requirements-ci.txt
       - name: Lint with flake8
@@ -37,7 +37,7 @@ jobs:
       - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip
-          python3 requirements.py
+          python3 .github/scripts/compile_requirements.py
           pip install -r requirements.txt
           pip install -r requirements-ci.txt
       - name: Lint with black
@@ -56,7 +56,7 @@ jobs:
       - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip
-          python3 requirements.py
+          python3 .github/scripts/compile_requirements.py
           pip install -r requirements.txt
           pip install -r requirements-ci.txt
       - name: Lint with pylint
@@ -75,9 +75,27 @@ jobs:
       - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip
-          python3 requirements.py
+          python3 .github/scripts/compile_requirements.py
           pip install -r requirements.txt
           pip install -r requirements-ci.txt
       - name: Lint with isort
         run: |
           isort --check --diff .
+
+  check-json:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the repository at the current branch
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 .github/scripts/compile_requirements.py
+          pip install -r requirements.txt
+          pip install -r requirements-ci.txt
+      - name: Check cog and repo JSON files against schema
+        run: python3 .github/scripts/json_checker.py
