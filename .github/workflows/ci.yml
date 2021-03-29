@@ -90,7 +90,7 @@ jobs:
       - name: Set up Python 3.8
         uses: actions/setup-python@v1
         with:
-          python-version: 3.9
+          python-version: "3.9.2"
       - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip
