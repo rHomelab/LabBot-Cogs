@@ -4,6 +4,7 @@ from glob import glob
 from typing import Union
 
 import fastjsonschema
+from rich import inspect
 
 OUTPUT = "::{level} file={file},line={line},col={col}::{message}"
 
@@ -63,7 +64,7 @@ if __name__ == "__main__":
                         print(OUTPUT.format(level="error", file=filename, line=line, col=col, message=message))
 
                 else:
-                    key_name = error.path[-1]
+                    key_name = error.path[1]
                     line, col = get_key_pos(filename, key_name)
                     print(OUTPUT.format(level="warning", file=filename, line=line, col=col, message=error.message))
 
