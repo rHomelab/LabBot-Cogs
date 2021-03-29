@@ -35,35 +35,36 @@ def get_key_pos(filename: str, key: str) -> tuple[int]:
     raise Exception(f"could not get position of key: {key}")
 
 
-def list_from_str(set_str: str) -> set[str]:
+def list_from_str(set_str: str) -> list[str]:
     """Returns a list from a string representation of a list"""
-    set_reg = re.compile("^.*{(.*)}.*$")
-    match = set_reg.match(set_str)
+    list_reg = re.compile("^.*{(.*)}.*$")
+    match = list_reg.match(set_str)
     if not match:
         raise Exception(f"Failed to parse set from string {set_str}")
     to_list = "[" + match.group(1).replace('"', '\\"').replace("'", '"') + "]"
-    return json.loads(to_list)
+    return json.loads(to_list), match.regs[1]
 
 
 if __name__ == "__main__":
-    error_count = 0
+    has_errors = False
 
     for iterable, schema_path in (("info.json", ".github/schemas/repo.json"), ("*/info.json", ".github/schemas/cog.json")):
         for filename in glob(iterable):
             try:
                 validate(schema_path, filename)
             except fastjsonschema.exceptions.JsonSchemaValueException as error:
-                error_count += 1
+                has_errors = True
 
                 if error.rule == "additionalProperties" and error.rule_definition == False:
-                    error_keys = list_from_str(error.message)
+                    error_keys, msg_bounds = list_from_str(error.message)
                     for key in error_keys:
                         line, col = get_key_pos(filename, key)
-                        print(OUTPUT.format(level="error", file=filename, line=line, col=col, message=error.message))
+                        message = f"{error.message[:msg_bounds[0] + 1]}{key}{error.message[msg_bounds[1] - 1:]}"
+                        print(OUTPUT.format(level="error", file=filename, line=line, col=col, message=message))
 
                 else:
                     key_name = error.path[-1]
                     line, col = get_key_pos(filename, key_name)
                     print(OUTPUT.format(level="warning", file=filename, line=line, col=col, message=error.message))
 
-    exit(1) if error_count else exit(0)
+    exit(1) if has_errors else exit(0)
