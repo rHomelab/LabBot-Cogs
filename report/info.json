@@ -1,12 +1,14 @@
 {
-    "AUTHOR": "Sneezey",
-    "SHORT": "Report cog",
-    "DESCRIPTION": "Allows users to report an issue to mods",
-    "DISABLED": false,
-    "NAME": "report",
-    "TAGS": [
+    "author": [
+        "Sneezey"
+    ],
+    "short": "Report cog",
+    "description": "Allows users to report an issue to mods",
+    "disabled": false,
+    "name": "report",
+    "tags": [
         "report",
         "reports"
     ],
-    "INSTALL_MSG": "Usage: `[p]report`"
+    "install_msg": "Usage: `[p]report`"
 }

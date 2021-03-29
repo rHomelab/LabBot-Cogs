@@ -1,13 +1,15 @@
 {
-    "AUTHOR": "Sneezey",
-    "SHORT": "Give a role to verified users",
-    "DESCRIPTION": "Verify that a user is less-of-a-bot that what could be",
-    "DISABLED": false,
-    "NAME": "verify",
-    "TAGS": [
+    "author": [
+        "Sneezey"
+    ],
+    "short": "Give a role to verified users",
+    "description": "Verify that a user is less-of-a-bot that what could be",
+    "disabled": false,
+    "name": "verify",
+    "tags": [
         "verify",
         "verification",
         "check"
     ],
-    "INSTALL_MSG": "Usage: `[p]verify`"
+    "install_msg": "Usage: `[p]verify`"
 }

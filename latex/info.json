@@ -1,12 +1,14 @@
 {
-    "AUTHOR": "portalBlock",
-    "SHORT": "Render LaTeX",
-    "DESCRIPTION": "Render LaTeX data.",
-    "DISABLED": false,
-    "NAME": "latex",
-    "TAGS": [
+    "author": [
+        "portalBlock"
+    ],
+    "short": "Render LaTeX",
+    "description": "Render LaTeX data.",
+    "disabled": false,
+    "name": "latex",
+    "tags": [
         "reply",
         "utility"
     ],
-    "INSTALL_MSG": "Usage: `[p]latex <LaTeX>`"
+    "install_msg": "Usage: `[p]latex <LaTeX>`"
 }

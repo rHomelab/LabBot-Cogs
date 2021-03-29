@@ -1,13 +1,15 @@
 {
-    "AUTHOR": "Issy",
-    "SHORT": "Auto reply to messages",
-    "DESCRIPTION": "Automatically reply to messages triggered by certain keywords",
-    "DISABLED": false,
-    "NAME": "autoreply",
-    "TAGS": [
+    "author": [
+        "Issy"
+    ],
+    "short": "Auto reply to messages",
+    "description": "Automatically reply to messages triggered by certain keywords",
+    "disabled": false,
+    "name": "autoreply",
+    "tags": [
         "reply",
         "fun",
         "utility"
     ],
-    "INSTALL_MSG": "Usage: `[p]autoreply add`"
+    "install_msg": "Usage: `[p]autoreply add`"
 }
