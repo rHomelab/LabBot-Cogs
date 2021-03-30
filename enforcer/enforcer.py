@@ -58,8 +58,8 @@ class EnforcerCog(commands.Cog):
         if should_enforce:
             self.bot.dispatch("msg_enforce", message, should_enforce)
 
-    @commands.Cog.listener("on_msg_enforce")
-    async def _on_msg_enforce(self, message: discord.Message, reason: str):
+    @commands.Cog.listener()
+    async def on_msg_enforce(self, message: discord.Message, reason: str):
         await message.delete()
 
         author = message.author
