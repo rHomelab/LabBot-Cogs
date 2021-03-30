@@ -1,5 +1,6 @@
 """discord red-bot enforcer"""
 from datetime import datetime
+from typing import Union, Tuple
 
 import discord
 from redbot.core import Config, checks, commands
@@ -43,103 +44,52 @@ class EnforcerCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        if not isinstance(message.guild, discord.Guild):
-            # The user has DM'd us. Ignore.
+        if not self.is_valid_message(message):
             return
+
+        # Get channel entry from config
+        channels = filter(lambda c: c["id"] == message.channel.id, await self.settings.guild(message.guild).channels())
+        if not list(channels):
+            return
+
+        # Check enforcer rules for channel
+        should_enforce = self.check_enforcer_rules(next(channels), message)
+
+        if should_enforce:
+            self.bot.dispatch("msg_enforce", message, should_enforce)
+
+    @commands.Cog.listener("on_msg_enforce")
+    async def _on_msg_enforce(self, message: discord.Message, reason: str):
+        await message.delete()
 
         author = message.author
-        valid_user = isinstance(author, discord.Member) and not author.bot
-        if not valid_user:
-            # User is a bot. Ignore.
-            return
 
-        delete = None
+        data = discord.Embed(color=discord.Color.orange(), description=message.content)
+        data.set_author(name=f"Message Enforced - {author}", icon_url=author.avatar_url)
+        data.add_field(name="Enforced Reason", value=reason, inline=True)
+        data.add_field(name="Channel", value=message.channel.mention, inline=True)
 
-        async with self.settings.guild(message.guild).channels() as channels:
-            for channel in channels:
-                if not channel["id"] == message.channel.id:
-                    # Not relating to this channel
-                    continue
+        log_id = await self.settings.guild(message.guild).logchannel()
+        if log_id:
+            log_channel = message.guild.get_channel(log_id)
+            if log_channel:
+                try:
+                    await log_channel.send(embed=data)
+                except discord.Forbidden:
+                    await log_channel.send(f"**Message Enforced** - {author.id} - {author} - Reason: {reason}")
 
-                if KEY_ENABLED not in channel or not channel[KEY_ENABLED]:
-                    # Enforcing not enabled here
-                    continue
+        if not author.dm_channel:
+            await author.create_dm()
 
-                if KEY_MINCHARS in channel:
-                    if len(message.content) < channel[KEY_MINCHARS]:
-                        # They breached minchars attribute
-                        delete = "Not enough characters"
-                        break
-
-                if KEY_NOMEDIA in channel and channel[KEY_NOMEDIA] is True:
-                    if len(message.attachments) > 0:
-                        # They breached nomedia attribute
-                        delete = "No media attached"
-                        break
-
-                if KEY_REQUIREMEDIA in channel and channel[KEY_REQUIREMEDIA] is True:
-                    if not message.attachments and not message.embeds:
-                        # They breached requiremedia attribute
-                        delete = "Requires media attached"
-                        break
-
-                if KEY_NOTEXT in channel and channel[KEY_NOTEXT] is True:
-                    if len(message.content) > 0:
-                        # They breached notext attribute
-                        delete = "Message had no text"
-                        break
-
-                if KEY_MINDISCORDAGE in channel:
-                    if author.created_at is None:
-                        # They didn't have a created_at date?
-                        break
-
-                    delta = datetime.utcnow() - author.created_at
-                    if delta.total_seconds() < channel[KEY_MINDISCORDAGE]:
-                        # They breached minimum discord age
-                        delete = "User account not old enough"
-                        break
-
-                if KEY_MINGUILDAGE in channel:
-                    if author.joined_at is None:
-                        # They didn't have a joined_at date?
-                        break
-
-                    delta = datetime.utcnow() - author.joined_at
-                    if delta.total_seconds() < channel[KEY_MINGUILDAGE]:
-                        # They breached minimum guild age
-                        delete = "User not in server long enough"
-                        break
-
-        if delete:
-            await message.delete()
-
-            data = discord.Embed(color=discord.Color.orange(), description=message.content)
-            data.set_author(name=f"Message Enforced - {author}", icon_url=author.avatar_url)
-            data.add_field(name="Enforced Reason", value=delete, inline=True)
-            data.add_field(name="Channel", value=message.channel.mention, inline=True)
-
-            log_id = await self.settings.guild(message.guild).logchannel()
-            if log_id:
-                log_channel = message.guild.get_channel(log_id)
-                if log_channel:
-                    try:
-                        await log_channel.send(embed=data)
-                    except discord.Forbidden:
-                        await log_channel.send(f"**Message Enforced** - {author.id} - {author} - Reason: {delete}")
-
-            if not author.dm_channel:
-                await author.create_dm()
-
-            try:
-                await author.dm_channel.send(embed=data)
-            except discord.Forbidden:
-                # User does not allow DMs
-                inform_id = await self.settings.guild(message.guild).userchannel()
-                if inform_id:
-                    inform_channel = message.guild.get_channel(inform_id)
-                    if inform_channel:
-                        await inform_channel.send(content=author.mention, embed=data)
+        try:
+            await author.dm_channel.send(embed=data)
+        except discord.Forbidden:
+            # User does not allow DMs
+            inform_id = await self.settings.guild(message.guild).userchannel()
+            if inform_id:
+                inform_channel = message.guild.get_channel(inform_id)
+                if inform_channel:
+                    await inform_channel.send(content=author.mention, embed=data)
 
     @commands.group(name="enforcer")
     @commands.guild_only()
@@ -290,3 +240,54 @@ class EnforcerCog(commands.Cog):
             if added is False:
                 # Attribute does not exist for channel
                 channels.append({"id": channel.id, attribute: value})
+
+    def is_valid_message(self, message: discord.Message) -> bool:
+        """Determines whether a message is worth evaluating"""
+        if not isinstance(message.guild, discord.Guild):
+            # The user has DM'd us. Ignore.
+            return False
+
+        author = message.author
+        valid_user = isinstance(author, discord.Member) and not author.bot
+        if not valid_user:
+            # User is a bot. Ignore.
+            return False
+
+        return True
+
+    def check_enforcer_rules(self, channel: dict, message: discord.Message) -> Union[bool, str]:
+        """Check message against channel enforcer rules"""
+        author = message.author
+
+        if not channel.get(KEY_ENABLED):
+            # Enforcing not enabled here
+            return False
+
+        if (KEY_MINCHARS in channel) and (len(message.content) < channel[KEY_MINCHARS]):
+            # They breached minchars attribute
+            return "Not enough characters"
+
+        if channel.get(KEY_NOMEDIA) and message.attachments:
+            # They breached nomedia attribute
+            return "No media attached"
+
+        if channel.get(KEY_REQUIREMEDIA):
+            if not message.attachments and not message.embeds:
+                # They breached requiremedia attribute
+                return "Requires media attached"
+
+        if channel.get(KEY_NOTEXT) and not message.content:
+            # They breached notext attribute
+            return "Message had no text"
+
+        if KEY_MINDISCORDAGE in channel and author.created_at:
+            delta = datetime.utcnow() - author.created_at
+            if delta.total_seconds() < channel[KEY_MINDISCORDAGE]:
+                # They breached minimum discord age
+                return "User account not old enough"
+
+        if KEY_MINGUILDAGE in channel and author.joined_at:
+            delta = datetime.utcnow() - author.joined_at
+            if delta.total_seconds() < channel[KEY_MINGUILDAGE]:
+                # They breached minimum guild age
+                return "User not in server long enough"
