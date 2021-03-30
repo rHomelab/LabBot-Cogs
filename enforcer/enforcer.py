@@ -114,15 +114,10 @@ class EnforcerCog(commands.Cog):
         if delete:
             await message.delete()
 
-            data = discord.Embed(
-                color=discord.Color.orange(), description=message.content
-            )
-            data.set_author(
-                name=f"Message Enforced - {author}", icon_url=author.avatar_url
-            )
+            data = discord.Embed(color=discord.Color.orange(), description=message.content)
+            data.set_author(name=f"Message Enforced - {author}", icon_url=author.avatar_url)
             data.add_field(name="Enforced Reason", value=delete, inline=True)
-            data.add_field(
-                name="Channel", value=message.channel.mention, inline=True)
+            data.add_field(name="Channel", value=message.channel.mention, inline=True)
 
             log_id = await self.settings.guild(message.guild).logchannel()
             if log_id:
@@ -131,7 +126,7 @@ class EnforcerCog(commands.Cog):
                     try:
                         await log_channel.send(embed=data)
                     except discord.Forbidden:
-                        await log.send(f"**Message Enforced** - {author.id} - {author} - Reason: {delete}")
+                        await log_channel.send(f"**Message Enforced** - {author.id} - {author} - Reason: {delete}")
 
             if not author.dm_channel:
                 await author.create_dm()
@@ -153,9 +148,7 @@ class EnforcerCog(commands.Cog):
         pass
 
     @_enforcer.command("logchannel")
-    async def enforcer_logchannel(
-        self, ctx: commands.Context, channel: discord.TextChannel
-    ):
+    async def enforcer_logchannel(self, ctx: commands.Context, channel: discord.TextChannel):
         """Sets the channel to post the enforcer logs.
 
         Example:
@@ -166,9 +159,7 @@ class EnforcerCog(commands.Cog):
         await ctx.send(f"Enforcer log message channel set to `{channel.name}`")
 
     @_enforcer.command("userchannel")
-    async def enforcer_userchannel(
-        self, ctx: commands.Context, channel: discord.TextChannel
-    ):
+    async def enforcer_userchannel(self, ctx: commands.Context, channel: discord.TextChannel):
         """Sets the channel to inform the user of deletion reason, if DMs are unavailable.
 
         Example:
