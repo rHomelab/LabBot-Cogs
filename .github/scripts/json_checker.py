@@ -4,7 +4,6 @@ from glob import glob
 from typing import Union
 
 import fastjsonschema
-from rich import inspect
 
 OUTPUT = "::{level} file={file},line={line},col={col}::{message}"
 
