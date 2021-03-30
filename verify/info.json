@@ -15,6 +15,5 @@
 	"install_msg": "Usage: `[p]verify`",
 	"requirements": [
 		"python-Levenshtein"
-	],
-	"foo": "bar"
+	]
 }
