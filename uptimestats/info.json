@@ -1,0 +1,13 @@
+{
+    "author": [
+        "Issy"
+    ],
+    "short": "Provide detailed stats on bot uptime",
+    "description": "More detailed stats on bot uptime, API disconnects, commands executed, etc",
+    "disabled": false,
+    "name": "uptimestats",
+    "tags": [
+        "utility"
+    ],
+    "install_msg": "Usage: `[p]uptimestats`"
+}
