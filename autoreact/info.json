@@ -1,13 +1,15 @@
 {
-    "AUTHOR": "Issy",
-    "SHORT": "Auto react to messages",
-    "DESCRIPTION": "Automatically react to messages triggered by certain keywords",
-    "DISABLED": false,
-    "NAME": "autoreact",
-    "TAGS": [
+    "author": [
+        "Issy"
+    ],
+    "short": "Auto react to messages",
+    "description": "Automatically react to messages triggered by certain keywords",
+    "disabled": false,
+    "name": "autoreact",
+    "tags": [
         "reactions",
         "fun",
         "utility"
     ],
-    "INSTALL_MSG": "Usage: `[p]autoreact add reaction [emoji] [phrase]`"
+    "install_msg": "Usage: `[p]autoreact add reaction [emoji] [phrase]`"
 }
