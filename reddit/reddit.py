@@ -27,7 +27,7 @@ class RedditCog(commands.Cog):
             # Regular feeds - [{'subreddit': str, 'channel_id': int}]
             "feeds": [],
             # Feeds filtered by post flair - [{'subreddit': str, 'channel_id': int, 'filter': {'flair': str, 'title': str}}]
-            "filtered_feeds": []
+            "filtered_feeds": [],
         }
 
         self.config.register_global(**default_global_config)
@@ -57,14 +57,14 @@ class RedditCog(commands.Cog):
     # Command groups
 
     @checks.mod()
-    @commands.group(name='reddit', pass_context=True)
+    @commands.group(name="reddit", pass_context=True)
     async def _feed(self, ctx):
         """Subscribe/Unsubscribe to Reddit feeds"""
         pass
 
     # Commands
 
-    @_feed.command(name='subscribe')
+    @_feed.command(name="subscribe")
     async def subscribe(self, ctx, subreddit: str, channel: discord.TextChannel):
         """Subscribe to a Reddit feed
 
@@ -72,19 +72,19 @@ class RedditCog(commands.Cog):
         - `[p]redditfeed subscribe <subreddit> <channel>`
         """
         async with self.config.guild(ctx.guild).feeds() as feeds:
-            if {'subreddit': subreddit.lower(), 'channel_id': channel.id} in feeds:
-                error_embed = await self.make_error_embed(ctx, error_type='FeedExists')
+            if {"subreddit": subreddit.lower(), "channel_id": channel.id} in feeds:
+                error_embed = await self.make_error_embed(ctx, error_type="FeedExists")
                 await ctx.send(embed=error_embed)
                 return
-            feeds.append({
-                'subreddit': subreddit.lower(),
-                'channel_id': channel.id
-            })
+            feeds.append({"subreddit": subreddit.lower(), "channel_id": channel.id})
             success_embed = discord.Embed(
-                title='Subscribed to feed', description=f"<#{channel.id}> **-** r/{subreddit.lower()}", colour=await ctx.colour())
+                title="Subscribed to feed",
+                description=f"<#{channel.id}> **-** r/{subreddit.lower()}",
+                colour=await ctx.colour(),
+            )
             await ctx.send(embed=success_embed)
 
-    @_feed.command(name='unsubscribe')
+    @_feed.command(name="unsubscribe")
     async def unsubscribe(self, ctx, subreddit: str, channel: discord.TextChannel):
         """Unsubscribe from a Reddit feed
 
@@ -92,18 +92,17 @@ class RedditCog(commands.Cog):
         - `[p]redditfeed unsubscribe <subreddit>`
         """
         async with self.config.guild(ctx.guild).feeds() as feeds:
-            if {'subreddit': subreddit.lower(), 'channel_id': channel.id} not in feeds:
-                error_embed = self.make_error_embed(
-                    ctx, error_type='FeedNotFound')
+            if {"subreddit": subreddit.lower(), "channel_id": channel.id} not in feeds:
+                error_embed = self.make_error_embed(ctx, error_type="FeedNotFound")
                 await ctx.send(embed=error_embed)
                 return
 
-            feeds.remove({
-                'subreddit': subreddit.lower(),
-                'channel_id': channel.id
-            })
+            feeds.remove({"subreddit": subreddit.lower(), "channel_id": channel.id})
             success_embed = discord.Embed(
-                title='Unsubscribed from feed', description=f"<#{channel.id}> **-** r/{subreddit.lower()}", colour=await ctx.colour)
+                title="Unsubscribed from feed",
+                description=f"<#{channel.id}> **-** r/{subreddit.lower()}",
+                colour=await ctx.colour,
+            )
             await ctx.send(embed=success_embed)
 
     # Tasks
@@ -135,19 +134,17 @@ class RedditCog(commands.Cog):
         for subreddit_name in subreddits:
             subreddit = await self.praw.subreddit(subreddit_name, fetch=True)
             # Retrieve list of seen submissions for this subreddit
-            subreddit_seen_posts = map(
-                lambda x: x["id"],
-                map(
-                    lambda x: x["subreddit"] == subreddit_name,
-                    seen_posts
-                )
-            )
+            subreddit_seen_posts = map(lambda x: x["id"], map(lambda x: x["subreddit"] == subreddit_name, seen_posts))
 
             # Make a list of channels to send to
             channels = []
             for guild_id, guild_config in all_guild_config.items():
                 for feed_channel in map(lambda x: x[""], guild_config["feeds"]):
-                    channels.append({"guild_id": guild_id, })
+                    channels.append(
+                        {
+                            "guild_id": guild_id,
+                        }
+                    )
 
             async for submission in subreddit.new(limit=25):
                 if submission.id not in subreddit_seen_posts:
@@ -168,26 +165,28 @@ class RedditCog(commands.Cog):
                 continue
 
             for guild in all_guild_config:
-                guild_subscriptions = [
-                    i for i in all_guild_config[guild]['feeds'] if i['subreddit'] == sub.name]
+                guild_subscriptions = [i for i in all_guild_config[guild]["feeds"] if i["subreddit"] == sub.name]
                 # Go through the regular feed subscriptions
                 for subscription in guild_subscriptions:
                     guild_object = await discord.fetch_guild(guild)
-                    channel = await guild_object.fetch_channel(subscription['channel_id'])
+                    channel = await guild_object.fetch_channel(subscription["channel_id"])
                     # Post to Discord channel
                     for post in new_posts:
                         await channel.send(embed=post.embed)
 
                 guild_filtered_subscriptions = [
-                    i for i in all_guild_config[guild]['filtered_feeds'] if i['subreddit'] == sub.name]
+                    i for i in all_guild_config[guild]["filtered_feeds"] if i["subreddit"] == sub.name
+                ]
                 # Go through the filtered subscriptions
                 async with self.config.seen_posts() as seen_posts:
                     for filtered_subscription in guild_filtered_subscriptions:
                         guild_object = await discord.fetch_guild(guild)
-                        channel = await guild_object.fetch_channel(filtered_subscription['channel_id'])
+                        channel = await guild_object.fetch_channel(filtered_subscription["channel_id"])
                         # Post to Discord if filter matches
                         for post in new_posts:
-                            if (filtered_subscription['filter']['title'] in post.title.lower()) and (filtered_subscription['filter']['flair'] is post.flair_text):
+                            if (filtered_subscription["filter"]["title"] in post.title.lower()) and (
+                                filtered_subscription["filter"]["flair"] is post.flair_text
+                            ):
                                 msg = await channel.send(embed=post.embed)
                                 await self.update_seen_posts(post, msg)
 
@@ -203,7 +202,7 @@ class RedditCog(commands.Cog):
         seen_posts = await self.get_seen_posts()
         for post in seen_posts:
 
-            if post['post']['content'] == post_data.text:
+            if post["post"]["content"] == post_data.text:
                 continue
 
         # Check new content against old
@@ -223,17 +222,14 @@ class RedditCog(commands.Cog):
         if not tokens:
             tokens = await self.bot.get_shared_api_tokens("reddit")
 
-        required_keys = {'username', 'password',
-                         'client_secret', 'client_id', 'user_agent'}
+        required_keys = {"client_secret", "client_id", "user_agent"}
         if set(tokens) != required_keys:
             for key in tokens:
                 if key not in required_keys:
-                    raise Exception(
-                        f"Asyncpraw failed to authenticate: Unrecognised key in API credentials {key}")
+                    raise Exception(f"Asyncpraw failed to authenticate: Unrecognised key in API credentials {key}")
             for key in required_keys:
                 if key not in tokens:
-                    raise Exception(
-                        f"Asyncpraw failed to authenticate: Key missing from API credentials {key}")
+                    raise Exception(f"Asyncpraw failed to authenticate: Key missing from API credentials {key}")
 
         tasks = (self.check_subreddits, self.check_recent_posts)
         for task_loop in tasks:
@@ -254,27 +250,30 @@ class RedditCog(commands.Cog):
                 return {}
             table = {}
             for key in set(i[by] for i in recent_posts):
-                table[key] = list(filter(
-                    lambda item: item[by] == key,
-                    recent_posts
-                ))
+                table[key] = list(filter(lambda item: item[by] == key, recent_posts))
             return table
 
     async def update_recent_posts(self, post: asyncpraw.models.Submission, msg: discord.Message):
         async with self.config.recent_posts() as recent_posts:
-            recent_posts.append({
-                "guild_id": msg.guild.id,
-                "channel_id": msg.channel.id,
-                "message_id": msg.id,
-                "subreddit": post.subreddit.display_name,
-                "submission_id": post.id
-            })
+            recent_posts.append(
+                {
+                    "guild_id": msg.guild.id,
+                    "channel_id": msg.channel.id,
+                    "message_id": msg.id,
+                    "subreddit": post.subreddit.display_name,
+                    "submission_id": post.id,
+                }
+            )
 
     async def make_reddit_embed(self, channel: discord.abc.Messageable, post: asyncpraw.models.Submission) -> discord.Embed:
-        flair = f"[{post.link_flair_text}] " if post.link_flair_text
+        title = f"[{post.link_flair_text}] {post.title}" if post.link_flair_text else post.title
+        description = f"{post.selftext[:253]}..." if len(post.selftext) >= 256 else post.selftext
+        post_type = "Self post" if post.is_self else "Link post"
         embed = discord.Embed(
-            title=f"[{flair}{post.title}]({post.url})",
-            description=f"{post.selftext[:253]}..." if len(
-                post.selftext) >= 256 else post.selftext,
-            colour=await channel.colour()
+            title=f"[{title}]({post.permalink})",
+            description=description,
+            colour=await self.bot.get_embed_colour(channel),
+            timestamp=dt.fromtimestamp(post.created_at_utc),
         )
+        embed.set_footer(text=f"{post_type} by u/{post.author.name}", icon_url="https://reddit.com/favicon.ico")
+        return embed

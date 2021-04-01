@@ -5,7 +5,7 @@
     "short": "Reddit feed in channels",
     "description": "Reddit updates in Discord",
     "disabled": false,
-    "name": "reddit",
+    "name": "Reddit",
     "tags": [
         "reddit",
         "feed",
@@ -14,5 +14,5 @@
     "requirements": [
         "asyncpraw"
     ],
-    "install_msg": "Usage: `[p]reddit subscribe [subreddit] [channel]`\nThis cog requires the following API credentials to be set for reddit:\nclient_id, client_secret, password, user_agent, username"
+    "install_msg": "Usage: `[p]reddit subscribe [subreddit] [channel]`\nThis cog requires the following API credentials to be set for reddit:\nclient_id, client_secret, user_agent"
 }
