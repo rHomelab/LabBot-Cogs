@@ -37,7 +37,7 @@ class QuotesCog(commands.Cog):
         success_embed = discord.Embed(
             title="Quotes channel set",
             description=f"Quotes channel set to <#{check_value}>",
-            colour=ctx.guild.me.colour,
+            colour=await ctx.embed_colour(),
         )
         await ctx.send(embed=success_embed)
 
@@ -53,7 +53,7 @@ class QuotesCog(commands.Cog):
         - `[p]quote add <message_id1> <message_id2> <message_id3>`
         """
         if not message_ids:
-            error_embed = self.make_error_embed(ctx, error_type="NoArgs")
+            error_embed = await self.make_error_embed(ctx, error_type="NoArgs")
             await ctx.send(embed=error_embed)
             return
 
@@ -62,7 +62,7 @@ class QuotesCog(commands.Cog):
         async with ctx.channel.typing():
             for i, elem in enumerate(message_ids):
                 if len(messages) != i:
-                    error_embed = self.make_error_embed(
+                    error_embed = await self.make_error_embed(
                         ctx,
                         custom_msg=f"Could not find message with ID `{message_ids[i - 1]}`",
                     )
@@ -91,18 +91,18 @@ class QuotesCog(commands.Cog):
             else:
                 formatted_quote = "\n".join([i.content for i in messages])
 
-            quote_embed = self.make_quote_embed(ctx, formatted_quote, messages, authors)
+            quote_embed = await self.make_quote_embed(ctx, formatted_quote, messages, authors)
             quote_channel = await self.config.guild(ctx.guild).quote_channel()
 
             if not quote_channel:
-                error_embed = self.make_error_embed(ctx, error_type="NoChannelSet")
+                error_embed = await self.make_error_embed(ctx, error_type="NoChannelSet")
                 await ctx.send(embed=error_embed)
                 return
 
             try:
                 quote_channel = await self.bot.fetch_channel(quote_channel)
             except Exception:
-                error_embed = self.make_error_embed(ctx, error_type="ChannelNotFound")
+                error_embed = await self.make_error_embed(ctx, error_type="ChannelNotFound")
                 await ctx.send(embed=error_embed)
                 return
 
@@ -110,7 +110,7 @@ class QuotesCog(commands.Cog):
             message_object = await ctx.send(embed=quote_embed, content="Are you sure you want to send this quote?")
         # If sending the quote failed for any reason. For example, quote exceeded the character limit
         except Exception as err:
-            error_embed = self.make_error_embed(ctx, custom_msg=err)
+            error_embed = await self.make_error_embed(ctx, custom_msg=err)
             await ctx.send(embed=error_embed)
 
         emojis = ["✅", "❌"]
@@ -133,12 +133,12 @@ class QuotesCog(commands.Cog):
                 await message_object.clear_reactions()
                 return
             await quote_channel.send(embed=quote_embed)
-            success_embed = discord.Embed(description="Your quote has been sent", colour=ctx.guild.me.colour)
+            success_embed = discord.Embed(description="Your quote has been sent", colour=await ctx.embed_colour())
             await ctx.send(embed=success_embed)
 
     # Helper functions
 
-    def make_quote_embed(
+    async def make_quote_embed(
         self,
         ctx,
         formatted_quote: str,
@@ -155,7 +155,7 @@ class QuotesCog(commands.Cog):
 
         quote_embed = discord.Embed(
             description=formatted_quote,
-            colour=ctx.guild.me.colour,
+            colour=await ctx.embed_colour(),
             timestamp=messages[0].created_at,
         )
         quote_embed.add_field(name="Authors", value=author_list, inline=False)
@@ -167,7 +167,7 @@ class QuotesCog(commands.Cog):
         quote_embed.add_field(name="Link", value=f"[Jump to quote]({messages[0].jump_url})", inline=True)
         return quote_embed
 
-    def make_error_embed(self, ctx, error_type: str = "", custom_msg: str = None) -> discord.Embed:
+    async def make_error_embed(self, ctx, error_type: str = "", custom_msg: str = None) -> discord.Embed:
         """Generate error message embeds"""
         error_msgs = {
             "NoChannelSet": f"""There is no quotes channel configured for this server.
@@ -183,4 +183,4 @@ class QuotesCog(commands.Cog):
         elif custom_msg:
             error_msg = custom_msg
 
-        return discord.Embed(title="Error", description=error_msg, colour=ctx.guild.me.colour)
+        return discord.Embed(title="Error", description=error_msg, colour=await ctx.embed_colour())

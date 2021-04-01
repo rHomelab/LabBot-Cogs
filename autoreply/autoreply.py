@@ -83,7 +83,8 @@ class AutoReplyCog(commands.Cog):
         """View the configuration for the autoreply cog"""
         triggers = await self.ordered_list_from_config(ctx.guild)
         embed_list = [
-            self.make_trigger_embed(ctx, triggers[i], {"current": i + 1, "max": len(triggers)}) for i in range(len(triggers))
+            await self.make_trigger_embed(ctx, triggers[i], {"current": i + 1, "max": len(triggers)})
+            for i in range(len(triggers))
         ]
 
         if len(embed_list) > 1:
@@ -100,7 +101,7 @@ class AutoReplyCog(commands.Cog):
             await ctx.send(embed=embed_list[0])
 
         else:
-            error_embed = self.make_error_embed(ctx, error_type="NoConfiguration")
+            error_embed = await self.make_error_embed(ctx, error_type="NoConfiguration")
             await ctx.send(embed=error_embed)
 
     @commands.guild_only()
@@ -114,7 +115,7 @@ class AutoReplyCog(commands.Cog):
         """
         items = await self.ordered_list_from_config(ctx.guild)
         to_del = items[num - 1]
-        embed = self.make_trigger_embed(ctx, to_del)
+        embed = await self.make_trigger_embed(ctx, to_del)
         message_object = await ctx.send(
             embed=embed,
             content="Are you sure you want to remove this autoreply trigger?",
@@ -142,7 +143,7 @@ class AutoReplyCog(commands.Cog):
 
             await message_object.clear_reactions()
             await self.remove_trigger(ctx.guild, to_del["trigger"], to_del["response"])
-            success_embed = self.make_removal_success_embed(ctx, to_del)
+            success_embed = await self.make_removal_success_embed(ctx, to_del)
             await ctx.send(embed=success_embed)
 
     # Helper functions
@@ -156,31 +157,31 @@ class AutoReplyCog(commands.Cog):
         async with self.config.guild(guild).triggers() as triggers:
             return [{"trigger": i, "response": triggers[i]} for i in triggers]
 
-    def make_error_embed(self, ctx, error_type: str = ""):
+    async def make_error_embed(self, ctx, error_type: str = ""):
         error_msgs = {"NoConfiguration": "No configuration has been set for this guild"}
         error_embed = discord.Embed(
             title="Error",
             description=error_msgs[error_type],
-            colour=ctx.guild.me.colour,
+            colour=await ctx.embed_colour(),
         )
         return error_embed
 
-    def make_removal_success_embed(self, ctx, trigger_dict: dict):
+    async def make_removal_success_embed(self, ctx, trigger_dict: dict):
         trigger = trigger_dict["trigger"][:1010] if len(trigger_dict["trigger"]) > 1010 else trigger_dict["trigger"]
         response = trigger_dict["response"][:1010] if len(trigger_dict["response"]) > 1010 else trigger_dict["response"]
         desc = f"**Trigger:**\n{trigger}\n**Response:**\n{response}"
         embed = discord.Embed(
             title="Autoreply trigger removed",
             description=desc,
-            colour=ctx.guild.me.colour,
+            colour=await ctx.embed_colour(),
         )
         return embed
 
-    def make_trigger_embed(self, ctx, trigger_dict: dict, index=None):
+    async def make_trigger_embed(self, ctx, trigger_dict: dict, index=None):
         trigger = trigger_dict["trigger"][:1010] if len(trigger_dict["trigger"]) > 1010 else trigger_dict["trigger"]
         response = trigger_dict["response"][:1010] if len(trigger_dict["response"]) > 1010 else trigger_dict["response"]
         desc = f"**Trigger:**\n{trigger}\n**Response:**\n{response}"
-        embed = discord.Embed(description=desc, colour=ctx.guild.me.colour)
+        embed = discord.Embed(description=desc, colour=await ctx.embed_colour())
         if index:
             embed.set_footer(text=f"{index['current']} of {index['max']}")
         return embed

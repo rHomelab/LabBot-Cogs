@@ -132,7 +132,7 @@ class AutoReactCog(commands.Cog):
                 reactions[phrase.lower()] = []
                 reactions[phrase.lower()].append(emoji)
 
-        success_embed = discord.Embed(title="Added reaction pair", colour=ctx.guild.me.colour)
+        success_embed = discord.Embed(title="Added reaction pair", colour=await ctx.embed_colour())
         success_embed.add_field(name="Reaction", value=emoji, inline=False)
         success_embed.add_field(name="Phrase", value=phrase, inline=False)
         await ctx.send(embed=success_embed)
@@ -152,7 +152,7 @@ class AutoReactCog(commands.Cog):
         success_embed = discord.Embed(
             title="Autoreact channel added",
             description=desc,
-            colour=ctx.guild.me.colour,
+            colour=await ctx.embed_colour(),
         )
         await ctx.send(embed=success_embed)
 
@@ -171,7 +171,7 @@ class AutoReactCog(commands.Cog):
                 return
             whitelist.append(channel.id)
             desc = f"<#{channel.id}> added to whitelist"
-            success_embed = discord.Embed(title="Success", description=desc, colour=ctx.guild.me.colour)
+            success_embed = discord.Embed(title="Success", description=desc, colour=await ctx.embed_colour())
             await ctx.send(embed=success_embed)
 
     # Remove commands
@@ -187,7 +187,7 @@ class AutoReactCog(commands.Cog):
         """
         items = await self.ordered_list_from_config(ctx.guild)
         to_del = items[num - 1]
-        embed = discord.Embed(colour=ctx.guild.me.colour)
+        embed = discord.Embed(colour=await ctx.embed_colour())
         embed.add_field(name="Reaction", value=to_del["reaction"], inline=False)
         embed.add_field(name="Phrase", value=to_del["phrase"], inline=False)
         message_object = await ctx.send(embed=embed, content="Are you sure you want to remove this reaction pair?")
@@ -216,7 +216,7 @@ class AutoReactCog(commands.Cog):
             success_embed = discord.Embed(
                 title="Reaction pair removed",
                 description=f"{to_del['reaction']} **-** {to_del['phrase']}",
-                colour=ctx.guild.me.colour,
+                colour=await ctx.embed_colour(),
             )
             await ctx.send(embed=success_embed)
 
@@ -236,7 +236,7 @@ class AutoReactCog(commands.Cog):
                 return
 
             channel_reactions = channels[str(channel.id)]
-            embed = discord.Embed(colour=ctx.guild.me.colour)
+            embed = discord.Embed(colour=await ctx.embed_colour())
             embed.add_field(name="Channel", value=f"<#{channel.id}>", inline=False)
             embed.add_field(name="Reactions", value=" ".join(channel_reactions), inline=False)
             message_object = await ctx.send(
@@ -287,7 +287,7 @@ class AutoReactCog(commands.Cog):
                 await ctx.send(embed=error_embed)
                 return
 
-            embed = discord.Embed(colour=ctx.guild.me.colour)
+            embed = discord.Embed(colour=await ctx.embed_colour())
             embed.add_field(name="Channel", value=f"<#{channel.id}>", inline=False)
             message_object = await ctx.send(
                 embed=embed,
@@ -318,7 +318,7 @@ class AutoReactCog(commands.Cog):
                 success_embed = discord.Embed(
                     title="Channel removed from whitelist",
                     description=f"<#{channel.id}>",
-                    colour=ctx.guild.me.colour,
+                    colour=await ctx.embed_colour(),
                 )
                 await ctx.send(embed=success_embed)
 
@@ -363,7 +363,7 @@ class AutoReactCog(commands.Cog):
         error_embed = discord.Embed(
             title="Error",
             description=error_msgs[error_type],
-            colour=ctx.guild.me.colour,
+            colour=await ctx.embed_colour(),
         )
         return error_embed
 
@@ -383,7 +383,7 @@ class AutoReactCog(commands.Cog):
             sectioned_list = list(chunks(items, 8))
             count = 1
             for section in sectioned_list:
-                embed = discord.Embed(title=object_type.capitalize(), colour=ctx.guild.me.colour)
+                embed = discord.Embed(title=object_type.capitalize(), colour=await ctx.embed_colour())
                 for elem in section:
                     embed.add_field(name="Index", value=count, inline=True)
                     embed.add_field(name="Phrase", value=elem["phrase"], inline=True)
@@ -394,7 +394,7 @@ class AutoReactCog(commands.Cog):
         elif object_type == "channels":
             sectioned_list = list(chunks(items, 8))
             for section in sectioned_list:
-                embed = discord.Embed(title=object_type.capitalize(), colour=ctx.guild.me.colour)
+                embed = discord.Embed(title=object_type.capitalize(), colour=await ctx.embed_colour())
                 for elem in section:
                     embed.add_field(name="Channel", value=f"<#{elem['channel']}>", inline=True)
                     embed.add_field(
@@ -412,7 +412,7 @@ class AutoReactCog(commands.Cog):
                 embed = discord.Embed(
                     title="Whitelisted Channels",
                     description=channel_list,
-                    colour=ctx.guild.me.colour,
+                    colour=await ctx.embed_colour(),
                 )
                 embed_list.append(embed)
 
