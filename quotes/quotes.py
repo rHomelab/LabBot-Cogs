@@ -1,9 +1,11 @@
 """discord red-bot quotes"""
 import asyncio
-from typing import List
+from typing import List, Optional
 
 import discord
 from redbot.core import Config, checks, commands
+from redbot.core.utils.menus import start_adding_reactions
+from redbot.core.utils.predicates import ReactionPredicate
 
 
 class QuotesCog(commands.Cog):
@@ -107,31 +109,15 @@ class QuotesCog(commands.Cog):
                 return
 
         try:
-            message_object = await ctx.send(embed=quote_embed, content="Are you sure you want to send this quote?")
+            msg = await ctx.send(embed=quote_embed, content="Are you sure you want to send this quote?")
         # If sending the quote failed for any reason. For example, quote exceeded the character limit
         except Exception as err:
             error_embed = await self.make_error_embed(ctx, custom_msg=err)
             await ctx.send(embed=error_embed)
-
-        emojis = ["✅", "❌"]
-        for emoji in emojis:
-            await message_object.add_reaction(emoji)
-
-        def reaction_check(reaction, user):
-            return (user == ctx.author) and (reaction.message.id == message_object.id) and (reaction.emoji in emojis)
-
-        try:
-            reaction, _ = await self.bot.wait_for("reaction_add", timeout=180.0, check=reaction_check)
-        except asyncio.TimeoutError:
-            try:
-                await message_object.clear_reactions()
-            except Exception:
-                pass
             return
-        else:
-            if reaction.emoji == "❌":
-                await message_object.clear_reactions()
-                return
+
+        confirmation = await self.get_confirmation(ctx, msg)
+        if confirmation:
             await quote_channel.send(embed=quote_embed)
             success_embed = discord.Embed(description="Your quote has been sent", colour=await ctx.embed_colour())
             await ctx.send(embed=success_embed)
@@ -184,3 +170,19 @@ class QuotesCog(commands.Cog):
             error_msg = custom_msg
 
         return discord.Embed(title="Error", description=error_msg, colour=await ctx.embed_colour())
+
+    async def get_confirmation(self, ctx: commands.Context, msg: discord.Message) -> Optional[bool]:
+        """Get confirmation from user with reactions"""
+        emojis = ["❌", "✅"]
+        start_adding_reactions(msg, emojis)
+
+        try:
+            reaction, _ = await self.bot.wait_for(
+                "reaction_add", timeout=180.0, check=ReactionPredicate.with_emojis(emojis, msg, ctx.author)
+            )
+        except asyncio.TimeoutError:
+            await msg.clear_reactions()
+            return
+        else:
+            await msg.clear_reactions()
+            return bool(emojis.index(reaction.emoji))

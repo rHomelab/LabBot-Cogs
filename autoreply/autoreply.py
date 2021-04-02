@@ -1,10 +1,12 @@
 """discord red-bot autoreply"""
 import asyncio
+from typing import Optional
 
 import discord
 import discord.utils
 from redbot.core import Config, checks, commands
-from redbot.core.utils.menus import menu, next_page, prev_page
+from redbot.core.utils.menus import menu, next_page, prev_page, start_adding_reactions
+from redbot.core.utils.predicates import ReactionPredicate
 
 CUSTOM_CONTROLS = {"⬅️": prev_page, "➡️": next_page}
 
@@ -116,32 +118,12 @@ class AutoReplyCog(commands.Cog):
         items = await self.ordered_list_from_config(ctx.guild)
         to_del = items[num - 1]
         embed = await self.make_trigger_embed(ctx, to_del)
-        message_object = await ctx.send(
+        msg = await ctx.send(
             embed=embed,
             content="Are you sure you want to remove this autoreply trigger?",
         )
-
-        emojis = ["✅", "❌"]
-        for i in emojis:
-            await message_object.add_reaction(i)
-
-        def reaction_check(reaction, user):
-            return (user == ctx.author) and (reaction.message.id == message_object.id) and (reaction.emoji in emojis)
-
-        try:
-            reaction, _ = await self.bot.wait_for("reaction_add", timeout=180.0, check=reaction_check)
-        except asyncio.TimeoutError:
-            try:
-                await message_object.clear_reactions()
-            except Exception:
-                pass
-            return
-        else:
-            if reaction.emoji == "❌":
-                await message_object.clear_reactions()
-                return
-
-            await message_object.clear_reactions()
+        confirmation = await self.get_confirmation(ctx, msg)
+        if confirmation:
             await self.remove_trigger(ctx.guild, to_del["trigger"])
             success_embed = await self.make_removal_success_embed(ctx, to_del)
             await ctx.send(embed=success_embed)
@@ -185,3 +167,19 @@ class AutoReplyCog(commands.Cog):
         if index:
             embed.set_footer(text=f"{index['current']} of {index['max']}")
         return embed
+
+    async def get_confirmation(self, ctx: commands.Context, msg: discord.Message) -> Optional[bool]:
+        """Get confirmation from user with reactions"""
+        emojis = ["❌", "✅"]
+        start_adding_reactions(msg, emojis)
+
+        try:
+            reaction, _ = await self.bot.wait_for(
+                "reaction_add", timeout=180.0, check=ReactionPredicate.with_emojis(emojis, msg, ctx.author)
+            )
+        except asyncio.TimeoutError:
+            await msg.clear_reactions()
+            return
+        else:
+            await msg.clear_reactions()
+            return bool(emojis.index(reaction.emoji))
