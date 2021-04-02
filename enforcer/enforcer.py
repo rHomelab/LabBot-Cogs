@@ -22,7 +22,7 @@ class EnforcerCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.settings = Config.get_conf(self, identifier=987342593)
+        self.config = Config.get_conf(self, identifier=987342593)
         self.attributes = {
             KEY_ENABLED: {"type": "bool"},
             KEY_MINCHARS: {"type": "number"},
@@ -35,7 +35,7 @@ class EnforcerCog(commands.Cog):
 
         default_guild_settings = {"channels": [], "logchannel": None}
 
-        self.settings.register_guild(**default_guild_settings)
+        self.config.register_guild(**default_guild_settings)
 
     @commands.group(name="enforcer")
     @commands.guild_only()
@@ -51,7 +51,7 @@ class EnforcerCog(commands.Cog):
         - `[p]enforcer logchannel <channel>`
         - `[p]enforcer logchannel #admin-log`
         """
-        await self.settings.guild(ctx.guild).logchannel.set(channel.id)
+        await self.config.guild(ctx.guild).logchannel.set(channel.id)
         await ctx.send(f"Enforcer log message channel set to `{channel.name}`")
 
     async def _validate_attribute_value(self, attribute: str, value: str):
@@ -71,14 +71,14 @@ class EnforcerCog(commands.Cog):
         return None
 
     async def _reset_attribute(self, channel: discord.TextChannel, attribute):
-        async with self.settings.guild(channel.guild).channels() as channels:
+        async with self.config.guild(channel.guild).channels() as channels:
             for _channel in channels:
                 if _channel["id"] == channel.id:
                     del _channel[attribute]
 
     async def _set_attribute(self, channel: discord.TextChannel, attribute, value):
         added = False
-        async with self.settings.guild(channel.guild).channels() as channels:
+        async with self.config.guild(channel.guild).channels() as channels:
             # Check if attribute already exists
             for _channel in channels:
                 if _channel["id"] == channel.id:
@@ -151,7 +151,7 @@ class EnforcerCog(commands.Cog):
 
         delete = None
 
-        async with self.settings.guild(message.guild).channels() as channels:
+        async with self.config.guild(message.guild).channels() as channels:
             for channel in channels:
                 if not channel["id"] == message.channel.id:
                     # Not relating to this channel
@@ -210,7 +210,7 @@ class EnforcerCog(commands.Cog):
         if delete:
             await message.delete()
 
-            log_id = await self.settings.guild(message.guild).logchannel()
+            log_id = await self.config.guild(message.guild).logchannel()
             if log_id is not None:
                 log = message.guild.get_channel(log_id)
                 data = discord.Embed(colour=discord.Colour.orange())
@@ -230,7 +230,7 @@ class EnforcerCog(commands.Cog):
         - `[p]enforcer status`
         """
         messages = []
-        async with self.settings.guild(ctx.guild).channels() as channels:
+        async with self.config.guild(ctx.guild).channels() as channels:
             for channel_obj in channels:
                 channel = ctx.guild.get_channel(channel_obj["id"])
 

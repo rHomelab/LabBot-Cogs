@@ -12,11 +12,11 @@ class ReactRoleCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.settings = Config.get_conf(self, identifier=124123498)
+        self.config = Config.get_conf(self, identifier=124123498)
 
         default_guild_settings = {"roles": [], "enabled": True}
 
-        self.settings.register_guild(**default_guild_settings)
+        self.config.register_guild(**default_guild_settings)
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
@@ -37,11 +37,11 @@ class ReactRoleCog(commands.Cog):
             # Guild shouldn't be none
             return
 
-        if not await self.settings.guild(guild).enabled():
+        if not await self.config.guild(guild).enabled():
             # Go no further if disabled
             return
 
-        async with self.settings.guild(guild).roles() as roles:
+        async with self.config.guild(guild).roles() as roles:
             for item in roles:
                 if item["message"] == payload.message_id and item["reaction"] == str(payload.emoji):
                     role = guild.get_role(item["role"])
@@ -63,11 +63,11 @@ class ReactRoleCog(commands.Cog):
             # Go no further if member is a bot
             return
 
-        if not await self.settings.guild(guild).enabled():
+        if not await self.config.guild(guild).enabled():
             # Go no further if disabled
             return
 
-        async with self.settings.guild(guild).roles() as roles:
+        async with self.config.guild(guild).roles() as roles:
             for item in roles:
                 if item["message"] == payload.message_id and item["reaction"] == str(payload.emoji):
                     role = guild.get_role(item["role"])
@@ -93,7 +93,7 @@ class ReactRoleCog(commands.Cog):
         Example:
         - `[p]reactrole add <message id> <reaction> <role>`
         """
-        async with self.settings.guild(ctx.guild).roles() as roles:
+        async with self.config.guild(ctx.guild).roles() as roles:
             added = False
 
             for item in roles:
@@ -137,7 +137,7 @@ class ReactRoleCog(commands.Cog):
         Example:
         - `[p]reactrole remove <message id> <reaction> <role>`
         """
-        async with self.settings.guild(ctx.guild).roles() as roles:
+        async with self.config.guild(ctx.guild).roles() as roles:
             exists = False
 
             for item in roles:
@@ -165,10 +165,10 @@ class ReactRoleCog(commands.Cog):
         - `[p]reactrole list`
         """
         messages = []
-        enabled = await self.settings.guild(ctx.guild).enabled()
+        enabled = await self.config.guild(ctx.guild).enabled()
         messages.append(f"Enabled: {enabled}")
 
-        async with self.settings.guild(ctx.guild).roles() as roles:
+        async with self.config.guild(ctx.guild).roles() as roles:
             for item in roles:
                 try:
                     role = ctx.guild.get_role(item["role"])
@@ -205,7 +205,7 @@ class ReactRoleCog(commands.Cog):
         Example:
         - `[p]reactrole enable`
         """
-        await self.settings.guild(ctx.guild).enabled.set(True)
+        await self.config.guild(ctx.guild).enabled.set(True)
         await ctx.send("Enabled ReactRole.")
 
     @_reactrole.command("disable")
@@ -215,5 +215,5 @@ class ReactRoleCog(commands.Cog):
         Example:
         - `[p]reactrole disable`
         """
-        await self.settings.guild(ctx.guild).enabled.set(False)
+        await self.config.guild(ctx.guild).enabled.set(False)
         await ctx.send("Disabled ReactRole.")
