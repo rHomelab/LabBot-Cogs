@@ -1,0 +1,12 @@
+{
+    "author": [
+        "Issy"
+    ],
+    "description": "Copy and paste permissions between channels, or even backup permissions for a channel for later use",
+    "short": "Copy and paste channel permissions",
+    "name": "Permissions backup",
+    "tags": [
+        "mod",
+        "utility"
+    ]
+}
