@@ -1,5 +1,4 @@
 import aiohttp
-import async_timeout
 import discord
 from redbot.core import commands
 
