@@ -213,7 +213,7 @@ class EnforcerCog(commands.Cog):
             log_id = await self.settings.guild(message.guild).logchannel()
             if log_id is not None:
                 log = message.guild.get_channel(log_id)
-                data = discord.Embed(color=discord.Color.orange())
+                data = discord.Embed(colour=discord.Colour.orange())
                 data.set_author(name=f"Message Enforced - {author}", icon_url=author.avatar_url)
                 data.add_field(name="Enforced Reason", value=delete)
                 if log is not None:

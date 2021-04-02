@@ -377,7 +377,7 @@ class VerifyCog(commands.Cog):
         log_id = await self.settings.guild(server).logchannel()
         if log_id:
             log = server.get_channel(log_id)
-            data = discord.Embed(color=discord.Color.orange())
+            data = discord.Embed(colour=discord.Colour.orange())
             data.set_author(name=f"{message} - {user}", icon_url=user.avatar_url)
             data.add_field(name="User", value=user.mention)
             data.add_field(name="ID", value=user.id)

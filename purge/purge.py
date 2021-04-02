@@ -103,7 +103,7 @@ class PurgeCog(commands.Cog):
                 break
             users_kicked = new_list
 
-        data = discord.Embed(color=discord.Color.orange())
+        data = discord.Embed(colour=discord.Colour.orange())
         data.title = f"{title} Purge - Purged {len(users)}"
         data.description = users_kicked
 

@@ -268,7 +268,7 @@ class AutoReactCog(commands.Cog):
                 success_embed = discord.Embed(
                     title="Reaction channel removed",
                     description=f"<#{channel.id}>",
-                    colour=ctx.guild.me,
+                    colour=await ctx.embed_colour(),
                 )
                 await ctx.send(embed=success_embed)
 

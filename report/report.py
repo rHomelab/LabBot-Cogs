@@ -169,7 +169,7 @@ class ReportCog(commands.Cog):
     def make_report_embed(self, ctx: commands.Context, message: str):
         """Construct the embed to be sent"""
         data = discord.Embed(
-            color=discord.Color.orange(),
+            colour=discord.Colour.orange(),
             description=escape(message or "<no message>"),
             timestamp=ctx.message.created_at,
         )
@@ -181,7 +181,7 @@ class ReportCog(commands.Cog):
     def make_reporter_reply(self, ctx: commands.Context, message: str, emergency: bool) -> discord.Embed:
         """Construct the reply embed to be sent"""
         data = discord.Embed(
-            color=discord.Color.red() if emergency else discord.Color.orange(),
+            colour=discord.Colour.red() if emergency else discord.Colour.orange(),
             description=escape(message or "<no message>"),
             timestamp=ctx.message.created_at,
         )
