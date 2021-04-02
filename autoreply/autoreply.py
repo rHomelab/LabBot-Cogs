@@ -142,13 +142,13 @@ class AutoReplyCog(commands.Cog):
                 return
 
             await message_object.clear_reactions()
-            await self.remove_trigger(ctx.guild, to_del["trigger"], to_del["response"])
+            await self.remove_trigger(ctx.guild, to_del["trigger"])
             success_embed = await self.make_removal_success_embed(ctx, to_del)
             await ctx.send(embed=success_embed)
 
     # Helper functions
 
-    async def remove_trigger(self, guild: discord.Guild, trigger: str, response: str):
+    async def remove_trigger(self, guild: discord.Guild, trigger: str):
         async with self.config.guild(guild).triggers() as triggers:
             if trigger in triggers:
                 del triggers[trigger]
