@@ -1,11 +1,11 @@
 # LabBot Cogs
 
 <p align="center">
-    <img src=LabBot.png width="256" height="256">
+  <img src=LabBot.png width="256" height="256">
 </p>
 <p align="center">
-    <img src="https://img.shields.io/github/workflow/status/rhomelab/labbot-cogs/CI?style=for-the-badge">
-</p>
+  <img src="https://img.shields.io/github/workflow/status/rhomelab/labbot-cogs/CI?style=for-the-badge">
+<p>
 
 Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homelab](https://reddit.com/r/Homelab) Discord server bot.
 
@@ -253,5 +253,5 @@ pylint * # This will show general pep8-violations
 
 ### Making changes
 
-When suggesting changes, please [open an issue](https://gitlab.com/homelab-mods/LabBot/-/issues/new?issue%5Bassignee_id%5D=&issue%5Bmilestone_id%5D=) so it can be reviewed by the team who can then suggest how and if the idea is to be implemented.
-When submitting changes, please [create a merge request](https://gitlab.com/homelab-mods/LabBot/-/merge_requests/new) targeting the develop branch.
+When suggesting changes, please [open an issue](https://github.com/rHomelab/LabBot-Cogs/issues/new/choose) so it can be reviewed by the team who can then suggest how and if the idea is to be implemented.
+When submitting changes, please [create a pull request](https://github.com/rHomelab/LabBot-Cogs/compare) targeting the develop branch.
