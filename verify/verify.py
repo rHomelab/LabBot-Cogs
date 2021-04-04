@@ -304,18 +304,28 @@ class VerifyCog(commands.Cog):
         Example:
         - `[p]verify status`
         """
-        count = await self.settings.guild(ctx.guild).count()
-        role_id = await self.settings.guild(ctx.guild).role()
-        channel_id = await self.settings.guild(ctx.guild).channel()
-        log_id = await self.settings.guild(ctx.guild).logchannel()
-        mintime = await self.settings.guild(ctx.guild).mintime()
-        message = await self.settings.guild(ctx.guild).message().replace("`", "")
-        tooquick = await self.settings.guild(ctx.guild).tooquick().replace("`", "")
-        wrongmsg = await self.settings.guild(ctx.guild).wrongmsg().replace("`", "")
-        welcomechannel = await self.settings.guild(ctx.guild).welcomechannel()
-        welcomemsg = await self.settings.guild(ctx.guild).welcomemsg().replace("`", "")
         blocked_users = await self.settings.guild(ctx.guild).blocks()
+        channel_id = await self.settings.guild(ctx.guild).channel()
+        count = await self.settings.guild(ctx.guild).count()
         fuzziness = await self.settings.guild(ctx.guild).fuzziness()
+        log_id = await self.settings.guild(ctx.guild).logchannel()
+
+        message = await self.settings.guild(ctx.guild).message()
+        message = message.replace("`", "")
+
+        mintime = await self.settings.guild(ctx.guild).mintime()
+        role_id = await self.settings.guild(ctx.guild).role()
+
+        tooquick = await self.settings.guild(ctx.guild).tooquick()
+        tooquick = tooquick.replace("`", "")
+
+        welcomechannel = await self.settings.guild(ctx.guild).welcomechannel()
+
+        welcomemsg = await self.settings.guild(ctx.guild).welcomemsg()
+        welcomemsg = welcomemsg.replace("`", "")
+
+        wrongmsg = await self.settings.guild(ctx.guild).wrongmsg()
+        wrongmsg = wrongmsg.replace("`", "")
 
         embed = discord.Embed(colour=(await ctx.embed_colour()))
         embed.add_field(name="Verified", value=f"{count} users")
