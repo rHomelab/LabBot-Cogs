@@ -21,18 +21,19 @@ CUSTOM_CONTROLS = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_pag
 class EnforcerCog(commands.Cog):
     """Enforcer Cog"""
 
+    ATTRIBUTES = {
+        KEY_ENABLED: {"type": "bool"},
+        KEY_MINCHARS: {"type": "number"},
+        KEY_NOTEXT: {"type": "bool"},
+        KEY_NOMEDIA: {"type": "bool"},
+        KEY_REQUIREMEDIA: {"type": "bool"},
+        KEY_MINDISCORDAGE: {"type": "number"},
+        KEY_MINGUILDAGE: {"type": "number"},
+    }
+
     def __init__(self, bot):
         self.bot = bot
-        self.settings = Config.get_conf(self, identifier=987342593)
-        self.attributes = {
-            KEY_ENABLED: {"type": "bool"},
-            KEY_MINCHARS: {"type": "number"},
-            KEY_NOTEXT: {"type": "bool"},
-            KEY_NOMEDIA: {"type": "bool"},
-            KEY_REQUIREMEDIA: {"type": "bool"},
-            KEY_MINDISCORDAGE: {"type": "number"},
-            KEY_MINGUILDAGE: {"type": "number"},
-        }
+        self.config = Config.get_conf(self, identifier=987342593)
 
         default_guild_settings = {
             "channels": [],
@@ -40,7 +41,7 @@ class EnforcerCog(commands.Cog):
             "userchannel": None,
         }
 
-        self.settings.register_guild(**default_guild_settings)
+        self.config.register_guild(**default_guild_settings, force_registration=True)
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -48,12 +49,13 @@ class EnforcerCog(commands.Cog):
             return
 
         # Get channel entry from config
-        channels = filter(lambda c: c["id"] == message.channel.id, await self.settings.guild(message.guild).channels())
+        channels = list(filter(lambda c: c["id"] == message.channel.id, await self.config.guild(message.guild).channels()))
         if not list(channels):
             return
 
         # Check enforcer rules for channel
-        should_enforce = self.check_enforcer_rules(next(channels), message)
+        (channel,) = channels
+        should_enforce = self.check_enforcer_rules(channel, message)
 
         if should_enforce:
             self.bot.dispatch("msg_enforce", message, should_enforce)
@@ -69,7 +71,7 @@ class EnforcerCog(commands.Cog):
         data.add_field(name="Enforced Reason", value=reason, inline=True)
         data.add_field(name="Channel", value=message.channel.mention, inline=True)
 
-        log_id = await self.settings.guild(message.guild).logchannel()
+        log_id = await self.config.guild(message.guild).logchannel()
         if log_id:
             log_channel = message.guild.get_channel(log_id)
             if log_channel:
@@ -85,7 +87,7 @@ class EnforcerCog(commands.Cog):
             await author.dm_channel.send(embed=data)
         except discord.Forbidden:
             # User does not allow DMs
-            inform_id = await self.settings.guild(message.guild).userchannel()
+            inform_id = await self.config.guild(message.guild).userchannel()
             if inform_id:
                 inform_channel = message.guild.get_channel(inform_id)
                 if inform_channel:
@@ -105,7 +107,7 @@ class EnforcerCog(commands.Cog):
         - `[p]enforcer logchannel <channel>`
         - `[p]enforcer logchannel #admin-log`
         """
-        await self.settings.guild(ctx.guild).logchannel.set(channel.id)
+        await self.config.guild(ctx.guild).logchannel.set(channel.id)
         await ctx.send(f"Enforcer log message channel set to `{channel.name}`")
 
     @_enforcer.command("userchannel")
@@ -116,7 +118,7 @@ class EnforcerCog(commands.Cog):
         - `[p]enforcer userchannel <channel>`
         - `[p]enforcer userchannel #general`
         """
-        await self.settings.guild(ctx.guild).userchannel.set(channel.id)
+        await self.config.guild(ctx.guild).userchannel.set(channel.id)
         await ctx.send(f"Enforcer user information channel set to `{channel.name}`")
 
     @_enforcer.command("configure")
@@ -146,7 +148,7 @@ class EnforcerCog(commands.Cog):
         """
         attribute = attribute.lower()
 
-        if attribute not in self.attributes:
+        if attribute not in self.ATTRIBUTES:
             await ctx.send("That attribute is not configurable.")
             return
 
@@ -158,7 +160,7 @@ class EnforcerCog(commands.Cog):
 
         # Validate the input from the user
         try:
-            await self._validate_attribute_value(attribute, value)
+            value = await self._validate_attribute_value(attribute, value)
         except ValueError:
             await ctx.send("The given value is invalid for that attribute.")
             return
@@ -174,11 +176,11 @@ class EnforcerCog(commands.Cog):
         - `[p]enforcer status`
         """
         messages = []
-        async with self.settings.guild(ctx.guild).channels() as channels:
+        async with self.config.guild(ctx.guild).channels() as channels:
             for channel_obj in channels:
                 channel = ctx.guild.get_channel(channel_obj["id"])
 
-                conf_str = "\n".join(f"{key} - {channel_obj[key]}" for key in self.attributes if key in channel_obj)
+                conf_str = "\n".join(f"{key} - {channel_obj[key]}" for key in self.ATTRIBUTES if key in channel_obj)
 
                 messages.append(f"📝{channel.mention} - Configuration\n{conf_str}")
 
@@ -206,30 +208,31 @@ class EnforcerCog(commands.Cog):
             ctx.send("No configurations found")
 
     async def _validate_attribute_value(self, attribute: str, value: str):
-        attribute_type = self.attributes[attribute]["type"]
+        attribute_type = self.ATTRIBUTES[attribute]["type"]
 
         if attribute_type == "bool":
-            if value in ["true", "1", "yes", "y"]:
+            if value.lower() in ["true", "1", "yes", "y"]:
                 return True
-            if value in ["false", "0", "no", "n"]:
+            if value.lower() in ["false", "0", "no", "n"]:
                 return False
             raise ValueError()
+
         if attribute_type == "number":
+            if not value.isdigit():
+                raise ValueError()
             value = int(value)
 
             return value
 
-        return None
-
     async def _reset_attribute(self, channel: discord.TextChannel, attribute):
-        async with self.settings.guild(channel.guild).channels() as channels:
+        async with self.config.guild(channel.guild).channels() as channels:
             for _channel in channels:
                 if _channel["id"] == channel.id:
                     del _channel[attribute]
 
     async def _set_attribute(self, channel: discord.TextChannel, attribute, value):
         added = False
-        async with self.settings.guild(channel.guild).channels() as channels:
+        async with self.config.guild(channel.guild).channels() as channels:
             # Check if attribute already exists
             for _channel in channels:
                 if _channel["id"] == channel.id:
