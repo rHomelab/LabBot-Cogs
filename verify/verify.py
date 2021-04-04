@@ -25,7 +25,7 @@ class VerifyCog(commands.Cog):
             "role": None,
             "tooquick": "That was quick, {user}! Are you sure you've read the rules?",
             "welcomechannel": None,
-            "welcomemsg": None,
+            "welcomemsg": "",
             "wrongmsg": "",
         }
 
@@ -311,21 +311,21 @@ class VerifyCog(commands.Cog):
         log_id = await self.settings.guild(ctx.guild).logchannel()
 
         message = await self.settings.guild(ctx.guild).message()
-        message = message.replace("`", "")
+        message = message.replace("`", "") if message else message
 
         mintime = await self.settings.guild(ctx.guild).mintime()
         role_id = await self.settings.guild(ctx.guild).role()
 
         tooquick = await self.settings.guild(ctx.guild).tooquick()
-        tooquick = tooquick.replace("`", "")
+        tooquick = tooquick.replace("`", "") if tooquick else tooquick
 
         welcomechannel = await self.settings.guild(ctx.guild).welcomechannel()
 
         welcomemsg = await self.settings.guild(ctx.guild).welcomemsg()
-        welcomemsg = welcomemsg.replace("`", "")
+        welcomemsg = welcomemsg.replace("`", "") if welcomemsg else welcomemsg
 
         wrongmsg = await self.settings.guild(ctx.guild).wrongmsg()
-        wrongmsg = wrongmsg.replace("`", "")
+        wrongmsg = wrongmsg.replace("`", "") if wrongmsg else wrongmsg
 
         embed = discord.Embed(colour=(await ctx.embed_colour()))
         embed.add_field(name="Verified", value=f"{count} users")
