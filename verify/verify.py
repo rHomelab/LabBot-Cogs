@@ -29,7 +29,7 @@ class VerifyCog(commands.Cog):
             "wrongmsg": "",
         }
 
-        self.settings.register_guild(**default_guild_settings)
+        self.settings.register_guild(**default_guild_settings, force_registration=True)
 
     # Events
 
