@@ -1,7 +1,7 @@
 import json
 import re
 from glob import glob
-from typing import Union, Tuple, List
+from typing import List, Tuple, Union
 
 import fastjsonschema
 
