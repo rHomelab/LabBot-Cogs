@@ -12,7 +12,7 @@ class VerifyCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.settings = Config.get_conf(self, identifier=1522109312)
+        self.config = Config.get_conf(self, identifier=1522109312)
 
         default_guild_settings = {
             "blocks": [],
@@ -29,9 +29,7 @@ class VerifyCog(commands.Cog):
             "wrongmsg": "",
         }
 
-        self.settings.register_guild(**default_guild_settings, force_registration=True)
-
-    # Events
+        self.config.register_guild(**default_guild_settings, force_registration=True)
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -40,7 +38,7 @@ class VerifyCog(commands.Cog):
             return
 
         guild = message.guild
-        channel = await self.settings.guild(guild).channel()
+        channel = await self.config.guild(guild).channel()
         if message.channel.id != channel:
             # User did not post verify message in channel
             return
@@ -59,11 +57,11 @@ class VerifyCog(commands.Cog):
             # We don't have permission to manage roles
             return
 
-        mintime = await self.settings.guild(guild).mintime()
+        mintime = await self.config.guild(guild).mintime()
         minjoin = datetime.utcnow() - timedelta(seconds=mintime)
         if author.joined_at > minjoin:
             # User tried to verify too fast
-            tooquick = await self.settings.guild(guild).tooquick()
+            tooquick = await self.config.guild(guild).tooquick()
             tooquick = tooquick.format(user=author.mention)
 
             await self._log_verify_message(guild, author, None, failmessage="User tried too quickly")
@@ -71,13 +69,13 @@ class VerifyCog(commands.Cog):
             await message.channel.send(tooquick)
             return
 
-        verify_msg = await self.settings.guild(guild).message()
+        verify_msg = await self.config.guild(guild).message()
         verify_msg = verify_msg.lower()
-        fuzziness_setting = await self.settings.guild(guild).fuzziness()
+        fuzziness_setting = await self.config.guild(guild).fuzziness()
         fuzziness_check = lev.distance(verify_msg, message.content.lower()) / len(verify_msg) * 100 > fuzziness_setting
         if message.content.lower() != verify_msg and fuzziness_check:
             # User did not post the perfect message.
-            wrongmsg = await self.settings.guild(guild).wrongmsg()
+            wrongmsg = await self.config.guild(guild).wrongmsg()
 
             await self._log_verify_message(guild, author, None, failmessage="User wrote wrong message")
 
@@ -92,7 +90,7 @@ class VerifyCog(commands.Cog):
         if await self._verify_user(guild, author):
             await self._log_verify_message(guild, author, None)
 
-            role_id = await self.settings.guild(guild).role()
+            role_id = await self.config.guild(guild).role()
             role = guild.get_role(role_id)
             await self._cleanup(message, role)
 
@@ -104,7 +102,7 @@ class VerifyCog(commands.Cog):
             return
 
         guild = before.guild
-        verify_role = await self.settings.guild(guild).role()
+        verify_role = await self.config.guild(guild).role()
 
         if not verify_role:
             # Verify role is not set for this guild
@@ -118,12 +116,12 @@ class VerifyCog(commands.Cog):
             # Member already verified or not verified yet
             return
 
-        count = await self.settings.guild(guild).count()
+        count = await self.config.guild(guild).count()
         count += 1
-        await self.settings.guild(guild).count.set(count)
+        await self.config.guild(guild).count.set(count)
 
-        welcomemsg = await self.settings.guild(guild).welcomemsg()
-        welcomechannel = await self.settings.guild(guild).welcomechannel()
+        welcomemsg = await self.config.guild(guild).welcomemsg()
+        welcomechannel = await self.config.guild(guild).welcomechannel()
         if welcomechannel:
             welcomemsg = welcomemsg.format(user=after.mention)
             await guild.get_channel(welcomechannel).send(welcomemsg)
@@ -146,7 +144,7 @@ class VerifyCog(commands.Cog):
         - `[p]verify message "<message>"`
         - `[p]verify message "I agree"`
         """
-        await self.settings.guild(ctx.guild).message.set(message)
+        await self.config.guild(ctx.guild).message.set(message)
         await ctx.send("Verify message set.")
 
     @_verify.command("welcome")
@@ -167,8 +165,8 @@ class VerifyCog(commands.Cog):
         welcome_channel = None
         if channel:
             welcome_channel = channel.id
-        await self.settings.guild(ctx.guild).welcomechannel.set(welcome_channel)
-        await self.settings.guild(ctx.guild).welcomemsg.set(message)
+        await self.config.guild(ctx.guild).welcomechannel.set(welcome_channel)
+        await self.config.guild(ctx.guild).welcomemsg.set(message)
 
         await ctx.send("Welcome message set.")
 
@@ -180,7 +178,7 @@ class VerifyCog(commands.Cog):
         - `[p]verify tooquick "<message>"`
         - `[p]verify tooquick "Calm down. Wait a bit, yea?"`
         """
-        await self.settings.guild(ctx.guild).tooquick.set(message)
+        await self.config.guild(ctx.guild).tooquick.set(message)
         await ctx.send("Too quick reply message set.")
 
     @_verify.command("wrongmsg")
@@ -195,7 +193,7 @@ class VerifyCog(commands.Cog):
 
         If `<message>` is empty, no message will be posted.
         """
-        await self.settings.guild(ctx.guild).wrongmsg.set(message)
+        await self.config.guild(ctx.guild).wrongmsg.set(message)
         await ctx.send("Wrong verify message reply message set.")
 
     @_verify.command("role")
@@ -205,7 +203,7 @@ class VerifyCog(commands.Cog):
         Example:
         - `[p]verify role "<role id>"`
         """
-        await self.settings.guild(ctx.guild).role.set(role.id)
+        await self.config.guild(ctx.guild).role.set(role.id)
         await ctx.send(f"Verify role set to `{role.name}`")
 
     @_verify.command("mintime")
@@ -223,7 +221,7 @@ class VerifyCog(commands.Cog):
             await ctx.send("Verify minimum time was below 0 seconds")
             return
 
-        await self.settings.guild(ctx.guild).mintime.set(mintime)
+        await self.config.guild(ctx.guild).mintime.set(mintime)
         await ctx.send(f"Verify minimum time set to {mintime} seconds")
 
     @_verify.command("channel")
@@ -234,7 +232,7 @@ class VerifyCog(commands.Cog):
         - `[p]verify channel <channel>`
         - `[p]verify channel #welcome`
         """
-        await self.settings.guild(ctx.guild).channel.set(channel.id)
+        await self.config.guild(ctx.guild).channel.set(channel.id)
         await ctx.send(f"Verify message channel set to `{channel.name}`")
 
     @_verify.command("logchannel")
@@ -245,7 +243,7 @@ class VerifyCog(commands.Cog):
         - `[p]verify logchannel <channel>`
         - `[p]verify logchannel #admin-log`
         """
-        await self.settings.guild(ctx.guild).logchannel.set(channel.id)
+        await self.config.guild(ctx.guild).logchannel.set(channel.id)
         await ctx.send(f"Verify log message channel set to `{channel.name}`")
 
     @_verify.command("block")
@@ -256,7 +254,7 @@ class VerifyCog(commands.Cog):
         - `[p]verify block 126694389572435968`
         - `[p]verify block @Sneezey#2695`
         """
-        async with self.settings.guild(ctx.guild).blocks() as blocked_users:
+        async with self.config.guild(ctx.guild).blocks() as blocked_users:
             if user.id not in blocked_users:
                 blocked_users.append(user.id)
                 await ctx.send(f"{user.mention} has been blocked from verifying")
@@ -271,7 +269,7 @@ class VerifyCog(commands.Cog):
         - `[p]verify unblock 126694389572435968`
         - `[p]verify unblock @Sneezey#2695`
         """
-        async with self.settings.guild(ctx.guild).blocks() as blocked_users:
+        async with self.config.guild(ctx.guild).blocks() as blocked_users:
             if user.id in blocked_users:
                 blocked_users.remove(user.id)
                 await ctx.send(f"{user.mention} has been unblocked from verifying")
@@ -292,7 +290,7 @@ class VerifyCog(commands.Cog):
             await ctx.send("Number must be in range 0 - 100")
             return
 
-        await self.settings.guild(ctx.guild).fuzziness.set(fuzziness)
+        await self.config.guild(ctx.guild).fuzziness.set(fuzziness)
         await ctx.send(f"Fuzzy matching threshold for verification set to `{fuzziness}%`")
 
     @_verify.command("status")
@@ -305,27 +303,27 @@ class VerifyCog(commands.Cog):
         Example:
         - `[p]verify status`
         """
-        blocked_users = await self.settings.guild(ctx.guild).blocks()
-        channel_id = await self.settings.guild(ctx.guild).channel()
-        count = await self.settings.guild(ctx.guild).count()
-        fuzziness = await self.settings.guild(ctx.guild).fuzziness()
-        log_id = await self.settings.guild(ctx.guild).logchannel()
+        blocked_users = await self.config.guild(ctx.guild).blocks()
+        channel_id = await self.config.guild(ctx.guild).channel()
+        count = await self.config.guild(ctx.guild).count()
+        fuzziness = await self.config.guild(ctx.guild).fuzziness()
+        log_id = await self.config.guild(ctx.guild).logchannel()
 
-        message = await self.settings.guild(ctx.guild).message()
+        message = await self.config.guild(ctx.guild).message()
         message = message.replace("`", "") if message else message
 
-        mintime = await self.settings.guild(ctx.guild).mintime()
-        role_id = await self.settings.guild(ctx.guild).role()
+        mintime = await self.config.guild(ctx.guild).mintime()
+        role_id = await self.config.guild(ctx.guild).role()
 
-        tooquick = await self.settings.guild(ctx.guild).tooquick()
+        tooquick = await self.config.guild(ctx.guild).tooquick()
         tooquick = tooquick.replace("`", "") if tooquick else tooquick
 
-        welcomechannel = await self.settings.guild(ctx.guild).welcomechannel()
+        welcomechannel = await self.config.guild(ctx.guild).welcomechannel()
 
-        welcomemsg = await self.settings.guild(ctx.guild).welcomemsg()
+        welcomemsg = await self.config.guild(ctx.guild).welcomemsg()
         welcomemsg = welcomemsg.replace("`", "") if welcomemsg else welcomemsg
 
-        wrongmsg = await self.settings.guild(ctx.guild).wrongmsg()
+        wrongmsg = await self.config.guild(ctx.guild).wrongmsg()
         wrongmsg = wrongmsg.replace("`", "") if wrongmsg else wrongmsg
 
         embed = discord.Embed(colour=(await ctx.embed_colour()))
@@ -381,7 +379,7 @@ class VerifyCog(commands.Cog):
             # User is a bot
             return
 
-        role_id = await self.settings.guild(ctx.guild).role()
+        role_id = await self.config.guild(ctx.guild).role()
         role = ctx.guild.get_role(role_id)
         if role in user.roles:
             # Already verified
@@ -403,7 +401,7 @@ class VerifyCog(commands.Cog):
         failmessage = kwargs.get("failmessage", None)
         message = failmessage or "User Verified"
 
-        log_id = await self.settings.guild(guild).logchannel()
+        log_id = await self.config.guild(guild).logchannel()
         if log_id:
             log = guild.get_channel(log_id)
             data = discord.Embed(color=discord.Color.orange())
@@ -424,13 +422,13 @@ class VerifyCog(commands.Cog):
                 except discord.Forbidden:
                     await log.send(f"**{message}** - {user.id} - {user}")
 
-    async def _verify_user(self, guild: discord.Guild, user: discord.Member):
+    async def _verify_user(self, guild: discord.Guild, member: discord.Member):
         """Private method for verifying a user"""
-        async with self.settings.guild(guild).blocks() as blocked_users:
-            if user.id in blocked_users:
+        async with self.config.guild(guild).blocks() as blocked_users:
+            if member.id in blocked_users:
                 return False
 
-        role_id = await self.settings.guild(guild).role()
+        role_id = await self.config.guild(guild).role()
         role = guild.get_role(role_id)
-        await user.add_roles(role)
+        await member.add_roles(role)
         return True
