@@ -51,9 +51,9 @@ class VerifyCog(commands.Cog):
             # User is a bot. Ignore.
             return
 
-        if is_mod_or_superior(self.bot, message):
-            # User is a mod/admin
-            return
+        # if is_mod_or_superior(self.bot, message):
+        #     # User is a mod/admin
+        #     return
 
         if not guild.me.guild_permissions.manage_roles:
             # We don't have permission to manage roles
