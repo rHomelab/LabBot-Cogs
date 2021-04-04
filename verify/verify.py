@@ -338,6 +338,24 @@ class VerifyCog(commands.Cog):
         except discord.Forbidden:
             await ctx.send("I need the `Embed links` permission to send a verify status.")
 
+    @_verify.command("fuzziness")
+    async def _set_fuzziness(self, ctx, fuzziness: int):
+        """Sets the threshold for fuzzy matching of the verify message
+        This command takes the `fuzziness` arg as a number from 0 - 100, with 0 requiring an exact match
+        Verify checks are case insensitive regardless of fuzziness level
+
+        Example:
+        - `[p]verify fuzziness <fuzziness>`
+        - `[p]verify fuzziness 50`
+        """
+        if fuzziness not in range(101):
+            await ctx.send("Number must be in range 0 - 100")
+            return
+
+        async with self.settings.guild(ctx.guild).fuzziness() as fuzzy_setting:
+            fuzzy_setting = fuzziness
+            await ctx.send(f"Fuzzy matching threshold for verification set to `{fuzziness}%`")
+
     @commands.command(name="v")
     @commands.guild_only()
     @checks.mod()
@@ -361,24 +379,6 @@ class VerifyCog(commands.Cog):
 
         if await self._verify_user(ctx.guild, user):
             await self._log_verify_message(ctx.guild, user, ctx.author, reason=reason)
-
-    @_verify.command("fuzzymatching")
-    async def _set_fuzziness(self, ctx, fuzziness: int):
-        """Sets the threshold for fuzzy matching of the verify message
-        This command takes the `fuzziness` arg as a number from 0 - 100, with 0 requiring an exact match
-        Verify checks are case insensitive regardless of fuzziness level
-
-        Example:
-        - `[p]verify fuzzymatching <fuzziness>`
-        - `[p]verify fuzzymatching 50`
-        """
-        if fuzziness not in range(101):
-            await ctx.send("Number must be in range 0 - 100")
-            return
-
-        async with self.settings.guild(ctx.guild).fuzziness() as fuzzy_setting:
-            fuzzy_setting = fuzziness
-            await ctx.send(f"Fuzzy matching threshold for verification set to `{fuzziness}%`")
 
     # Helper functions
 
