@@ -71,8 +71,9 @@ class VerifyCog(commands.Cog):
             await message.channel.send(tooquick)
             return
 
+        verify_msg = await self.settings.guild(guild).message()
+        verify_msg = verify_msg.lower()
         fuzziness_setting = await self.settings.guild(guild).fuzziness()
-        verify_msg = await self.settings.guild(guild).message().lower()
         fuzziness_check = lev.distance(verify_msg, message.content.lower()) / len(verify_msg) * 100 > fuzziness_setting
         if message.content.lower() != verify_msg and fuzziness_check:
             # User did not post the perfect message.
