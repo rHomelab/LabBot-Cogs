@@ -15,18 +15,18 @@ class VerifyCog(commands.Cog):
         self.settings = Config.get_conf(self, identifier=1522109312)
 
         default_guild_settings = {
-            "message": "I agree",
-            "count": 0,
-            "role": None,
+            "blocks": [],
             "channel": None,
-            "mintime": 60,
-            "tooquick": "That was quick, {user}! Are you sure you've read the rules?",
-            "wrongmsg": "",
+            "count": 0,
+            "fuzziness": 0,
             "logchannel": None,
+            "message": "I agree",
+            "mintime": 60,
+            "role": None,
+            "tooquick": "That was quick, {user}! Are you sure you've read the rules?",
             "welcomechannel": None,
             "welcomemsg": None,
-            "blocks": [],
-            "fuzziness": 0,
+            "wrongmsg": "",
         }
 
         self.settings.register_guild(**default_guild_settings)
@@ -277,6 +277,23 @@ class VerifyCog(commands.Cog):
             else:
                 await ctx.send(f"{user.mention} wasn't blocked from verifying")
 
+    @_verify.command("fuzziness")
+    async def _set_fuzziness(self, ctx, fuzziness: int):
+        """Sets the threshold for fuzzy matching of the verify message
+        This command takes the `fuzziness` arg as a number from 0 - 100, with 0 requiring an exact match
+        Verify checks are case insensitive regardless of fuzziness level
+
+        Example:
+        - `[p]verify fuzziness <fuzziness>`
+        - `[p]verify fuzziness 50`
+        """
+        if fuzziness not in range(101):
+            await ctx.send("Number must be in range 0 - 100")
+            return
+
+        await self.settings.guild(ctx.guild).fuzziness.set(fuzziness)
+        await ctx.send(f"Fuzzy matching threshold for verification set to `{fuzziness}%`")
+
     @_verify.command("status")
     async def verify_status(self, ctx: commands.Context):
         """Status of the cog.
@@ -337,24 +354,6 @@ class VerifyCog(commands.Cog):
             await ctx.send(embed=embed)
         except discord.Forbidden:
             await ctx.send("I need the `Embed links` permission to send a verify status.")
-
-    @_verify.command("fuzziness")
-    async def _set_fuzziness(self, ctx, fuzziness: int):
-        """Sets the threshold for fuzzy matching of the verify message
-        This command takes the `fuzziness` arg as a number from 0 - 100, with 0 requiring an exact match
-        Verify checks are case insensitive regardless of fuzziness level
-
-        Example:
-        - `[p]verify fuzziness <fuzziness>`
-        - `[p]verify fuzziness 50`
-        """
-        if fuzziness not in range(101):
-            await ctx.send("Number must be in range 0 - 100")
-            return
-
-        async with self.settings.guild(ctx.guild).fuzziness() as fuzzy_setting:
-            fuzzy_setting = fuzziness
-            await ctx.send(f"Fuzzy matching threshold for verification set to `{fuzziness}%`")
 
     @commands.command(name="v")
     @commands.guild_only()
