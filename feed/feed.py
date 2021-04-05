@@ -130,5 +130,5 @@ class FeedCog(commands.Cog):
         - `[p]feed <member>`
         """
         feed_text = f"Forces {random.choice(food)} down {member.display_name}'s throat"
-        embed = discord.Embed(title=feed_text, colour=ctx.guild.me.colour)
-        await ctx.send(embed=embed)
+        allowed_mentions = discord.AllowedMentions(everyone=False, users=True, roles=False)
+        await ctx.send(feed_text, allowed_mentions=allowed_mentions)

@@ -1,7 +1,6 @@
 import urllib.parse
 
 import discord
-import discord.utils
 from redbot.core import commands
 
 
@@ -21,8 +20,7 @@ class LatexCog(commands.Cog):
 
     async def make_latex_embed(self, ctx: commands.Context, latex) -> discord.Embed:
         url = "https://latex.codecogs.com/gif.download?" + urllib.parse.quote_plus(latex)
-        color = await ctx.embed_color()
-        latex_embed = discord.Embed(title="LaTeX Rendering", color=color)
+        latex_embed = discord.Embed(title="LaTeX Rendering", colour=await ctx.embed_colour())
         latex_embed.add_field(name="Requested by:", value=ctx.author.mention)
         latex_embed.set_image(url=url)
         return latex_embed

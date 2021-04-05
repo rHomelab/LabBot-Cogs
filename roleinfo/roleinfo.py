@@ -27,7 +27,7 @@ class RoleInfoCog(commands.Cog):
 
     async def make_role_embed(self, role: discord.Role) -> discord.Embed:
         """Generate the role info embed"""
-        embed = discord.Embed(title=f"Role info", colour=role.colour, timestamp=role.created_at)
+        embed = discord.Embed(title="Role info", colour=role.colour, timestamp=role.created_at)
         embed.add_field(name="Name", value=role.name)
         embed.add_field(name="Members", value=len(role.members))
         embed.add_field(name="Hoist", value="Yes" if role.hoist else "No")

@@ -16,11 +16,11 @@ class NotesCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.settings = Config.get_conf(self, identifier=127318281)
+        self.config = Config.get_conf(self, identifier=127318281)
 
         default_guild_settings = {"notes": [], "warnings": []}
 
-        self.settings.register_guild(**default_guild_settings)
+        self.config.register_guild(**default_guild_settings)
 
     @commands.group(name="notes")
     @commands.guild_only()
@@ -51,7 +51,7 @@ class NotesCog(commands.Cog):
         user_id = user if isinstance(user, str) else user.id
 
         # Save note to list
-        async with self.settings.guild(ctx.guild).notes() as notes:
+        async with self.config.guild(ctx.guild).notes() as notes:
             notes.append(
                 {
                     "id": len(notes) + 1,
@@ -81,7 +81,7 @@ class NotesCog(commands.Cog):
         current_date = datetime.utcnow()
         user_id = user if isinstance(user, str) else user.id
 
-        async with self.settings.guild(ctx.guild).warnings() as guilds:
+        async with self.config.guild(ctx.guild).warnings() as guilds:
             guilds.append(
                 {
                     "id": len(guilds) + 1,
@@ -102,7 +102,7 @@ class NotesCog(commands.Cog):
         Example:
         - `[p]notes delete <note id>`
         """
-        async with self.settings.guild(ctx.guild).notes() as notes:
+        async with self.config.guild(ctx.guild).notes() as notes:
             try:
                 note = notes[note_id - 1]
                 if not note["deleted"]:
@@ -127,7 +127,7 @@ class NotesCog(commands.Cog):
         Example:
         - `[p]warnings delete <warning id>`
         """
-        async with self.settings.guild(ctx.guild).warnings() as warnings:
+        async with self.config.guild(ctx.guild).warnings() as warnings:
             try:
                 warning = warnings[warning_id - 1]
                 if not warning["deleted"]:
@@ -158,7 +158,7 @@ class NotesCog(commands.Cog):
         if user is not None:
             user_id = user if isinstance(user, str) else user.id
 
-        async with self.settings.guild(ctx.guild).notes() as discord_notes:
+        async with self.config.guild(ctx.guild).notes() as discord_notes:
             discord_notes = sorted(discord_notes, key=lambda x: x["date"], reverse=True)
 
             for note in discord_notes:
@@ -192,7 +192,7 @@ class NotesCog(commands.Cog):
                 )
 
         warnings = []
-        async with self.settings.guild(ctx.guild).warnings() as discord_warnings:
+        async with self.config.guild(ctx.guild).warnings() as discord_warnings:
             discord_warnings = sorted(discord_warnings, key=lambda x: x["date"], reverse=True)
 
             for warning in discord_warnings:
@@ -267,10 +267,10 @@ class NotesCog(commands.Cog):
         data = discord.Embed(colour=(await ctx.embed_colour()))
         data.title = "Notes Status"
 
-        async with self.settings.guild(ctx.guild).notes() as notes:
+        async with self.config.guild(ctx.guild).notes() as notes:
             data.add_field(name="Notes", value=f"{len(notes)} notes")
 
-        async with self.settings.guild(ctx.guild).warnings() as warnings:
+        async with self.config.guild(ctx.guild).warnings() as warnings:
             data.add_field(name="Warnings", value=f"{len(warnings)} warnings")
         try:
             await ctx.send(embed=data)

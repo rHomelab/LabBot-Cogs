@@ -1,11 +1,11 @@
 # LabBot Cogs
 
 <p align="center">
-    <img src=LabBot.png width="256" height="256">
+  <img src=LabBot.png width="256" height="256">
 </p>
 <p align="center">
-    <img src="https://img.shields.io/github/workflow/status/rhomelab/labbot-cogs/CI?style=for-the-badge">
-</p>
+  <img src="https://img.shields.io/github/workflow/status/rhomelab/labbot-cogs/CI?style=for-the-badge">
+<p>
 
 Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homelab](https://reddit.com/r/Homelab) Discord server bot.
 
@@ -27,6 +27,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
   - [Quotes](#quotes)
   - [Reactrole](#reactrole)
   - [Report](#report)
+  - [Roleinfo](#roleinfo)
   - [Verify](#verify)
   - [xkcd](#xkcd)
 - [License](#license)
@@ -41,16 +42,17 @@ A massive thank you to all who've helped out with this project ❤️
 
 ### Moderation Team
 
-* [tigattack](https://github.com/tigattack)
-* [Issy](https://github.issy.dev)
-* [portalBlock](https://github.com/portalBlock)
+- [tigattack](https://github.com/tigattack)
+- [Issy](https://github.issy.dev)
+- [portalBlock](https://github.com/portalBlock)
 
 ### Other
-* [Sneezey](https://github.com/kdavis)
-* [DanTho](https://github.com/dannyt66)
-* [BeryJu](https://github.com/BeryJu)
-* [TheDevFreak](https://github.com/TheDevFreak)
-* [McTwist](https://github.com/McTwist)
+
+- [Sneezey](https://github.com/kdavis)
+- [DanTho](https://github.com/dannyt66)
+- [BeryJu](https://github.com/BeryJu)
+- [TheDevFreak](https://github.com/TheDevFreak)
+- [McTwist](https://github.com/McTwist)
 
 ## Cog Summaries
 
@@ -60,13 +62,14 @@ A massive thank you to all who've helped out with this project ❤️
 - **[Enforcer](#enforcer):** Allows you to enforce certain characteristics on a channel.
 - **[Feed](#feed):** This allows users to feed each other.
 - **[Google](#google):** Send a google link to someone.
-- **[LaTeX](#latex):** Render a LaTeX statement. 
+- **[LaTeX](#latex):** Render a LaTeX statement.
 - **[Notes](#notes):** Manage notes and warnings against users.
 - **[Penis](#penis):** Allows users to check the size of their penis.
 - **[Purge](#purge):** This will purge users based on criteria.
 - **[Quotes](#quotes):** Allows users to quote other users' messages in a quotes channel.
 - **[Reactrole](#reactrole):** Allows roles to be applied and removed using reactions.
 - **[Report](#report):** Allows users to report issues.
+- **[Roleinfo](#roleinfo):** Displays info on a role
 - **[Verify](#verify):** Allows users to verify themselves.
 - **[xkcd](#xkcd):** Allows users to look at xkcd comics.
 
@@ -101,20 +104,22 @@ There are numerous attributes than can be used to restrict messages/content into
 While some attributes are available in discord via role-based permissions, sometimes a bot may be better off enforcing content in a pinch.
 
 #### Configure Enforcer
+
 `[p]enforcer configure <channel> <attribute> [value]`
 
 Example:
+
 - `[p]enforcer configure #channel enabled true`
 
-|Attribute|Type|Description|
-|-|-|-|
-|`enabled`|`bool`|Whether to enable enforcements on a channel|
-|`minchars`|`int`|How many characters a message must contain to be allowed into the channel|
-|`notext`|`bool`|The sent message must have *no* text, i.e. should be an image-only message|
-|`requiremedia`|`bool`|The sent message must contain an attached image|
-|`nomedia`|`bool`|The sent message must **not** contain an attached image|
-|`minimumguildage`|`int`|How old a server member must be part of the guild, in seconds, before they are able to contribute to the channel|
-|`minimumdiscordage`|`int`|How old a member's discord account must be, in seconds, before they are able to contribute to the channel|
+| Attribute           | Type   | Description                                                                                                      |
+| ------------------- | ------ | ---------------------------------------------------------------------------------------------------------------- |
+| `enabled`           | `bool` | Whether to enable enforcements on a channel                                                                      |
+| `minchars`          | `int`  | How many characters a message must contain to be allowed into the channel                                        |
+| `notext`            | `bool` | The sent message must have _no_ text, i.e. should be an image-only message                                       |
+| `requiremedia`      | `bool` | The sent message must contain an attached image                                                                  |
+| `nomedia`           | `bool` | The sent message must **not** contain an attached image                                                          |
+| `minimumguildage`   | `int`  | How old a server member must be part of the guild, in seconds, before they are able to contribute to the channel |
+| `minimumdiscordage` | `int`  | How old a member's discord account must be, in seconds, before they are able to contribute to the channel        |
 
 An example enforcement would be a channel to show off server pictures.
 In which case, you could allow members to post a set of images with a description of their setup.
@@ -134,6 +139,7 @@ In which case, the following would be appropriate
 This cog allows users to feed each other.
 
 ### Google
+
 This cog allows users to send google links to each other.
 
 `[p]google <query>`
@@ -172,7 +178,7 @@ This cog will purge users that hold no roles as a way to combat accounts being c
 
 - `[p]purge schedule "0 */6 * * *"` - It is possible to run the purge on a schedule. By default, it is **disabled**, but configured for `0 */6 * * *` which is a crontab for every 6 hours. E.g. will run at `00:00`, `06:00`, `12:00` and `18:00` every day.
 
-- `[p]purge minage 5` It will attempt to prune users that hold *no* roles, that have been part of the server for at least `<minage>` days (default to 5). `<minage>` can be altered to fit your server's requirements to ensure that people that joined but never verified, are not clogging up mention lists and to keep activity ratios high.
+- `[p]purge minage 5` It will attempt to prune users that hold _no_ roles, that have been part of the server for at least `<minage>` days (default to 5). `<minage>` can be altered to fit your server's requirements to ensure that people that joined but never verified, are not clogging up mention lists and to keep activity ratios high.
 
 By default, purge's schedule is disabled and must be enabled to prune unverified users.
 
@@ -253,5 +259,5 @@ pylint * # This will show general pep8-violations
 
 ### Making changes
 
-When suggesting changes, please [open an issue](https://gitlab.com/homelab-mods/LabBot/-/issues/new?issue%5Bassignee_id%5D=&issue%5Bmilestone_id%5D=) so it can be reviewed by the team who can then suggest how and if the idea is to be implemented.
-When submitting changes, please [create a merge request](https://gitlab.com/homelab-mods/LabBot/-/merge_requests/new) targeting the develop branch.
+When suggesting changes, please [open an issue](https://github.com/rHomelab/LabBot-Cogs/issues/new/choose) so it can be reviewed by the team who can then suggest how and if the idea is to be implemented.
+When submitting changes, please [create a pull request](https://github.com/rHomelab/LabBot-Cogs/compare) targeting the develop branch.

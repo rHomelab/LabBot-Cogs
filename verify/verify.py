@@ -356,7 +356,6 @@ class VerifyCog(commands.Cog):
             embed.add_field(name="Welcome Msg", value=f"`{welcomemsg}`")
 
         embed.add_field(name="# Users Blocked", value=f"`{len(blocked_users)}`")
-
         embed.add_field(name="Fuzzy Matching Threshold", value=f"`{fuzziness}%`")
 
         try:
