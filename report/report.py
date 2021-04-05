@@ -11,7 +11,7 @@ class ReportCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.settings = Config.get_conf(self, identifier=1092901)
+        self.config = Config.get_conf(self, identifier=1092901)
 
         default_guild_settings = {
             "logchannel": None,
@@ -20,7 +20,7 @@ class ReportCog(commands.Cog):
             "channels": [],
         }
 
-        self.settings.register_guild(**default_guild_settings)
+        self.config.register_guild(**default_guild_settings)
 
     @commands.group("reports")
     @commands.guild_only()
@@ -36,7 +36,7 @@ class ReportCog(commands.Cog):
         - `[p]reports logchannel <channel>`
         - `[p]reports logchannel #admin-log`
         """
-        await self.settings.guild(ctx.guild).logchannel.set(channel.id)
+        await self.config.guild(ctx.guild).logchannel.set(channel.id)
         await ctx.send(f"Reports log message channel set to `{channel.name}`")
 
     @_reports.command("confirm")
@@ -51,7 +51,7 @@ class ReportCog(commands.Cog):
         except ValueError:
             await ctx.send("Invalid option. Use: `[p]reports confirm <True|False>`")
             return
-        await self.settings.guild(ctx.guild).confirmations.set(option)
+        await self.config.guild(ctx.guild).confirmations.set(option)
         await ctx.send(f"Send report confirmations: `{option}`")
 
     @commands.command("report")
@@ -69,7 +69,7 @@ class ReportCog(commands.Cog):
         # Pre-emptively delete the message for privacy reasons
         await ctx.message.delete()
 
-        log_id = await self.settings.guild(ctx.guild).logchannel()
+        log_id = await self.config.guild(ctx.guild).logchannel()
         log = None
         if log_id:
             log = ctx.guild.get_channel(log_id)
@@ -80,7 +80,7 @@ class ReportCog(commands.Cog):
         data = self.make_report_embed(ctx, message)
         await log.send(embed=data)
 
-        confirm = await self.settings.guild(ctx.guild).confirmations()
+        confirm = await self.config.guild(ctx.guild).confirmations()
         if confirm:
             report_reply = self.make_reporter_reply(ctx, message, False)
             try:
@@ -103,7 +103,7 @@ class ReportCog(commands.Cog):
         # Pre-emptively delete the message for privacy reasons
         await ctx.message.delete()
 
-        log_id = await self.settings.guild(ctx.guild).logchannel()
+        log_id = await self.config.guild(ctx.guild).logchannel()
         log = None
         if log_id:
             log = ctx.guild.get_channel(log_id)
@@ -117,7 +117,7 @@ class ReportCog(commands.Cog):
             mod_pings = " ".join([i.mention for i in log.members if not i.bot])
         await log.send(content=mod_pings, embed=data)
 
-        confirm = await self.settings.guild(ctx.guild).confirmations()
+        confirm = await self.config.guild(ctx.guild).confirmations()
         if confirm:
             report_reply = self.make_reporter_reply(ctx, message, True)
             try:
@@ -140,7 +140,7 @@ class ReportCog(commands.Cog):
 
         bool_conversion = bool(supported_rules.index(rule.lower()))
 
-        async with self.settings.guild(ctx.guild).channels() as channels:
+        async with self.config.guild(ctx.guild).channels() as channels:
             data = list(filter(lambda c: c["id"] == str(channel.id), channels))
             if data:
                 data[0]["allowed"] = bool_conversion
@@ -156,7 +156,7 @@ class ReportCog(commands.Cog):
 
     async def enabled_channel_check(self, ctx: commands.Context) -> bool:
         """Checks that reports/emergency commands are enabled in the current channel"""
-        async with self.settings.guild(ctx.guild).channels() as channels:
+        async with self.config.guild(ctx.guild).channels() as channels:
             channel = list(filter(lambda c: c["id"] == str(ctx.channel.id), channels))
 
             if channel:
@@ -169,7 +169,7 @@ class ReportCog(commands.Cog):
     def make_report_embed(self, ctx: commands.Context, message: str):
         """Construct the embed to be sent"""
         data = discord.Embed(
-            color=discord.Color.orange(),
+            colour=discord.Colour.orange(),
             description=escape(message or "<no message>"),
             timestamp=ctx.message.created_at,
         )
@@ -181,7 +181,7 @@ class ReportCog(commands.Cog):
     def make_reporter_reply(self, ctx: commands.Context, message: str, emergency: bool) -> discord.Embed:
         """Construct the reply embed to be sent"""
         data = discord.Embed(
-            color=discord.Color.red() if emergency else discord.Color.orange(),
+            colour=discord.Colour.red() if emergency else discord.Colour.orange(),
             description=escape(message or "<no message>"),
             timestamp=ctx.message.created_at,
         )

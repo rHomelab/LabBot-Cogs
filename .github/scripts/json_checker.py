@@ -55,7 +55,7 @@ if __name__ == "__main__":
             except fastjsonschema.exceptions.JsonSchemaValueException as error:
                 has_errors = True
 
-                if error.rule == "additionalProperties" and error.rule_definition == False:
+                if error.rule == "additionalProperties" and not error.rule_definition:
                     error_keys, msg_bounds = list_from_str(error.message)
                     for key in error_keys:
                         line, col = get_key_pos(filename, key)
