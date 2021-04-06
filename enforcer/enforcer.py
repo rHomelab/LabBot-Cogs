@@ -300,8 +300,10 @@ class EnforcerCog(commands.Cog):
             # Check the embeds
             embeds = await self.check_embeds(message)
             if channel.get(KEY_NOMEDIA) and embeds:
+                # They breached nomedia attribute
                 return "No media allowed"
             if channel.get(KEY_REQUIREMEDIA) and not embeds:
+                # They breached requiremedia attribute
                 return "Requires media attached"
 
         return False
