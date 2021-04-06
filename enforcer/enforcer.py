@@ -317,7 +317,11 @@ class EnforcerCog(commands.Cog):
         for _ in range(4):
             # Fetch the message
             message = await message.channel.fetch_message(message.id)
-            if message.embeds:
+            if message.embeds and list(filter(
+                lambda e: any(((e.image), (e.thumbnail))),
+                message.embeds
+            )):
+                # If there are any embeds with a thumbnail or image property
                 return True
             await asyncio.sleep(0.5)
         return False
