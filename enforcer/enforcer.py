@@ -1,7 +1,7 @@
 """discord red-bot enforcer"""
 import asyncio
 from datetime import datetime
-from typing import Union, Tuple
+from typing import Tuple, Union
 
 import discord
 from redbot.core import Config, checks, commands
