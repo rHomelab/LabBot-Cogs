@@ -2,7 +2,9 @@
 from datetime import datetime, timedelta
 
 import discord
+import Levenshtein as lev
 from redbot.core import Config, checks, commands
+from redbot.core.utils.mod import is_mod_or_superior
 
 
 class VerifyCog(commands.Cog):
@@ -13,25 +15,32 @@ class VerifyCog(commands.Cog):
         self.config = Config.get_conf(self, identifier=1522109312)
 
         default_guild_settings = {
-            "message": "I agree",
-            "count": 0,
-            "role": None,
-            "channel": None,
-            "mintime": 60,
-            "tooquick": "That was quick, {user}! Are you sure you've read the rules?",
-            "wrongmsg": "",
-            "logchannel": None,
-            "welcomechannel": None,
-            "welcomemsg": None,
             "blocks": [],
+            "channel": None,
+            "count": 0,
+            "fuzziness": 0,
+            "logchannel": None,
+            "message": "I agree",
+            "mintime": 60,
+            "role": None,
+            "tooquick": "That was quick, {user}! Are you sure you've read the rules?",
+            "welcomechannel": None,
+            "welcomemsg": "",
+            "wrongmsg": "",
         }
 
-        self.config.register_guild(**default_guild_settings)
+        self.config.register_guild(**default_guild_settings, force_registration=True)
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         if not isinstance(message.guild, discord.Guild):
             # The user has DM'd us. Ignore.
+            return
+
+        guild = message.guild
+        channel = await self.config.guild(guild).channel()
+        if message.channel.id != channel:
+            # User did not post verify message in channel
             return
 
         author = message.author
@@ -40,75 +49,92 @@ class VerifyCog(commands.Cog):
             # User is a bot. Ignore.
             return
 
-        server = message.guild
-        channel = await self.config.guild(server).channel()
-        if message.channel.id != channel:
-            # User did not post verify message in channel
+        if await is_mod_or_superior(self.bot, message):
+            # User is a mod/admin
             return
 
-        if not server.me.guild_permissions.manage_roles:
+        if not guild.me.guild_permissions.manage_roles:
             # We don't have permission to manage roles
             return
 
-        mintime = await self.config.guild(server).mintime()
+        mintime = await self.config.guild(guild).mintime()
         minjoin = datetime.utcnow() - timedelta(seconds=mintime)
         if author.joined_at > minjoin:
             # User tried to verify too fast
-            tooquick = await self.config.guild(server).tooquick()
-            tooquick = tooquick.replace("{user}", f"{author.mention}")
+            tooquick = await self.config.guild(guild).tooquick()
+            tooquick = tooquick.format(user=author.mention)
 
-            await self._log_verify_message(server, author, None, failmessage="User tried too quickly")
+            await self._log_verify_message(guild, author, None, failmessage="User tried too quickly")
 
             await message.channel.send(tooquick)
             return
 
-        verify_msg = await self.config.guild(server).message()
-        if message.content != verify_msg:
+        verify_msg = await self.config.guild(guild).message()
+        verify_msg = verify_msg.lower()
+        fuzziness_setting = await self.config.guild(guild).fuzziness()
+        fuzziness_check = lev.distance(verify_msg, message.content.lower()) / len(verify_msg) * 100 > fuzziness_setting
+        if message.content.lower() != verify_msg and fuzziness_check:
             # User did not post the perfect message.
-            wrongmsg = await self.config.guild(server).wrongmsg()
+            wrongmsg = await self.config.guild(guild).wrongmsg()
 
-            await self._log_verify_message(server, author, None, failmessage="User wrote wrong message")
+            await self._log_verify_message(guild, author, None, failmessage="User wrote wrong message")
 
             if not wrongmsg:
+                # wrongmsg has not been configured
                 return
-            wrongmsg = wrongmsg.replace("{user}", f"{author.mention}")
+
+            wrongmsg = wrongmsg.format(user=author.mention)
             await message.channel.send(wrongmsg)
             return
 
-        if await self._verify_user(server, author):
-            await self._log_verify_message(server, author, None)
+        if await self._verify_user(guild, author):
+            await self._log_verify_message(guild, author, None)
 
-            role_id = await self.config.guild(server).role()
-            role = server.get_role(role_id)
+            role_id = await self.config.guild(guild).role()
+            role = guild.get_role(role_id)
             await self._cleanup(message, role)
 
-    async def _cleanup(self, verify: discord.Message, role: discord.Role):
-        # Deletion logic for the purge of messages
-        def _should_delete(message):
-            return (
-                # Delete messages by the verify-ee
-                message.author == verify.author
-                or
-                # Delete messages if it might mention the verify-ee
-                (
-                    # The user must be in the mentions
-                    verify.author in message.mentions
-                    and
-                    # The mentions have all been verified
-                    len([u for u in message.mentions if role not in u.roles]) == 0
-                )
-            )
+    @commands.Cog.listener()
+    async def on_member_update(self, before: discord.Member, after: discord.Member):
+        """Verification event"""
+        if before.bot:
+            # Member is a bot
+            return
 
-        try:
-            await verify.channel.purge(limit=100, check=_should_delete)
-        except discord.errors.Forbidden:
-            await verify.channel.send("I don't have permissions to cleanup!")
+        guild = before.guild
+        verify_role = await self.config.guild(guild).role()
+
+        if not verify_role:
+            # Verify role is not set for this guild
+            return
+
+        if before.roles == after.roles:
+            # Roles haven't changed
+            return
+
+        if verify_role in [role.id for role in before.roles] or verify_role not in [role.id for role in after.roles]:
+            # Member already verified or not verified yet
+            return
+
+        count = await self.config.guild(guild).count()
+        count += 1
+        await self.config.guild(guild).count.set(count)
+
+        welcomemsg = await self.config.guild(guild).welcomemsg()
+        welcomechannel = await self.config.guild(guild).welcomechannel()
+        if welcomechannel:
+            welcomemsg = welcomemsg.format(user=after.mention)
+            await guild.get_channel(welcomechannel).send(welcomemsg)
+
+    # Command groups
 
     @commands.group(name="verify")
     @commands.guild_only()
     @checks.mod()
     async def _verify(self, ctx: commands.Context):
         pass
+
+    # Commands
 
     @_verify.command("message")
     async def verify_message(self, ctx: commands.Context, *, message: str):
@@ -250,6 +276,23 @@ class VerifyCog(commands.Cog):
             else:
                 await ctx.send(f"{user.mention} wasn't blocked from verifying")
 
+    @_verify.command("fuzziness")
+    async def _set_fuzziness(self, ctx, fuzziness: int):
+        """Sets the threshold for fuzzy matching of the verify message
+        This command takes the `fuzziness` arg as a number from 0 - 100, with 0 requiring an exact match
+        Verify checks are case insensitive regardless of fuzziness level
+
+        Example:
+        - `[p]verify fuzziness <fuzziness>`
+        - `[p]verify fuzziness 50`
+        """
+        if fuzziness not in range(101):
+            await ctx.send("Number must be in range 0 - 100")
+            return
+
+        await self.config.guild(ctx.guild).fuzziness.set(fuzziness)
+        await ctx.send(f"Fuzzy matching threshold for verification set to `{fuzziness}%`")
+
     @_verify.command("status")
     async def verify_status(self, ctx: commands.Context):
         """Status of the cog.
@@ -260,60 +303,63 @@ class VerifyCog(commands.Cog):
         Example:
         - `[p]verify status`
         """
-        data = discord.Embed(colour=(await ctx.embed_colour()))
-
-        count = await self.config.guild(ctx.guild).count()
-        data.add_field(name="Verified", value=f"{count} users")
-
-        role_id = await self.config.guild(ctx.guild).role()
-        if role_id:
-            role = ctx.guild.get_role(role_id)
-            data.add_field(name="Role", value=role.mention)
-
+        blocked_users = await self.config.guild(ctx.guild).blocks()
         channel_id = await self.config.guild(ctx.guild).channel()
-        if channel_id:
-            channel = ctx.guild.get_channel(channel_id)
-
-            data.add_field(name="Channel", value=channel.mention)
-
+        count = await self.config.guild(ctx.guild).count()
+        fuzziness = await self.config.guild(ctx.guild).fuzziness()
         log_id = await self.config.guild(ctx.guild).logchannel()
-        if log_id:
-            log = ctx.guild.get_channel(log_id)
-
-            data.add_field(name="Log", value=log.mention)
-
-        mintime = await self.config.guild(ctx.guild).mintime()
-        data.add_field(name="Min Time", value=f"{mintime} secs")
 
         message = await self.config.guild(ctx.guild).message()
-        message = message.replace("`", "")
-        data.add_field(name="Message", value=f"`{message}`")
+        message = message.replace("`", "") if message else message
+
+        mintime = await self.config.guild(ctx.guild).mintime()
+        role_id = await self.config.guild(ctx.guild).role()
 
         tooquick = await self.config.guild(ctx.guild).tooquick()
-        tooquick = tooquick.replace("`", "")
-        data.add_field(name="Too Quick Msg", value=f"`{tooquick}`")
-
-        wrongmsg = await self.config.guild(ctx.guild).wrongmsg()
-        if wrongmsg:
-            wrongmsg = wrongmsg.replace("`", "")
-            data.add_field(name="Wrong Msg", value=f"`{wrongmsg}`")
+        tooquick = tooquick.replace("`", "") if tooquick else tooquick
 
         welcomechannel = await self.config.guild(ctx.guild).welcomechannel()
-        if welcomechannel:
-            welcome = ctx.guild.get_channel(welcomechannel)
-            data.add_field(name="Welcome Channel", value=welcome.mention)
 
         welcomemsg = await self.config.guild(ctx.guild).welcomemsg()
-        if welcomemsg:
-            welcomemsg = welcomemsg.replace("`", "")
-            data.add_field(name="Welcome Msg", value=f"`{welcomemsg}`")
+        welcomemsg = welcomemsg.replace("`", "") if welcomemsg else welcomemsg
 
-        async with self.config.guild(ctx.guild).blocks() as blocked_users:
-            blocked_count = len(blocked_users)
-            data.add_field(name="# Users Blocked", value=f"`{blocked_count}`")
+        wrongmsg = await self.config.guild(ctx.guild).wrongmsg()
+        wrongmsg = wrongmsg.replace("`", "") if wrongmsg else wrongmsg
+
+        embed = discord.Embed(colour=(await ctx.embed_colour()))
+        embed.add_field(name="Verified", value=f"{count} users")
+
+        if role_id:
+            role = ctx.guild.get_role(role_id)
+            embed.add_field(name="Role", value=role.mention)
+
+        if channel_id:
+            channel = ctx.guild.get_channel(channel_id)
+            embed.add_field(name="Channel", value=channel.mention)
+
+        if log_id:
+            log = ctx.guild.get_channel(log_id)
+            embed.add_field(name="Log", value=log.mention)
+
+        embed.add_field(name="Min Time", value=f"{mintime} secs")
+        embed.add_field(name="Message", value=f"`{message}`")
+        embed.add_field(name="Too Quick Msg", value=f"`{tooquick}`")
+
+        if wrongmsg:
+            embed.add_field(name="Wrong Msg", value=f"`{wrongmsg}`")
+
+        if welcomechannel:
+            welcome = ctx.guild.get_channel(welcomechannel)
+            embed.add_field(name="Welcome Channel", value=welcome.mention)
+
+        if welcomemsg:
+            embed.add_field(name="Welcome Msg", value=f"`{welcomemsg}`")
+
+        embed.add_field(name="# Users Blocked", value=f"`{len(blocked_users)}`")
+        embed.add_field(name="Fuzzy Matching Threshold", value=f"`{fuzziness}%`")
 
         try:
-            await ctx.send(embed=data)
+            await ctx.send(embed=embed)
         except discord.Forbidden:
             await ctx.send("I need the `Embed links` permission to send a verify status.")
 
@@ -341,31 +387,11 @@ class VerifyCog(commands.Cog):
         if await self._verify_user(ctx.guild, user):
             await self._log_verify_message(ctx.guild, user, ctx.author, reason=reason)
 
-    async def _verify_user(self, server: discord.Guild, user: discord.Member):
-        """Private method for verifying a user"""
-        async with self.config.guild(server).blocks() as blocked_users:
-            if user.id in blocked_users:
-                return False
-
-        role_id = await self.config.guild(server).role()
-        role = server.get_role(role_id)
-        await user.add_roles(role)
-
-        count = await self.config.guild(server).count()
-        count += 1
-        await self.config.guild(server).count.set(count)
-
-        welcomemsg = await self.config.guild(server).welcomemsg()
-        welcomechannel = await self.config.guild(server).welcomechannel()
-        if welcomechannel:
-            welcomemsg = welcomemsg.replace("{user}", user.mention)
-            await server.get_channel(welcomechannel).send(welcomemsg)
-
-        return True
+    # Helper functions
 
     async def _log_verify_message(
         self,
-        server: discord.Guild,
+        guild: discord.Guild,
         user: discord.Member,
         verifier: discord.Member,
         **kwargs,
@@ -374,10 +400,10 @@ class VerifyCog(commands.Cog):
         failmessage = kwargs.get("failmessage", None)
         message = failmessage or "User Verified"
 
-        log_id = await self.config.guild(server).logchannel()
+        log_id = await self.config.guild(guild).logchannel()
         if log_id:
-            log = server.get_channel(log_id)
-            data = discord.Embed(colour=discord.Colour.orange())
+            log = guild.get_channel(log_id)
+            data = discord.Embed(color=discord.Color.orange())
             data.set_author(name=f"{message} - {user}", icon_url=user.avatar_url)
             data.add_field(name="User", value=user.mention)
             data.add_field(name="ID", value=user.id)
@@ -394,3 +420,14 @@ class VerifyCog(commands.Cog):
                     await log.send(embed=data)
                 except discord.Forbidden:
                     await log.send(f"**{message}** - {user.id} - {user}")
+
+    async def _verify_user(self, guild: discord.Guild, member: discord.Member):
+        """Private method for verifying a user"""
+        async with self.config.guild(guild).blocks() as blocked_users:
+            if member.id in blocked_users:
+                return False
+
+        role_id = await self.config.guild(guild).role()
+        role = guild.get_role(role_id)
+        await member.add_roles(role)
+        return True

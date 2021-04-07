@@ -1,7 +1,7 @@
 import json
 import re
 from glob import glob
-from typing import Union
+from typing import List, Tuple, Union
 
 import fastjsonschema
 
@@ -21,7 +21,7 @@ def validate(schema_name: str, filename: str):
     fastjsonschema.validate(schema, json_file)
 
 
-def get_key_pos(filename: str, key: str) -> tuple[int]:
+def get_key_pos(filename: str, key: str) -> Tuple[int]:
     """Returns the position of a key in a json file"""
     reg_match = re.compile(f'"{key}"\\s?:')
     with open(filename, "r") as f:
@@ -35,7 +35,7 @@ def get_key_pos(filename: str, key: str) -> tuple[int]:
     raise Exception(f"could not get position of key: {key}")
 
 
-def list_from_str(set_str: str) -> list[str]:
+def list_from_str(set_str: str) -> List[str]:
     """Returns a list from a string representation of a list"""
     list_reg = re.compile("^.*{(.*)}.*$")
     match = list_reg.match(set_str)
