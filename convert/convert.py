@@ -23,12 +23,11 @@ class Convert(commands.Cog):
             src, dst = " ".join(unit).split(" to ")
             question = self.__ureg(src)
             answer = question.to(dst)
-        except:
-            colour = await ctx.embed_colour()
+        except Exception:
             error_embed = discord.Embed(
                 title="Error",
                 description=f"Unable to convert `{' '.join(unit)}`",
-                colour=colour,
+                colour=await ctx.embed_colour(),
             )
             await ctx.send(embed=error_embed)
         else:

@@ -1,0 +1,14 @@
+{
+    "author": [
+        "Issy"
+    ],
+    "short": "Role info cog",
+    "description": "Allows users to view info on a role by ID, mention or role name",
+    "disabled": false,
+    "name": "roleinfo",
+    "tags": [
+        "info",
+        "moderation"
+    ],
+    "install_msg": "Usage: `[p]roleinfo`"
+}

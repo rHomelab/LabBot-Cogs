@@ -1,10 +1,12 @@
 """discord red-bot autoreact"""
 import asyncio
+from typing import Generator, Optional
 
 import discord
 import discord.utils
 from redbot.core import Config, checks, commands
-from redbot.core.utils.menus import menu, next_page, prev_page
+from redbot.core.utils.menus import menu, next_page, prev_page, start_adding_reactions
+from redbot.core.utils.predicates import ReactionPredicate
 
 CUSTOM_CONTROLS = {"⬅️": prev_page, "➡️": next_page}
 
@@ -18,8 +20,10 @@ class AutoReactCog(commands.Cog):
 
         default_guild_config = {
             "reactions": {},  # Sets of phrases - phrase: [str]
-            "channels": {},  # Channels in which every message will get a specific set of reactions - str(channel.id): [str]
-            "whitelisted_channels": [],  # Channels in which no reactions will be processed (unless specified in channels) - [int]
+            # Channels in which every message will get a specific set of reactions - str(channel.id): [str]
+            "channels": {},
+            # Channels in which no reactions will be processed (unless specified in channels) - [int]
+            "whitelisted_channels": [],
         }
 
         self.config.register_guild(**default_guild_config)
@@ -31,9 +35,7 @@ class AutoReactCog(commands.Cog):
 
         reactions = await self.config.guild(message.guild).reactions()
         channels = await self.config.guild(message.guild).channels()
-        whitelisted_channels = await self.config.guild(
-            message.guild
-        ).whitelisted_channels()
+        whitelisted_channels = await self.config.guild(message.guild).whitelisted_channels()
 
         if str(message.channel.id) in channels.keys():  # process special reactions
             channel_reactions = channels[str(message.channel.id)]
@@ -79,9 +81,7 @@ class AutoReactCog(commands.Cog):
             "whitelisted channels",
             "whitelisted_channels",
         }:
-            error_embed = await self.make_error_embed(
-                ctx, error_type="InvalidObjectType"
-            )
+            error_embed = await self.make_error_embed(ctx, error_type="InvalidObjectType")
             await ctx.send(embed=error_embed)
             return
 
@@ -125,9 +125,7 @@ class AutoReactCog(commands.Cog):
                 # Check if the emoji is in this guild
                 guild_emoji = discord.utils.get(ctx.guild.emojis, id=int(emoji_id))
                 if not guild_emoji:
-                    error_embed = await self.make_error_embed(
-                        ctx, error_type="EmojiNotFound"
-                    )
+                    error_embed = await self.make_error_embed(ctx, error_type="EmojiNotFound")
                     await ctx.send(embed=error_embed)
                     return
 
@@ -136,9 +134,7 @@ class AutoReactCog(commands.Cog):
                 reactions[phrase.lower()] = []
                 reactions[phrase.lower()].append(emoji)
 
-        success_embed = discord.Embed(
-            title="Added reaction pair", colour=ctx.guild.me.colour
-        )
+        success_embed = discord.Embed(title="Added reaction pair", colour=await ctx.embed_colour())
         success_embed.add_field(name="Reaction", value=emoji, inline=False)
         success_embed.add_field(name="Phrase", value=phrase, inline=False)
         await ctx.send(embed=success_embed)
@@ -154,13 +150,11 @@ class AutoReactCog(commands.Cog):
         async with self.config.guild(ctx.guild).channels() as channels:
             channels[str(channel.id)] = list(emojis)
 
-        desc = (
-            f"I will react to every message in <#{channel.id}> with {' '.join(emojis)}"
-        )
+        desc = f"I will react to every message in <#{channel.id}> with {' '.join(emojis)}"
         success_embed = discord.Embed(
             title="Autoreact channel added",
             description=desc,
-            colour=ctx.guild.me.colour,
+            colour=await ctx.embed_colour(),
         )
         await ctx.send(embed=success_embed)
 
@@ -174,16 +168,12 @@ class AutoReactCog(commands.Cog):
         """
         async with self.config.guild(ctx.guild).whitelisted_channels() as whitelist:
             if channel.id in whitelist:
-                error_embed = await self.make_error_embed(
-                    ctx, error_type="ChannelInWhitelist"
-                )
+                error_embed = await self.make_error_embed(ctx, error_type="ChannelInWhitelist")
                 await ctx.send(embed=error_embed)
                 return
             whitelist.append(channel.id)
             desc = f"<#{channel.id}> added to whitelist"
-            success_embed = discord.Embed(
-                title="Success", description=desc, colour=ctx.guild.me.colour
-            )
+            success_embed = discord.Embed(title="Success", description=desc, colour=await ctx.embed_colour())
             await ctx.send(embed=success_embed)
 
     # Remove commands
@@ -199,44 +189,17 @@ class AutoReactCog(commands.Cog):
         """
         items = await self.ordered_list_from_config(ctx.guild)
         to_del = items[num - 1]
-        embed = discord.Embed(colour=ctx.guild.me.colour)
+        embed = discord.Embed(colour=await ctx.embed_colour())
         embed.add_field(name="Reaction", value=to_del["reaction"], inline=False)
         embed.add_field(name="Phrase", value=to_del["phrase"], inline=False)
-        message_object = await ctx.send(
-            embed=embed, content="Are you sure you want to remove this reaction pair?"
-        )
-
-        emojis = ["✅", "❌"]
-        for i in emojis:
-            await message_object.add_reaction(i)
-
-        def reaction_check(reaction, user):
-            return (
-                (user == ctx.author)
-                and (reaction.message.id == message_object.id)
-                and (reaction.emoji in emojis)
-            )
-
-        try:
-            reaction, _ = await self.bot.wait_for(
-                "reaction_add", timeout=180.0, check=reaction_check
-            )
-        except asyncio.TimeoutError:
-            try:
-                await message_object.clear_reactions()
-            except Exception:
-                pass
-            return
-        else:
-            if reaction.emoji == "❌":
-                await message_object.clear_reactions()
-                return
-
+        msg = await ctx.send(embed=embed, content="Are you sure you want to remove this reaction pair?")
+        confirmation = await self.get_confirmation(ctx, msg)
+        if confirmation:
             await self.remove_reaction(ctx.guild, to_del["phrase"], to_del["reaction"])
             success_embed = discord.Embed(
                 title="Reaction pair removed",
                 description=f"{to_del['reaction']} **-** {to_del['phrase']}",
-                colour=ctx.guild.me.colour,
+                colour=await ctx.embed_colour(),
             )
             await ctx.send(embed=success_embed)
 
@@ -251,54 +214,25 @@ class AutoReactCog(commands.Cog):
         async with self.config.guild(ctx.guild).channels() as channels:
 
             if str(channel.id) not in channels.keys():
-                error_embed = await self.make_error_embed(
-                    ctx, error_type="ChannelNotFound"
-                )
+                error_embed = await self.make_error_embed(ctx, error_type="ChannelNotFound")
                 await ctx.send(embed=error_embed)
                 return
 
             channel_reactions = channels[str(channel.id)]
-            embed = discord.Embed(colour=ctx.guild.me.colour)
+            embed = discord.Embed(colour=await ctx.embed_colour())
             embed.add_field(name="Channel", value=f"<#{channel.id}>", inline=False)
-            embed.add_field(
-                name="Reactions", value=" ".join(channel_reactions), inline=False
-            )
-            message_object = await ctx.send(
+            embed.add_field(name="Reactions", value=" ".join(channel_reactions), inline=False)
+            msg = await ctx.send(
                 embed=embed,
                 content="Are you sure you want to remove this reaction channel?",
             )
-
-            emojis = ["✅", "❌"]
-            for emoji in emojis:
-                await message_object.add_reaction(emoji)
-
-            def reaction_check(reaction, user):
-                return (
-                    (user == ctx.author)
-                    and (reaction.message.id == message_object.id)
-                    and (reaction.emoji in emojis)
-                )
-
-            try:
-                reaction, _ = await self.bot.wait_for(
-                    "reaction_add", timeout=180.0, check=reaction_check
-                )
-            except asyncio.TimeoutError:
-                try:
-                    await message_object.clear_reactions()
-                except Exception:
-                    pass
-                return
-            else:
-                if reaction.emoji == "❌":
-                    await message_object.clear_reactions()
-                    return
-
+            confirmation = await self.get_confirmation(ctx, msg)
+            if confirmation:
                 del channels[str(channel.id)]
                 success_embed = discord.Embed(
                     title="Reaction channel removed",
                     description=f"<#{channel.id}>",
-                    colour=ctx.guild.me,
+                    colour=await ctx.embed_colour(),
                 )
                 await ctx.send(embed=success_embed)
 
@@ -313,50 +247,23 @@ class AutoReactCog(commands.Cog):
         async with self.config.guild(ctx.guild).whitelisted_channels() as channels:
 
             if channel.id not in channels:
-                error_embed = await self.make_error_embed(
-                    ctx, error_type="ChannelNotFound"
-                )
+                error_embed = await self.make_error_embed(ctx, error_type="ChannelNotFound")
                 await ctx.send(embed=error_embed)
                 return
 
-            embed = discord.Embed(colour=ctx.guild.me.colour)
+            embed = discord.Embed(colour=await ctx.embed_colour())
             embed.add_field(name="Channel", value=f"<#{channel.id}>", inline=False)
-            message_object = await ctx.send(
+            msg = await ctx.send(
                 embed=embed,
                 content="Are you sure you want to remove this channel from the whitelist?",
             )
-
-            emojis = ["✅", "❌"]
-            for emoji in emojis:
-                await message_object.add_reaction(emoji)
-
-            def reaction_check(reaction, user):
-                return (
-                    (user == ctx.author)
-                    and (reaction.message.id == message_object.id)
-                    and (reaction.emoji in emojis)
-                )
-
-            try:
-                reaction, _ = await self.bot.wait_for(
-                    "reaction_add", timeout=180.0, check=reaction_check
-                )
-            except asyncio.TimeoutError:
-                try:
-                    await message_object.clear_reactions()
-                except Exception:
-                    pass
-                return
-            else:
-                if reaction.emoji == "❌":
-                    await message_object.clear_reactions()
-                    return
-
+            confirmation = await self.get_confirmation(ctx, msg)
+            if confirmation:
                 channels.remove(channel.id)
                 success_embed = discord.Embed(
                     title="Channel removed from whitelist",
                     description=f"<#{channel.id}>",
-                    colour=ctx.guild.me.colour,
+                    colour=await ctx.embed_colour(),
                 )
                 await ctx.send(embed=success_embed)
 
@@ -382,9 +289,7 @@ class AutoReactCog(commands.Cog):
         elif object_type == "channels":
             async with self.config.guild(guild).channels() as channels:
                 for key in channels.keys():
-                    items.append(
-                        {"channel": key, "reactions": ", ".join(channels[key])}
-                    )
+                    items.append({"channel": key, "reactions": ", ".join(channels[key])})
 
         elif object_type in ("whitelisted channels", "whitelisted_channels"):
             async with self.config.guild(guild).whitelisted_channels() as channels:
@@ -403,9 +308,15 @@ class AutoReactCog(commands.Cog):
         error_embed = discord.Embed(
             title="Error",
             description=error_msgs[error_type],
-            colour=ctx.guild.me.colour,
+            colour=await ctx.embed_colour(),
         )
         return error_embed
+
+    @staticmethod
+    def chunks(full_list: list, chunk_size: int) -> Generator:
+        """Yield successive n-sized chunks from full_list"""
+        for i in range(0, len(full_list), chunk_size):
+            yield full_list[i : i + chunk_size]
 
     async def make_embed_list(self, ctx, object_type: str, items: list):
         if not items:
@@ -413,38 +324,24 @@ class AutoReactCog(commands.Cog):
 
         embed_list = []
 
-        # Divide the list into parts
-        def chunks(full_list: list, chunk_size: int):
-            """Yield successive n-sized chunks from full_list"""
-            for i in range(0, len(full_list), chunk_size):
-                yield full_list[i : i + chunk_size]
-
         if object_type == "reactions":
-            sectioned_list = list(chunks(items, 8))
+            sectioned_list = list(self.chunks(items, 8))
             count = 1
             for section in sectioned_list:
-                embed = discord.Embed(
-                    title=object_type.capitalize(), colour=ctx.guild.me.colour
-                )
+                embed = discord.Embed(title=object_type.capitalize(), colour=await ctx.embed_colour())
                 for elem in section:
                     embed.add_field(name="Index", value=count, inline=True)
                     embed.add_field(name="Phrase", value=elem["phrase"], inline=True)
-                    embed.add_field(
-                        name="Reaction", value=elem["reaction"], inline=True
-                    )
+                    embed.add_field(name="Reaction", value=elem["reaction"], inline=True)
                     count += 1
                 embed_list.append(embed)
 
         elif object_type == "channels":
-            sectioned_list = list(chunks(items, 8))
+            sectioned_list = list(self.chunks(items, 8))
             for section in sectioned_list:
-                embed = discord.Embed(
-                    title=object_type.capitalize(), colour=ctx.guild.me.colour
-                )
+                embed = discord.Embed(title=object_type.capitalize(), colour=await ctx.embed_colour())
                 for elem in section:
-                    embed.add_field(
-                        name="Channel", value=f"<#{elem['channel']}>", inline=True
-                    )
+                    embed.add_field(name="Channel", value=f"<#{elem['channel']}>", inline=True)
                     embed.add_field(
                         name="Reactions",
                         value=" ".join(elem["reactions"]),
@@ -454,20 +351,32 @@ class AutoReactCog(commands.Cog):
                 embed_list.append(embed)
 
         elif object_type in ("whitelisted channels", "whitelisted_channels"):
-            sectioned_list = list(chunks(items, 10))
+            sectioned_list = list(self.chunks(items, 10))
             for section in sectioned_list:
                 channel_list = "\n".join([f"<#{i}>" for i in section])
                 embed = discord.Embed(
                     title="Whitelisted Channels",
                     description=channel_list,
-                    colour=ctx.guild.me.colour,
+                    colour=await ctx.embed_colour(),
                 )
                 embed_list.append(embed)
 
-        embed_count = 1
-
-        for embed in embed_list:
-            embed.set_footer(text=f"{embed_count} of {len(embed_list)}")
-            embed_count += 1
+        for count, embed in enumerate(embed_list):
+            embed.set_footer(text=f"{count + 1} of {len(embed_list)}")
 
         return embed_list
+
+    async def get_confirmation(self, ctx: commands.Context, msg: discord.Message) -> Optional[bool]:
+        """Get confirmation from user with reactions"""
+        emojis = ["❌", "✅"]
+        start_adding_reactions(msg, emojis)
+
+        try:
+            reaction, _ = await self.bot.wait_for(
+                "reaction_add", timeout=180.0, check=ReactionPredicate.with_emojis(emojis, msg, ctx.author)
+            )
+        except asyncio.TimeoutError:
+            await msg.clear_reactions()
+        else:
+            await msg.clear_reactions()
+            return bool(emojis.index(reaction.emoji))

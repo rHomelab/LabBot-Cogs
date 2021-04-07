@@ -11,11 +11,16 @@ class ReportCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.settings = Config.get_conf(self, identifier=1092901)
+        self.config = Config.get_conf(self, identifier=1092901)
 
-        default_guild_settings = {"logchannel": None, "confirmations": True}
+        default_guild_settings = {
+            "logchannel": None,
+            "confirmations": True,
+            # {"id": str, "allowed": bool} bool defaults to True
+            "channels": [],
+        }
 
-        self.settings.register_guild(**default_guild_settings)
+        self.config.register_guild(**default_guild_settings)
 
     @commands.group("reports")
     @commands.guild_only()
@@ -24,16 +29,14 @@ class ReportCog(commands.Cog):
         pass
 
     @_reports.command("logchannel")
-    async def reports_logchannel(
-        self, ctx: commands.Context, channel: discord.TextChannel
-    ):
+    async def reports_logchannel(self, ctx: commands.Context, channel: discord.TextChannel):
         """Sets the channel to post the reports
 
         Example:
         - `[p]reports logchannel <channel>`
         - `[p]reports logchannel #admin-log`
         """
-        await self.settings.guild(ctx.guild).logchannel.set(channel.id)
+        await self.config.guild(ctx.guild).logchannel.set(channel.id)
         await ctx.send(f"Reports log message channel set to `{channel.name}`")
 
     @_reports.command("confirm")
@@ -48,7 +51,7 @@ class ReportCog(commands.Cog):
         except ValueError:
             await ctx.send("Invalid option. Use: `[p]reports confirm <True|False>`")
             return
-        await self.settings.guild(ctx.guild).confirmations.set(option)
+        await self.config.guild(ctx.guild).confirmations.set(option)
         await ctx.send(f"Send report confirmations: `{option}`")
 
     @commands.command("report")
@@ -59,10 +62,14 @@ class ReportCog(commands.Cog):
         Example:
         - `[p]report <message>`
         """
+        pre_check = await self.enabled_channel_check(ctx, "reports")
+        if not pre_check:
+            return
+
         # Pre-emptively delete the message for privacy reasons
         await ctx.message.delete()
 
-        log_id = await self.settings.guild(ctx.guild).logchannel()
+        log_id = await self.config.guild(ctx.guild).logchannel()
         log = None
         if log_id:
             log = ctx.guild.get_channel(log_id)
@@ -73,7 +80,7 @@ class ReportCog(commands.Cog):
         data = self.make_report_embed(ctx, message)
         await log.send(embed=data)
 
-        confirm = await self.settings.guild(ctx.guild).confirmations()
+        confirm = await self.config.guild(ctx.guild).confirmations()
         if confirm:
             report_reply = self.make_reporter_reply(ctx, message, False)
             try:
@@ -89,10 +96,14 @@ class ReportCog(commands.Cog):
         Example:
         - `[p]emergency <message>`
         """
+        pre_check = await self.enabled_channel_check(ctx, "emergencies")
+        if not pre_check:
+            return
+
         # Pre-emptively delete the message for privacy reasons
         await ctx.message.delete()
 
-        log_id = await self.settings.guild(ctx.guild).logchannel()
+        log_id = await self.config.guild(ctx.guild).logchannel()
         log = None
         if log_id:
             log = ctx.guild.get_channel(log_id)
@@ -101,18 +112,12 @@ class ReportCog(commands.Cog):
             return
 
         data = self.make_report_embed(ctx, message)
-        mod_pings = " ".join(
-            [
-                i.mention
-                for i in log.members
-                if not i.bot and str(i.status) in ["online", "idle"]
-            ]
-        )
+        mod_pings = " ".join([i.mention for i in log.members if not i.bot and str(i.status) in ["online", "idle"]])
         if not mod_pings:  # If no online/idle mods
             mod_pings = " ".join([i.mention for i in log.members if not i.bot])
         await log.send(content=mod_pings, embed=data)
 
-        confirm = await self.settings.guild(ctx.guild).confirmations()
+        confirm = await self.config.guild(ctx.guild).confirmations()
         if confirm:
             report_reply = self.make_reporter_reply(ctx, message, True)
             try:
@@ -120,34 +125,67 @@ class ReportCog(commands.Cog):
             except discord.Forbidden:
                 pass
 
+    @_reports.command("channel")
+    async def reports_channel(self, ctx: commands.Context, rule: str, channel: discord.TextChannel):
+        """Allows/denies the use of reports/emergencies in specific channels
+
+        Example:
+        - `[p]reports channel <allow|deny> <channel>`
+        - `[p]reports channel deny #general
+        """
+        supported_rules = ("deny", "allow")
+        if rule.lower() not in supported_rules:
+            await ctx.send("Rule argument must be `allow` or `deny`")
+            return
+
+        bool_conversion = bool(supported_rules.index(rule.lower()))
+
+        async with self.config.guild(ctx.guild).channels() as channels:
+            data = list(filter(lambda c: c["id"] == str(channel.id), channels))
+            if data:
+                data[0]["allowed"] = bool_conversion
+            else:
+                channels.append(
+                    {
+                        "id": str(channel.id),
+                        "allowed": bool_conversion,
+                    }
+                )
+
+        await ctx.send("Reports {} in {}".format("allowed" if bool_conversion else "denied", channel.mention))
+
+    async def enabled_channel_check(self, ctx: commands.Context) -> bool:
+        """Checks that reports/emergency commands are enabled in the current channel"""
+        async with self.config.guild(ctx.guild).channels() as channels:
+            channel = list(filter(lambda c: c["id"] == str(ctx.channel.id), channels))
+
+            if channel:
+                return channel[0]["allowed"]
+
+            # Insert an entry for this channel if it doesn't exist
+            channels.append({"id": str(ctx.channel.id), "allowed": True})
+            return True
+
     def make_report_embed(self, ctx: commands.Context, message: str):
         """Construct the embed to be sent"""
-        data = discord.Embed(color=discord.Color.orange())
+        data = discord.Embed(
+            colour=discord.Colour.orange(),
+            description=escape(message or "<no message>"),
+            timestamp=ctx.message.created_at,
+        )
         data.set_author(name="Report", icon_url=ctx.author.avatar_url)
         data.add_field(name="Reporter", value=ctx.author.mention)
         data.add_field(name="Channel", value=ctx.channel.mention)
-        data.add_field(
-            name="Timestamp", value=ctx.message.created_at.strftime("%Y-%m-%d %H:%I")
-        )
-        data.add_field(
-            name="Message", value=escape(message or "<no message>"), inline=False
-        )
         return data
 
-    def make_reporter_reply(
-        self, ctx: commands.Context, message: str, emergency: bool
-    ) -> discord.Embed:
+    def make_reporter_reply(self, ctx: commands.Context, message: str, emergency: bool) -> discord.Embed:
         """Construct the reply embed to be sent"""
         data = discord.Embed(
-            color=discord.Color.red() if emergency else discord.Color.orange()
+            colour=discord.Colour.red() if emergency else discord.Colour.orange(),
+            description=escape(message or "<no message>"),
+            timestamp=ctx.message.created_at,
         )
         data.set_author(name="Report Received", icon_url=ctx.author.avatar_url)
         data.add_field(name="Server", value=ctx.guild.name)
         data.add_field(name="Channel", value=ctx.channel.mention)
-        data.add_field(
-            name="Timestamp", value=ctx.message.created_at.strftime("%Y-%m-%d %H:%I")
-        )
-        data.add_field(
-            name="Message", value=escape(message or "<no message>"), inline=False
-        )
         return data

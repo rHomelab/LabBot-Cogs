@@ -1,7 +1,11 @@
 {
-    "author" : ["TheDevFreak"],
-    "description" : "Usage: [p]xkcd <comicnumber>",
+    "author": [
+        "TheDevFreak"
+    ],
+    "description": "Usage: [p]xkcd <comicnumber>",
     "short": "Gives xkcd comic of number specified, otherwise latest.",
-    "name" : "xkcd",
-    "tags" : ["fun"]
+    "name": "xkcd",
+    "tags": [
+        "fun"
+    ]
 }

@@ -1,11 +1,13 @@
 {
-    "AUTHOR": "Issy",
-    "SHORT": "Feed your friends",
-    "DESCRIPTION": "Force food into people's mouths",
-    "DISABLED": false,
-    "NAME": "feed",
-    "TAGS": [
+    "author": [
+        "Issy"
+    ],
+    "short": "Feed your friends",
+    "description": "Force food into people's mouths",
+    "disabled": false,
+    "name": "feed",
+    "tags": [
         "fun"
     ],
-    "INSTALL_MSG": "Usage: `[p]feed [member]`"
+    "install_msg": "Usage: `[p]feed [member]`"
 }

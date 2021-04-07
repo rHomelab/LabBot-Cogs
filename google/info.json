@@ -1,7 +1,11 @@
 {
-    "author" : ["TheDevFreak"],
-    "description" : "Usage: [p]google <query>",
+    "author": [
+        "TheDevFreak"
+    ],
+    "description": "Usage: [p]google <query>",
     "short": "Send a google link to someone",
-    "name" : "Google",
-    "tags" : ["fun"]
+    "name": "Google",
+    "tags": [
+        "fun"
+    ]
 }

@@ -1,12 +1,17 @@
 {
-    "AUTHOR": "Sneezey",
-    "SHORT": "Purge inactive, non-roled users",
-    "DESCRIPTION": "Remove users without a role after a certain amount of time",
-    "DISABLED": false,
-    "NAME": "purge",
-    "TAGS": [
-      "purge",
-      "inactive"
+    "author": [
+        "Sneezey"
     ],
-    "INSTALL_MSG": "Usage: `[p]purge`"
-  }
+    "short": "Purge inactive, non-roled users",
+    "description": "Remove users without a role after a certain amount of time",
+    "disabled": false,
+    "name": "purge",
+    "tags": [
+        "purge",
+        "inactive"
+    ],
+    "requirements": [
+        "croniter"
+    ],
+    "install_msg": "Usage: `[p]purge`"
+}

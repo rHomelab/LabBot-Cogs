@@ -13,7 +13,7 @@ class PurgeCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.settings = Config.get_conf(self, identifier=489182828)
+        self.config = Config.get_conf(self, identifier=489182828)
 
         default_guild_settings = {
             "excludedusers": [],
@@ -25,7 +25,7 @@ class PurgeCog(commands.Cog):
             "logchannel": None,
         }
 
-        self.settings.register_guild(**default_guild_settings)
+        self.config.register_guild(**default_guild_settings)
 
         self.purge_task = self.bot.loop.create_task(self.check_purgeable_users())
 
@@ -35,7 +35,7 @@ class PurgeCog(commands.Cog):
     async def set_crontab(self, guild, crontab):
         try:
             croniter(crontab)
-            await self.settings.guild(guild).schedule.set(crontab)
+            await self.config.guild(guild).schedule.set(crontab)
             return crontab
         except CroniterError:
             return False
@@ -44,15 +44,15 @@ class PurgeCog(commands.Cog):
         while self == self.bot.get_cog("PurgeCog"):
             for guild in self.bot.guilds:
                 # Only run if enabled
-                enabled = await self.settings.guild(guild).enabled()
+                enabled = await self.config.guild(guild).enabled()
                 if not enabled:
                     continue
 
                 # Is it time to run?
                 cur_epoch = datetime.utcnow()
-                last_run = await self.settings.guild(guild).lastrun()
+                last_run = await self.config.guild(guild).lastrun()
                 last_run = last_run or 0
-                crontab = await self.settings.guild(guild).schedule()
+                crontab = await self.config.guild(guild).schedule()
                 cron_check = croniter(crontab, last_run)
                 next_execution_date = cron_check.get_next(datetime)
 
@@ -61,13 +61,13 @@ class PurgeCog(commands.Cog):
                     continue
 
                 # Set the last run
-                await self.settings.guild(guild).lastrun.set(cur_epoch.timestamp())
+                await self.config.guild(guild).lastrun.set(cur_epoch.timestamp())
 
                 # Only run if kick_members permission is given
                 if not guild.me.guild_permissions.kick_members:
                     continue
 
-                channel = await self.settings.guild(guild).logchannel()
+                channel = await self.config.guild(guild).logchannel()
                 output = guild.get_channel(channel)
                 if output is None:
                     # The log channel no longer exists
@@ -82,10 +82,7 @@ class PurgeCog(commands.Cog):
                 try:
                     await output.send(embed=data)
                 except discord.Forbidden:
-                    await output.send(
-                        "I need the `Embed links` permission "
-                        + "to send a purge board."
-                    )
+                    await output.send("I need the `Embed links` permission " + "to send a purge board.")
 
             await asyncio.sleep(60)
 
@@ -106,7 +103,7 @@ class PurgeCog(commands.Cog):
                 break
             users_kicked = new_list
 
-        data = discord.Embed(color=discord.Color.orange())
+        data = discord.Embed(colour=discord.Colour.orange())
         data.title = f"{title} Purge - Purged {len(users)}"
         data.description = users_kicked
 
@@ -121,9 +118,9 @@ class PurgeCog(commands.Cog):
             # Kick the user from the server and log it
             await user.kick()
 
-            count = await self.settings.guild(user.guild).count()
+            count = await self.config.guild(user.guild).count()
             count += 1
-            await self.settings.guild(user.guild).count.set(count)
+            await self.config.guild(user.guild).count.set(count)
 
             return True
         except (discord.HTTPException, discord.Forbidden):
@@ -142,12 +139,12 @@ class PurgeCog(commands.Cog):
                 continue
 
             # If user is not older than the minimum age, they're safe
-            timelimit = await self.settings.guild(guild).minage()
+            timelimit = await self.config.guild(guild).minage()
             cutoff_date = datetime.utcnow() - timedelta(days=timelimit)
             if member.joined_at > cutoff_date:
                 continue
 
-            async with self.settings.guild(guild).excludedusers() as excluded_users:
+            async with self.config.guild(guild).excludedusers() as excluded_users:
                 # If user is excluded from the purge, they're safe
                 if member and member.id in excluded_users:
                     continue
@@ -163,16 +160,14 @@ class PurgeCog(commands.Cog):
         pass
 
     @_purge.command("logchannel")
-    async def purge_logchannel(
-        self, ctx: commands.Context, channel: discord.TextChannel
-    ):
+    async def purge_logchannel(self, ctx: commands.Context, channel: discord.TextChannel):
         """Logs details of purging to this channel.
         The bot must have permission to write to this channel.
 
         Example:
         - `[p]purge logchannel #<channel>`
         """
-        await self.settings.guild(ctx.guild).logchannel.set(channel.id)
+        await self.config.guild(ctx.guild).logchannel.set(channel.id)
         await ctx.send("Purge log channel set.")
 
     @_purge.command("execute")
@@ -192,9 +187,7 @@ class PurgeCog(commands.Cog):
         try:
             await ctx.send(embed=data)
         except discord.Forbidden:
-            await ctx.send(
-                "I need the `Embed links` permission to send " + "a purge board."
-            )
+            await ctx.send("I need the `Embed links` permission to send " + "a purge board.")
 
     @_purge.command("simulate")
     async def purge_simulate(self, ctx: commands.Context):
@@ -219,10 +212,7 @@ class PurgeCog(commands.Cog):
         try:
             await ctx.send(embed=data)
         except discord.Forbidden:
-            await ctx.send(
-                "I need the `Embed links` permission to "
-                + "send a purge simulation board."
-            )
+            await ctx.send("I need the `Embed links` permission to " + "send a purge simulation board.")
 
     @_purge.command("exclude")
     async def purge_exclude_user(self, ctx: commands.Context, user: discord.Member):
@@ -234,7 +224,7 @@ class PurgeCog(commands.Cog):
         guild = ctx.guild
         added = False
         # Get excluded users list
-        async with self.settings.guild(guild).excludedusers() as excluded_users:
+        async with self.config.guild(guild).excludedusers() as excluded_users:
             if user and user.id not in excluded_users:
                 excluded_users.append(user.id)
                 added = True
@@ -254,7 +244,7 @@ class PurgeCog(commands.Cog):
         guild = ctx.guild
         removed = False
         # Get excluded users list
-        async with self.settings.guild(guild).excludedusers() as excluded_users:
+        async with self.config.guild(guild).excludedusers() as excluded_users:
             if user and user.id in excluded_users:
                 excluded_users.remove(user.id)
                 removed = True
@@ -275,7 +265,7 @@ class PurgeCog(commands.Cog):
         if minage < 0:
             await ctx.send("Cannot set the minimum age to 0 days or less")
 
-        await self.settings.guild(ctx.guild).minage.set(minage)
+        await self.config.guild(ctx.guild).minage.set(minage)
         await ctx.send(f"Set the new minimum age to {minage} days.")
 
     @_purge.command("schedule")
@@ -301,7 +291,7 @@ class PurgeCog(commands.Cog):
         Example:
         - `[p]purge enable`
         """
-        await self.settings.guild(ctx.guild).enabled.set(True)
+        await self.config.guild(ctx.guild).enabled.set(True)
         await ctx.send("Enabled the purge task.")
 
     @_purge.command("disable")
@@ -311,7 +301,7 @@ class PurgeCog(commands.Cog):
         Example:
         - `[p]purge disable`
         """
-        await self.settings.guild(ctx.guild).enabled.set(False)
+        await self.config.guild(ctx.guild).enabled.set(False)
         await ctx.send("Disabled the purge task.")
 
     @_purge.command("status")
@@ -324,12 +314,12 @@ class PurgeCog(commands.Cog):
         Example:
         - `[p]purge status`
         """
-        purge_count = await self.settings.guild(ctx.guild).count()
-        purge_enabled = await self.settings.guild(ctx.guild).enabled()
-        purge_minage = await self.settings.guild(ctx.guild).minage()
-        purge_last_run = await self.settings.guild(ctx.guild).lastrun()
-        purge_schedule = await self.settings.guild(ctx.guild).schedule()
-        purge_log = await self.settings.guild(ctx.guild).logchannel()
+        purge_count = await self.config.guild(ctx.guild).count()
+        purge_enabled = await self.config.guild(ctx.guild).enabled()
+        purge_minage = await self.config.guild(ctx.guild).minage()
+        purge_last_run = await self.config.guild(ctx.guild).lastrun()
+        purge_schedule = await self.config.guild(ctx.guild).schedule()
+        purge_log = await self.config.guild(ctx.guild).logchannel()
 
         data = discord.Embed(colour=(await ctx.embed_colour()))
         data.add_field(name="Purged", value=f"{purge_count} users")
@@ -353,9 +343,7 @@ class PurgeCog(commands.Cog):
         data.add_field(name="Last Run", value=f"{last_run_friendly}")
 
         if (purge_last_run is not None or purge_enabled) and purge_schedule is not None:
-            next_date = croniter(
-                purge_schedule, purge_last_run or datetime.utcnow()
-            ).get_next(datetime)
+            next_date = croniter(purge_schedule, purge_last_run or datetime.utcnow()).get_next(datetime)
             next_run_friendly = next_date.strftime("%Y-%m-%d %H:%M:%SZ")
 
             data.add_field(name="Next Run", value=f"{next_run_friendly}")
@@ -366,6 +354,4 @@ class PurgeCog(commands.Cog):
         try:
             await ctx.send(embed=data)
         except discord.Forbidden:
-            await ctx.send(
-                "I need the `Embed links` permission to " + "send a purge status."
-            )
+            await ctx.send("I need the `Embed links` permission to " + "send a purge status.")
