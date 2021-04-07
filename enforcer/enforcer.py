@@ -56,7 +56,7 @@ class EnforcerCog(commands.Cog):
 
         # Check enforcer rules for channel
         (channel,) = channels
-        should_enforce = self.check_enforcer_rules(channel, message)
+        should_enforce = await self.check_enforcer_rules(channel, message)
 
         if should_enforce:
             self.bot.dispatch("msg_enforce", message, should_enforce)
@@ -259,7 +259,7 @@ class EnforcerCog(commands.Cog):
 
         return True
 
-    def check_enforcer_rules(self, channel: dict, message: discord.Message) -> Union[bool, str]:
+    async def check_enforcer_rules(self, channel: dict, message: discord.Message) -> Union[bool, str]:
         """Check message against channel enforcer rules"""
         author = message.author
 
