@@ -287,22 +287,13 @@ class EnforcerCog(commands.Cog):
             # They breached minchars attribute
             return "Not enough characters"
 
-        if channel.get(KEY_NOMEDIA) and message.attachments:
-            # They breached nomedia attribute
-            return "No media allowed"
-
-        if channel.get(KEY_REQUIREMEDIA):
-            if not message.attachments:
-                # They breached requiremedia attribute
-                return "Requires media attached"
-
         if channel.get(KEY_NOMEDIA) or channel.get(KEY_REQUIREMEDIA):
             # Check the embeds
             embeds = await self.check_embeds(message)
-            if channel.get(KEY_NOMEDIA) and embeds:
+            if channel.get(KEY_NOMEDIA) and (embeds or message.attachments):
                 # They breached nomedia attribute
                 return "No media allowed"
-            if channel.get(KEY_REQUIREMEDIA) and not embeds:
+            if channel.get(KEY_REQUIREMEDIA) and not (embeds or message.attachments):
                 # They breached requiremedia attribute
                 return "Requires media attached"
 
