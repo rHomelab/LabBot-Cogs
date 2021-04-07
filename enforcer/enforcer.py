@@ -187,12 +187,12 @@ class EnforcerCog(commands.Cog):
 
         # Pagify implementation
         # https://github.com/Cog-Creators/Red-DiscordBot/blob/9698baf6e74f6b34f946189f05e2559a60e83706/redbot/core/utils/chat_formatting.py#L208
-        pages = pagify("\n\n".join(messages), shorten_by=58)
+        pages = list(pagify("\n\n".join(messages), shorten_by=58))
         embeds = []
 
         for index, page in enumerate(pages):
             embed = discord.Embed(
-                title=f"Enforcement Configuration - Page {index + 1}/{len(list(pages))}",
+                title=f"Enforcement Configuration - Page {index + 1}/{len(pages)}",
                 description=page,
                 colour=(await ctx.embed_colour()),
             )
