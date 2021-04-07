@@ -34,3 +34,6 @@
 	ignore-docstrings = "yes"
 	# Ignore imports when computing similarities.
 	ignore-imports = "yes"
+
+[tool.pylint.messages_control]
+	disable = "C0330, C0326"
