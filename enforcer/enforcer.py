@@ -1,7 +1,7 @@
 """discord red-bot enforcer"""
 import asyncio
 from datetime import datetime
-from typing import Tuple, Union
+from typing import Union
 
 import discord
 from redbot.core import Config, checks, commands
@@ -208,7 +208,7 @@ class EnforcerCog(commands.Cog):
         else:
             ctx.send("No configurations found")
 
-    async def _validate_attribute_value(self, attribute: str, value: str):
+    async def _validate_attribute_value(self, attribute: str, value: str) -> Union[str, int, bool]:
         attribute_type = self.ATTRIBUTES[attribute]["type"]
 
         if attribute_type == "bool":
@@ -225,7 +225,7 @@ class EnforcerCog(commands.Cog):
 
             return value
 
-    async def _reset_attribute(self, channel: discord.TextChannel, attribute):
+    async def _reset_attribute(self, channel: discord.TextChannel, attribute: str):
         async with self.config.guild(channel.guild).channels() as channels:
             for _channel in channels:
                 if _channel["id"] == channel.id:
@@ -317,10 +317,7 @@ class EnforcerCog(commands.Cog):
         for _ in range(4):
             # Fetch the message
             message = await message.channel.fetch_message(message.id)
-            if message.embeds and list(filter(
-                lambda e: any(((e.image), (e.thumbnail))),
-                message.embeds
-            )):
+            if message.embeds and list(filter(lambda e: any(((e.image), (e.thumbnail))), message.embeds)):
                 # If there are any embeds with a thumbnail or image property
                 return True
             await asyncio.sleep(0.5)
