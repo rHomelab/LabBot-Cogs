@@ -257,6 +257,8 @@ black . # This will auto-format and fix a lot of common mistakes
 pylint * # This will show general pep8-violations
 ```
 
+If you use [VSCode](https://code.visualstudio.com/) you can use the tasks integrated into the repo to locally run the same tasks as our CI
+
 ### Making changes
 
 When suggesting changes, please [open an issue](https://github.com/rHomelab/LabBot-Cogs/issues/new/choose) so it can be reviewed by the team who can then suggest how and if the idea is to be implemented.
