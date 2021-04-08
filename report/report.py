@@ -62,7 +62,7 @@ class ReportCog(commands.Cog):
         Example:
         - `[p]report <message>`
         """
-        pre_check = await self.enabled_channel_check(ctx, "reports")
+        pre_check = await self.enabled_channel_check(ctx)
         if not pre_check:
             return
 
@@ -96,7 +96,7 @@ class ReportCog(commands.Cog):
         Example:
         - `[p]emergency <message>`
         """
-        pre_check = await self.enabled_channel_check(ctx, "emergencies")
+        pre_check = await self.enabled_channel_check(ctx)
         if not pre_check:
             return
 
