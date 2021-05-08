@@ -1,0 +1,16 @@
+{
+	"author": [
+		"Issy"
+	],
+	"short": "Find out what an ID relates to",
+	"description": "Search for messages, emotes, roles and more!",
+	"disabled": false,
+	"name": "whatis",
+	"tags": [
+		"mod",
+		"admin",
+		"utility",
+		"tools"
+	],
+	"install_msg": "Usage: `[p]whatis <id>`"
+}
