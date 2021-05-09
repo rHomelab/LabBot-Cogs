@@ -241,6 +241,7 @@ class NotesCog(commands.Cog):
                             "member": ctx.guild.get_member(i["member"]) or i["member"],
                             "modname": getattr(ctx.guild.get_member(i["reporter"]), "name", i["reporterstr"]),
                             "display_time": dt.utcfromtimestamp(i["date"]).strftime("%Y-%m-%d %H:%M:%SZ"),
+                            "date": i["date"],
                             "message": i["message"],
                         }
                         for i in (filter(lambda n: n["member"] == user_id, discord_notes) if user else discord_notes)
@@ -261,6 +262,7 @@ class NotesCog(commands.Cog):
                             "member": ctx.guild.get_member(i["member"]) or i["member"],
                             "modname": getattr(ctx.guild.get_member(i["reporter"]), "name", i["reporterstr"]),
                             "display_time": dt.utcfromtimestamp(i["date"]).strftime("%Y-%m-%d %H:%M:%SZ"),
+                            "date": i["date"],
                             "message": i["message"],
                         }
                         for i in (filter(lambda n: n["member"] == user_id, discord_warnings) if user else discord_warnings)
