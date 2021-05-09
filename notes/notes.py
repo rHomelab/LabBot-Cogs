@@ -1,6 +1,6 @@
 """discord red-bot notes"""
 import typing
-from datetime import datetime
+from datetime import datetime as dt
 
 import discord
 from redbot.core import Config, checks, commands
@@ -38,7 +38,7 @@ class NotesCog(commands.Cog):
     async def notes_add(
         self,
         ctx: commands.Context,
-        user: typing.Union[discord.Member, str],
+        user: typing.Union[discord.Member, int],
         *,
         message: str,
     ):
@@ -47,20 +47,16 @@ class NotesCog(commands.Cog):
         Example:
         - `[p]notes add <user> <message>`
         """
-        current_date = datetime.utcnow()
-        user_id = user if isinstance(user, str) else user.id
-
-        # Save note to list
         async with self.config.guild(ctx.guild).notes() as notes:
             notes.append(
                 {
                     "id": len(notes) + 1,
-                    "member": user_id,
+                    "member": getattr(user, "id", user),
                     "message": message,
                     "deleted": False,
                     "reporter": ctx.author.id,
                     "reporterstr": ctx.author.name,
-                    "date": current_date.timestamp(),
+                    "date": dt.utcnow().timestamp(),
                 }
             )
         await ctx.send("Note added.")
@@ -69,7 +65,7 @@ class NotesCog(commands.Cog):
     async def warnings_add(
         self,
         ctx: commands.Context,
-        user: typing.Union[discord.Member, str],
+        user: typing.Union[discord.Member, int],
         *,
         message: str,
     ):
@@ -78,19 +74,16 @@ class NotesCog(commands.Cog):
         Example:
         - `[p]warnings add <user> <message>`
         """
-        current_date = datetime.utcnow()
-        user_id = user if isinstance(user, str) else user.id
-
-        async with self.config.guild(ctx.guild).warnings() as guilds:
-            guilds.append(
+        async with self.config.guild(ctx.guild).warnings() as warnings:
+            warnings.append(
                 {
-                    "id": len(guilds) + 1,
-                    "member": user_id,
+                    "id": len(warnings) + 1,
+                    "member": getattr(user, "id", user),
                     "message": message,
                     "deleted": False,
                     "reporter": ctx.author.id,
                     "reporterstr": ctx.author.name,
-                    "date": current_date.timestamp(),
+                    "date": dt.utcnow().timestamp(),
                 }
             )
         await ctx.send("Warning added.")
@@ -105,20 +98,19 @@ class NotesCog(commands.Cog):
         async with self.config.guild(ctx.guild).notes() as notes:
             try:
                 note = notes[note_id - 1]
-                if not note["deleted"]:
-                    # User must be an admin or owner of the note
-                    if not (note["reporter"] == ctx.author.id or await is_admin_or_superior(ctx.bot, ctx.author)):
-                        await ctx.send("You don't have permission to do this.")
-                        return
-
-                    # Delete note if not previously deleted
-                    note["deleted"] = True
-                    await ctx.send("Note deleted.")
-                    return
             except IndexError:
-                pass
+                return await ctx.send("Note not found.")
 
-            await ctx.send("Note not found.")
+            if not note["deleted"]:
+                # User must be an admin or owner of the note
+                if not (note["reporter"] == ctx.author.id or await is_admin_or_superior(ctx.bot, ctx.author)):
+                    return await ctx.send("You don't have permission to do this.")
+
+                # Delete note if not previously deleted
+                note.update({"deleted": True})
+                await ctx.send("Note deleted.")
+            else:
+                await ctx.send("Note already deleted.")
 
     @_warnings.command("delete")
     async def warning_delete(self, ctx: commands.Context, warning_id: int):
@@ -130,120 +122,176 @@ class NotesCog(commands.Cog):
         async with self.config.guild(ctx.guild).warnings() as warnings:
             try:
                 warning = warnings[warning_id - 1]
-                if not warning["deleted"]:
-                    # User must be an admin or owner of the warning
-                    if not (warning["reporter"] == ctx.author.id or await is_admin_or_superior(self, ctx.author)):
-                        await ctx.send("You don't have permission to do this.")
-                        return
-
-                    # Delete warning if not previously deleted
-                    warning["deleted"] = True
-                    await ctx.send("Warning deleted.")
-                    return
             except IndexError:
-                pass
+                return await ctx.send("Warning not found.")
 
-            await ctx.send("Warning not found.")
+            if not warning["deleted"]:
+                # User must be an admin or owner of the warning
+                if not (warning["reporter"] == ctx.author.id or await is_admin_or_superior(self.bot, ctx.author)):
+                    return await ctx.send("You don't have permission to do this.")
 
-    @_notes.command("list")
-    async def notes_list(self, ctx: commands.Context, *, user: typing.Union[discord.Member, str] = None):
+                # Delete warning if not previously deleted
+                warning.update({"deleted": True})
+                await ctx.send("Warning deleted.")
+            else:
+                await ctx.send("Warning already deleted.")
+
+    @_notes.command("edit")
+    async def notes_edit(self, ctx, note_id: int, *, content: str):
+        """Edit the contents of a note
+
+        Example:
+        - `[p]notes edit 5 foo bar`"""
+        async with self.config.guild(ctx.guild).notes() as notes:
+            try:
+                note = notes[note_id - 1]
+            except IndexError:
+                return await ctx.send("Note not found")
+
+            if not (note["reporter"] == ctx.author.id or await is_admin_or_superior(self.bot, ctx.author)):
+                return await ctx.send("You don't have permission to do this.")
+
+            if note["deleted"]:
+                return await ctx.send("You can't edit this note because it is deleted.")
+
+            note.update({"message": content})
+            await ctx.send("Note edited.")
+
+    @_warnings.command("edit")
+    async def warnings_edit(self, ctx, warning_id: int, *, content: str):
+        """Edit the contents of a warning
+
+        Example:
+        - `[p]warnings edit 5 foo bar`"""
+        async with self.config.guild(ctx.guild).warnings() as warnings:
+            try:
+                warning = warnings[warning_id - 1]
+            except IndexError:
+                return await ctx.send("Warning not found")
+
+            if not (warning["reporter"] == ctx.author.id or await is_admin_or_superior(self.bot, ctx.author)):
+                return await ctx.send("You don't have permission to do this.")
+
+            if warning["deleted"]:
+                return await ctx.send("You can't edit this warning because it is deleted.")
+
+            warning.update({"message": content})
+            await ctx.send("Warning edited.")
+
+    @_notes.command("restore")
+    async def notes_restore(self, ctx, note_id: int):
+        """Restore a deleted note
+
+        Example:
+        - `[p]notes restore 5`
+        """
+        async with self.config.guild(ctx.guild).notes() as notes:
+            try:
+                note = notes[note_id - 1]
+            except IndexError:
+                return await ctx.send("Note not found")
+
+            if not (note["reporter"] == ctx.author.id or await is_admin_or_superior(self.bot, ctx.author)):
+                return await ctx.send("You don't have permission to do this.")
+
+            if not note["deleted"]:
+                return await ctx.send("You can't restore this note because it is not deleted.")
+
+            note.update({"deleted": False})
+            await ctx.send("Note restored.")
+
+    @_warnings.command("restore")
+    async def warnings_restore(self, ctx, warning_id: int):
+        """Restore a deleted warning
+
+        Example:
+        - `[p]warnings restore 5`
+        """
+        async with self.config.guild(ctx.guild).warnings() as warnings:
+            try:
+                warning = warnings[warning_id - 1]
+            except IndexError:
+                return await ctx.send("Warning not found")
+
+            if not (warning["reporter"] == ctx.author.id or await is_admin_or_superior(self.bot, ctx.author)):
+                return await ctx.send("You don't have permission to do this.")
+
+            if not warning["deleted"]:
+                return await ctx.send("You can't restore this warning because it is not deleted.")
+
+            warning.update({"deleted": False})
+            await ctx.send("Warning restored.")
+
+    @_notes.command("list", aliases=["view"])
+    async def notes_list(self, ctx: commands.Context, user: typing.Union[discord.Member, int] = None):
         """Lists notes and warnings for everyone or a specific user.
 
         Example:
         - `[p]notes list <user>`
         - `[p]notes list`
         """
-        notes = []
-        user_id = None
-        if user is not None:
-            user_id = user if isinstance(user, str) else user.id
-
+        user_id = getattr(user, "id", user)
         async with self.config.guild(ctx.guild).notes() as discord_notes:
-            discord_notes = sorted(discord_notes, key=lambda x: x["date"], reverse=True)
-
-            for note in discord_notes:
-                if note["deleted"]:
-                    # Ignore deleteds
-                    continue
-                if not (user is None or note["member"] == user_id):
-                    # Ignore notes that don't relate to the target
-                    continue
-
-                member = None
-                try:
-                    member = ctx.guild.get_member(note["member"]) or note["member"]
-                except Exception:
-                    member = note["member"]
-
-                modname = None
-                try:
-                    modname = ctx.guild.get_member(note["reporter"])
-                    if modname:
-                        modname = modname.name
-                    else:
-                        modname = note["reporterstr"] or note["reporter"]
-                except Exception:
-                    modname = note["reporterstr"] or note["reporter"]
-
-                date = datetime.utcfromtimestamp(note["date"])
-                display_time = date.strftime("%Y-%m-%d %H:%M:%SZ")
-                notes.append(
-                    f"📝#{note['id']} **{member} - Added by {modname}** " + f"- {display_time}\n " + f"{note['message']}"
+            notes = [
+                f"""📝#{note["id"]} **{note["member"]} - Added by {note["modname"]}** - {note["display_time"]}\n {note["message"]}"""
+                for note in sorted(
+                    [
+                        {
+                            "id": i["id"],
+                            "member": ctx.guild.get_member(i["member"]) or i["member"],
+                            "modname": getattr(ctx.guild.get_member(i["reporter"]), "name", i["reporterstr"]),
+                            "display_time": dt.utcfromtimestamp(i["date"]).strftime("%Y-%m-%d %H:%M:%SZ"),
+                            "message": i["message"],
+                        }
+                        for i in (filter(lambda n: n["member"] == user_id, discord_notes) if user else discord_notes)
+                        if not i["deleted"]
+                    ],
+                    key=lambda n: n["date"],
+                    reverse=True,
                 )
+            ]
 
-        warnings = []
         async with self.config.guild(ctx.guild).warnings() as discord_warnings:
-            discord_warnings = sorted(discord_warnings, key=lambda x: x["date"], reverse=True)
-
-            for warning in discord_warnings:
-                if warning["deleted"]:
-                    # Ignore deleteds
-                    continue
-                if not (user is None or warning["member"] == user_id):
-                    # Ignore warnings that don't relate to the target
-                    continue
-
-                member = None
-                try:
-                    member = ctx.guild.get_member(warning["member"]) or warning["member"]
-                except Exception:
-                    member = warning["member"]
-
-                modname = None
-                try:
-                    modname = ctx.guild.get_member(warning["reporter"])
-                    if modname:
-                        modname = modname.name
-                    else:
-                        modname = warning["reporterstr"] or warning["reporter"]
-                except Exception:
-                    modname = warning["reporterstr"] or warning["reporter"]
-
-                date = datetime.utcfromtimestamp(warning["date"])
-                display_time = date.strftime("%Y-%m-%d %H:%M:%SZ")
-                warnings.append(
-                    f"⚠️#{warning['id']} **{member} - Added by {modname}** " + f"- {display_time}\n " + f"{warning['message']}"
+            warnings = [
+                f"""⚠️#{note["id"]} **{note["member"]} - Added by {note["modname"]}** - {note["display_time"]}\n {note["message"]}"""
+                for note in sorted(
+                    [
+                        {
+                            "id": i["id"],
+                            "member": ctx.guild.get_member(i["member"]) or i["member"],
+                            "modname": getattr(ctx.guild.get_member(i["reporter"]), "name", i["reporterstr"]),
+                            "display_time": dt.utcfromtimestamp(i["date"]).strftime("%Y-%m-%d %H:%M:%SZ"),
+                            "message": i["message"],
+                        }
+                        for i in (filter(lambda n: n["member"] == user_id, discord_warnings) if user else discord_warnings)
+                        if not i["deleted"]
+                    ],
+                    key=lambda n: n["date"],
+                    reverse=True,
                 )
+            ]
 
         messages = "\n\n".join(warnings + notes)
 
         # Pagify implementation
         # https://github.com/Cog-Creators/Red-DiscordBot/blob/9698baf6e74f6b34f946189f05e2559a60e83706/redbot/core/utils/chat_formatting.py#L208
         pages = pagify(messages, shorten_by=58)
-        embeds = []
-        for page in pages:
-            data = discord.Embed(colour=(await ctx.embed_colour()))
-            if user is not None:
-                data.title = f"Notes for {user} - {len(warnings)} " + f"warnings, {len(notes)} notes"
-            else:
-                data.title = f"All notes and warnings - {len(warnings)} " + f"warnings, {len(notes)} notes"
-            data.description = page
-
-            embeds.append(data)
+        embeds = [
+            discord.Embed(
+                title=(
+                    f"Notes for {user} - {len(warnings)} " + f"warnings, {len(notes)} notes"
+                    if user
+                    else f"All notes and warnings - {len(warnings)} " + f"warnings, {len(notes)} notes"
+                ),
+                description=page,
+                colour=await ctx.embed_colour(),
+            )
+            for page in pages
+        ]
 
         # Menu implementation
         # https://github.com/Cog-Creators/Red-DiscordBot/blob/d6f9ddc3afe00ac1e8b4925a73f6783a3f497b9e/redbot/core/utils/menus.py#L18
-        if len(embeds) > 0:
+        if embeds:
             await menu(
                 ctx,
                 pages=embeds,
@@ -264,15 +312,16 @@ class NotesCog(commands.Cog):
         Example:
         - `[p]notes status`
         """
-        data = discord.Embed(colour=(await ctx.embed_colour()))
-        data.title = "Notes Status"
-
         async with self.config.guild(ctx.guild).notes() as notes:
-            data.add_field(name="Notes", value=f"{len(notes)} notes")
-
+            discord_notes = notes
         async with self.config.guild(ctx.guild).warnings() as warnings:
-            data.add_field(name="Warnings", value=f"{len(warnings)} warnings")
+            discord_warnings = warnings
+        data = (
+            discord.Embed(title="Notes Status", colour=await ctx.embed_colour())
+            .add_field(name="Notes", value=f"{len(discord_notes)} notes")
+            .add_field(name="Warnings", value=f"{len(discord_warnings)} warnings")
+        )
         try:
             await ctx.send(embed=data)
         except discord.Forbidden:
-            await ctx.send("I need the `Embed links` permission to " + "send a notes status.")
+            await ctx.send("I need the `Embed links` permission to send a notes status.")
