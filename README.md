@@ -162,7 +162,9 @@ Notes can be used for long-term storage information of problematic users or for 
 When listing the notes of a user, the warnings will be prioritised as they will be deemed more important.
 
 It is possible to add notes to a user who has left or not yet joined. Notes are stored against a user's ID and do not require the user to be part of the server.
-Deleting a note does not actually delete the note. It simply marks it in the datastore as deleted and does not show it in normal use. This can allow future recovery of notes if a bad party is attempting to wipe existing notes.
+Deleting a note does not actually delete the note. It simply marks it in the datastore as deleted and does not show it in normal use. This can allow future recovery of notes (using the `restore` subcommand) if a bad party is attempting to wipe existing notes.
+
+Notes and warnings can be edited using the `edit` subcommand.
 
 ### Penis
 
