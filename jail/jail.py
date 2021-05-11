@@ -211,8 +211,8 @@ class JailCog(commands.Cog):
             role = ctx.guild.get_role(role_id)
             if not role:
                 return await ctx.send("The configured role no longer exists.")
-            role_perms = channel.permissions_for(role)
-            if role_perms.view_channel or role_perms.read_messages:
+            channel_perms = channel.overwrites_for(role) and channel.guild.permissions_for(role)
+            if channel_perms.view_channel or channel_perms.read_messages:
                 return await ctx.send(
                     "The configured role can view this channel. Please adjust the channel permissions before proceeding."
                 )
@@ -652,8 +652,7 @@ class JailCog(commands.Cog):
                 message = await ctx.send(embed=current_page)
             else:
                 message = await ctx.send(current_page)
-            # Don't wait for reactions to be added (GH-1797)
-            # noinspection PyAsyncCall
+            # Don't wait for reactions to be added
             start_adding_reactions(message, controls.keys())
         else:
             try:
