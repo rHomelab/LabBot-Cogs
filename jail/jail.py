@@ -218,14 +218,25 @@ class JailCog(commands.Cog):
                 )
 
         async with self.config.guild(ctx.guild).template() as template:
-            welcome_msg = template["welcome_msg"]
-            template = {
+            template.update({
                 "category_id": channel.category_id,
                 "permissions": self.store_overwrites(channel),
                 "topic": channel.topic,
-                "welcome_msg": welcome_msg,
-            }
+            })
         await ctx.send("Channel template configured.")
+
+    @_jails_configure.command("welcomemsg", aliases=["welcome_msg"])
+    async def jails_configure_welcome(self, ctx: commands.Context, *, message: str):
+        """Set the welcome message for jail templates.
+        This message will be sent when the jail is created.
+        You can use certain variables in the message, wrapped in curly braces like {this}
+
+        user: Mentions the user being jailed.
+        reason: Inserts the reason for being jailed (if provided)
+        guild: The name of the server"""
+        async with self.config.guild(ctx.guild).template() as template:
+            template.update({"welcome_msg": message})
+        await ctx.send("Welcome message set.")
 
     @_jails.command(name="status")
     async def jails_status(self, ctx: commands.Context):
@@ -327,7 +338,10 @@ class JailCog(commands.Cog):
 
         welcome_msg = channel_template["welcome_msg"]
         if welcome_msg:
-            await jail_channel.send(welcome_msg)
+            await jail_channel.send(welcome_msg.format(
+                user=user.mention,
+                reason=(reason or "*No reason provided*"),
+                guild=ctx.guild.name))
 
         await ctx.send(f"User jailed {jail_channel.mention}")
 
