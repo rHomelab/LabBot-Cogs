@@ -229,6 +229,8 @@ class JailCog(commands.Cog):
         not_configured = "*Not configured*"
         # Get values for embed
         role_id = await self.config.guild(ctx.guild).role_id()
+        if not role_id:
+            return await ctx.send("A base role has not been configured. Please configure this setting before proceeding.")
         role = ctx.guild.get_role(role_id)
         if not role:
             return await ctx.send("The configured role no longer exists. Please re-configure this setting before proceeding.")
