@@ -253,17 +253,16 @@ class JailCog(commands.Cog):
         async with self.config.guild(ctx.guild).jails() as jails:
             jails_list = jails
 
-        async with self.config.guild(ctx.guild).template() as template:
-            template_dict = template
+        template = await self.config.guild(ctx.guild).template()
 
-        if template_dict["permissions"] is None:
+        if template["permissions"] is None:
             return await ctx.send("The template channel has not been configured yet. Please configure this before proceeding")
 
         category = ctx.guild.get_channel(template["category_id"])
         if not category:
             return await ctx.send("The configured channel category")
 
-        description = f"""**Channel Topic**\n{template_dict["topic"] or not_configured}\n\n**Welcome Message**\n{template_dict["welcome_msg"] or not_configured}"""
+        description = f"""**Channel Topic**\n{template["topic"] or not_configured}\n\n**Welcome Message**\n{template["welcome_msg"] or not_configured}"""
 
         # Create embed
         data = (
