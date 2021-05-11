@@ -3,22 +3,34 @@ import asyncio
 import random
 import string
 from datetime import datetime as dt
-from typing import Optional, Dict, Union, List
+from typing import Optional, Dict, Union, List, Callable, Sequence, Any, Literal
+import contextlib
+import functools
 
 import discord
+from discord import embeds
 from redbot.core import Config, checks, commands
+from redbot.core.utils.menus import close_menu, menu, next_page, prev_page, start_adding_reactions
+
+
+def humanise_timestamp(t):
+    return dt.utcfromtimestamp(t).strftime("%Y-%m-%d %H:%M:%SZ")
 
 
 class JailCog(commands.Cog):
     """Jail Cog"""
+
+    STANDARD_CONTROLS = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}
 
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1249812384)
 
         default_guild_settings = {
-            "jails": [],  # [{id: str, channel_id: int, user: {id: int, name: str (abcd#1234), avatar: str}, created_at: float, deleted_at: float}]
-            "history": {},  # {$jail_id: [{author: {id: int, avatar: str, name: str (abcd#1234)}, id: int, content: str, edits[str], created_at: float}]}
+            # [{id: str, channel_id: int, user: {id: int, name: str (abcd#1234), avatar: str}, created_at: float, deleted_at: float}]
+            "jails": [],
+            # {$jail_id: [{author: {id: int, avatar: str, name: str (abcd#1234)}, id: int, content: str, edits[str], created_at: float, Optional[deleted: True]}]}
+            "history": {},
             "role_id": None,  # int (ID of the role to add to jailed member)
             "template": {
                 "category_id": None,  # int
@@ -29,6 +41,11 @@ class JailCog(commands.Cog):
         }
 
         self.config.register_guild(**default_guild_settings)
+
+        self.REPLAY_CONTROLS = self.STANDARD_CONTROLS.copy().update({"📝": self.view_edits})  # Used in the jails replay command
+        self.VIEW_EDIT_CONTROLS = self.STANDARD_CONTROLS.copy().update(
+            {"🏠": self.view_messages}
+        )  # Used in the jails replay command
 
     # Events
 
@@ -86,6 +103,31 @@ class JailCog(commands.Cog):
             message["edits"].append(after.clean_content)
 
     @commands.Cog.listener()
+    async def on_message_delete(self, message: discord.Message):
+        if not isinstance(message.guild, discord.Guild):
+            # The user has DM'd us. Ignore.
+            return
+
+        if message.author.bot:
+            # User is a bot. Ignore.
+            return
+
+        jail = await self.get_jail(message.channel)
+        if not jail:
+            # Not a jail channel
+            return
+
+        async with self.config.guild(message.guild).history() as history:
+            # Find the message
+            message_match = list(filter(lambda m: m["id"] == message.id, history.get(jail["id"])))
+            if not message:
+                # Couldn't find the message or jail history
+                return
+
+            message = message_match[0]
+            message.update({"deleted": True})
+
+    @commands.Cog.listener()
     async def on_guild_channel_delete(self, channel: discord.abc.GuildChannel):
         if not isinstance(channel, discord.TextChannel):
             # It's not a textchannel (could be voice channel, etc)
@@ -96,8 +138,14 @@ class JailCog(commands.Cog):
         if not jail_info:
             return
 
+        async with self.config.guild(channel.guild).history() as history:
+            has_history = jail_info["id"] in history
+
         async with self.config.guild(channel.guild).jails() as jails:
             (jail,) = filter(lambda j: j["id"] == jail_info["id"], jails)
+            if not has_history:
+                # If there's no message history, the jail's existence doesn't need to be recorded
+                return jails.pop(jails.index(jail))
             jail.update({"deleted_at": dt.utcnow().timestamp()})
             jail.pop("channel_id")
 
@@ -114,25 +162,27 @@ class JailCog(commands.Cog):
             # Most recent first
             all_jails = sorted(jails, key=lambda j: j["created_at"], reverse=True)
 
-        humanise_timestamp = lambda t: dt.utcfromtimestamp(t).strftime("%Y-%m-%d %H:%M:%SZ")
-
         async with self.config.guild(ctx.guild).history() as history:
             embeds = []
             for i, jail in enumerate(all_jails):
-                embed = discord.Embed(colour=await ctx.embed_colour())
-                embed.set_author(name=f"Jails - page {i + 1} of {len(all_jails)}", icon_url=jail["user"]["avatar"])
                 member = (
                     getattr(ctx.guild.get_member(jail["user"]["id"]), "mention", None)
                     or f"""{jail["user"]["name"]} ({jail["user"]["name"]})"""
                 )
-                embed.add_field(name="Member", value=member)
-                embed.add_field(name="Created At", value=humanise_timestamp(jail["created_at"]))
-                if jail.get("deleted_at"):
-                    embed.add_field(name="Deleted At", value=humanise_timestamp(jail["deleted_at"]))
-                else:
-                    embed.add_field(name="Active", value="​")
-                embed.add_field(name="Messages", value=len(history[jail["id"]]))
-                embed.add_field(name="UUID", value=f"""`{jail["id"]}`""")
+                embed = (
+                    discord.Embed(colour=await ctx.embed_colour())
+                    .set_author(name=f"Jails", icon_url=jail["user"]["avatar"])
+                    .add_field(name="Member", value=member)
+                    .add_field(name="Created At", value=humanise_timestamp(jail["created_at"]))
+                    .add_field(
+                        **{"name": "Deleted At", "value": humanise_timestamp(jail["deleted_at"])}
+                        if jail.get("deleted_at")
+                        else {"name": "Active", "value": "​"}
+                    )
+                    .add_field(name="Messages", value=len(history[jail["id"]]))
+                    .add_field(name="UUID", value=f"""{jail["id"]}""")
+                    .set_footer(text=f"{i + 1} of {len(all_jails)}")
+                )
                 embeds.append(embed)
 
     @_jails.group(name="configure")
@@ -147,7 +197,7 @@ class JailCog(commands.Cog):
         """
         if not role.position:
             return await ctx.send("Invalid role.")
-        if role.position >= ctx.guild.me.roles[-1]:
+        if role.position >= ctx.me.roles[-1]:
             return await ctx.send("Role is too high in the role list; I can not apply it to users.")
 
         await self.config.guild(ctx.guild).role_id.set(role.id)
@@ -162,19 +212,20 @@ class JailCog(commands.Cog):
     async def jails_configure_channel(self, ctx, channel: discord.TextChannel):
         """This is the channel that the bot will use as a template for creating jails.
         Permissions will be copied, and the automatically created jail channels will be in the same category as this channel.
-        
+
         **Note:** It is important that you do *not* set read messages/view channel perms in this channel\
-        for the role that you have configured as the base role with `[p]jails configure role`, as this will allow all jailed members to see all jail channels
+        for the role that you have configured as the base role with `[p]jails configure role`,\
+        as this will allow all jailed members to see all jail channels
         **Note:** This channel must be in a channel category
         **Note:** This bot must be able to read/send messages in the channel
         """
         if not channel.category:
             return await ctx.send("This channel must be in a category.")
 
-        if not channel.permissions_for(ctx.guild.me).read_messages:
+        if not channel.permissions_for(ctx.me).read_messages:
             return await ctx.send("I cannot read messages in that channel.")
 
-        if not channel.permissions_for(ctx.guild.me).send_messages:
+        if not channel.permissions_for(ctx.me).send_messages:
             return await ctx.send("I cannot send messages in that channel.")
 
         # Check channel permissions for the jail base role
@@ -356,12 +407,13 @@ class JailCog(commands.Cog):
         for i, message in enumerate(messages):
             embed = (
                 discord.Embed(
-                    title=f"Messages for jail {jail_uuid} - Page {i} of {len(messages)}",
+                    title=f"Messages for jail {jail_uuid}",
                     colour=await ctx.embed_colour(),
                     description=message["content"],
                 )
                 .set_author(name=message["author"]["name"], icon_url=message["author"]["avatar"])
-                .set_footer(text=f"Messages for jail {jail_uuid} - {i} of {len(messages)}")
+                .add_field(name="ID", value=message["id"])
+                .set_footer(text=f"{i} of {len(messages)}")
             )
             if message.get("edits"):
                 embed.add_field("Edits", value=len(message["edits"]))
@@ -392,7 +444,10 @@ class JailCog(commands.Cog):
     ) -> Dict[Union[discord.Role, discord.Member], discord.PermissionOverwrite]:
         """Translates a group of storable permission overwrites into discord models"""
         guild = ctx.guild
-        get_obj = lambda id, ty: guild.get_member(id) if ty == "member" else guild.get_role(id)
+
+        def get_obj(id, ty):
+            return guild.get_member(id) if ty == "member" else guild.get_role(id)
+
         d = {}
         for o_id, o_details in data.items():
             for_object = get_obj(o_id, o_details["type"])
@@ -422,3 +477,293 @@ class JailCog(commands.Cog):
         async with self.config.guild(channel.guild).jails() as jails:
             (jail,) = filter(lambda j: j["id"] == uuid or j["channel_id"] == channel.id, jails)
             return jail
+
+    async def make_embed(
+        self,
+        ctx: commands.Context,
+        embed_type: Literal["jail", "message", "edit"],
+        data: dict,
+        index: int,
+        length: int,
+        optional_arg: Any = None,
+    ) -> discord.Embed:
+        """Used to generate embeds for the menus
+        optional_arg is used to pass the jail UUID when creating message or edit embeds"""
+        if embed_type == "jail":
+            member = (
+                getattr(ctx.guild.get_member(data["user"]["id"]), "mention", None)
+                or f"""{data["user"]["name"]} ({data["user"]["name"]})"""
+            )
+            async with self.config.guild(ctx.guild).history() as history:
+                if data["id"] in history:
+                    messages = len(history[data["id"]])
+                else:
+                    messages = 0
+            embed = (
+                discord.Embed(title="Jail Info", colour=await ctx.embed_colour())
+                .add_field(name="Member", value=member)
+                .add_field(name="Messages", value=messages)
+                .add_field(name="UUID", value="dgou")
+                .add_field(name="Created at", value="2021-05-09 17:43:28Z")
+                .add_field(
+                    **{"name": "Deleted At", "value": humanise_timestamp(data["deleted_at"])}
+                    if data.get("deleted_at")
+                    else {"name": "Active", "value": "​"}
+                )
+                .set_footer(text=f"{index + 1} of {length}")
+            )
+
+        elif embed_type == "message":
+            edits = len(data.get("edits")) if data.get("edits") else 0
+            embed = (
+                discord.Embed(colour=await ctx.embed_colour(), description=data["content"])
+                .set_author(
+                    name=f"""{data["author"]["name"]}#{data["author"]["discriminator"]} - {data["author"]["id"]}""",
+                    icon_url=data["author"]["avatar"],
+                )
+                .add_field(name="Jail", value=optional_arg)
+                .add_field(name="ID", value=data["id"])
+                .set_footer(text=f"{index + 1} of {length}")
+            )
+            if edits:
+                embed.add_field(name="Edits", value=edits)
+
+        elif embed_type == "edit":
+            embed = (
+                discord.Embed(
+                    title="Viewing edit history",
+                    colour=await ctx.embed_colour(),
+                    description=data["edits"][index - 1] if index else data["content"],
+                )
+                .set_author(
+                    name=f"""{data["author"]["name"]}#{data["author"]["discriminator"]} - {data["author"]["id"]}""",
+                    icon_url=data["author"]["avatar"],
+                )
+                .add_field(name="Jail", value=optional_arg)
+                .add_field(name="ID", value=data["id"])
+                .set_footer(text=f"Edit {index} of {length}" if index else "Original content")
+            )
+            if data.get("deleted"):
+                embed.add_field(name="Deleted", value="​")
+        return embed
+
+        # Menu methods
+
+    def with_emojis(
+        self,
+        emojis: Sequence[Union[str, discord.Emoji, discord.PartialEmoji]],
+        message: Optional[discord.Message] = None,
+        user: Optional[discord.abc.User] = None,
+    ) -> Callable:
+        """
+        Match if the reaction is one of the specified emojis.
+        Parameters
+        ----------
+        emojis : Sequence[Union[str, discord.Emoji, discord.PartialEmoji]]
+            The emojis of which one we expect to be reacted.
+        message : discord.Message
+            Same as ``message`` in :meth:`same_context`.
+        user : Optional[discord.abc.User]
+            Same as ``user`` in :meth:`same_context`.
+        Returns
+        -------
+        ReactionPredicate
+            The event predicate.
+        """
+
+        def predicate(r: discord.Reaction, u: discord.abc.User):
+            return (message == r.message) and (user == u) and (str(r.emoji) in emojis)
+
+        return predicate
+
+    async def enforce_controls(self, message: discord.Message, controls: dict):
+        """Make sure that the reactions on a menu are up to date with the controls"""
+        for i, emote in enumerate(controls):
+            try:
+                if str(message.reactions[i].emoji) != emote:
+                    break
+            except IndexError:
+                break
+        else:
+            # All the controls are present
+            return
+        # Remove incorrect reactions
+        for index in range(i, len(message.reactions)):
+            await message.clear_reaction(str(message.reactions[index].emoji))
+        # Add correct reactions
+        for r in controls:
+            await message.add_reaction(r)
+
+    def is_message_embed(self, embed) -> bool:
+        """Determines whether an embed is part of the "view message history" menu"""
+        return all(embed.author.icon_url, embed.fields[1].name == "ID", not embed.title)
+
+    def is_edit_embed(self, embed) -> bool:
+        """Determines whether an embed is part of the "view message edit history" menu"""
+        return all(embed.author.icon_url, embed.fields[1].name == "ID", embed.title == "Viewing edit history")
+
+    def is_jail_info_embed(self, embed) -> bool:
+        """Determines whether an embed is part of the "view jail info" menu"""
+        return all(embed.title == "Jail Info", embed.fields[0].name == "Member")
+
+    def get_controls(
+        self, *, level: Literal["jail", "message", "edit"], has_parent: bool = False, has_edits: bool = False
+    ) -> dict:
+        """Fetch controls for the menu based on whether or not certain actions are allowed"""
+        controls = self.STANDARD_CONTROLS.copy()
+        if level == "jail":
+            controls.update({"🔄": self.enter_messages_menu})
+        elif level == "message":
+            if has_parent:
+                controls.update({"🏠": self.enter_messages_menu})
+            if has_edits:
+                controls.update({"📝": self.enter_edits_menu})
+        elif level == "edit":
+            controls.update({"🏠": self.enter_messages_menu})
+        return controls
+
+    async def menu(
+        self,
+        ctx: commands.Context,
+        pages: Union[List[str], List[discord.Embed]],
+        controls: dict,
+        message: discord.Message = None,
+        page: int = 0,
+        timeout: float = 30.0,
+        has_top_level: bool = False,
+    ):
+        """
+        An emoji-based menu
+        .. note:: All pages should be of the same type
+        .. note:: All functions for handling what a particular emoji does
+                should be coroutines (i.e. :code:`async def`). Additionally,
+                they must take all of the parameters of this function, in
+                addition to a string representing the emoji reacted with.
+                This parameter should be the last one, and none of the
+                parameters in the handling functions are optional
+        Parameters
+        ----------
+        ctx: commands.Context
+            The command context
+        pages: `list` of `str` or `discord.Embed`
+            The pages of the menu.
+        controls: dict
+            A mapping of emoji to the function which handles the action for the
+            emoji.
+        message: discord.Message
+            The message representing the menu. Usually :code:`None` when first opening
+            the menu
+        page: int
+            The current page number of the menu
+        timeout: float
+            The time (in seconds) to wait for a reaction
+        has_top_level: bool
+            Whether the menu system can access the jail info menu
+        Raises
+        ------
+        RuntimeError
+            If either of the notes above are violated
+        """
+        if not isinstance(pages[0], (discord.Embed, str)):
+            raise RuntimeError("Pages must be of type discord.Embed or str")
+        if not all(isinstance(x, discord.Embed) for x in pages) and not all(isinstance(x, str) for x in pages):
+            raise RuntimeError("All pages must be of the same type")
+        for key, value in controls.items():
+            maybe_coro = value
+            if isinstance(value, functools.partial):
+                maybe_coro = value.func
+            if not asyncio.iscoroutinefunction(maybe_coro):
+                raise RuntimeError("Function must be a coroutine")
+        current_page = pages[page]
+
+        if not message:
+            if isinstance(current_page, discord.Embed):
+                message = await ctx.send(embed=current_page)
+            else:
+                message = await ctx.send(current_page)
+            # Don't wait for reactions to be added (GH-1797)
+            # noinspection PyAsyncCall
+            start_adding_reactions(message, controls.keys())
+        else:
+            try:
+                if isinstance(current_page, discord.Embed):
+                    await message.edit(embed=current_page)
+                else:
+                    await message.edit(content=current_page)
+            except discord.NotFound:
+                return
+
+        # Message embeds may or may not have a parent level, and may or may not have a child level
+        # Jail embeds will always have a child level, and never a parent level
+        # Edit embeds will always have a parent level, and never a child level
+
+        if self.is_jail_info_embed(current_page):
+            controls = self.get_controls(level="jail")
+
+        elif self.is_message_embed(current_page):
+            has_edits = [i for i in current_page.fields if i.name == "Edits"]
+            controls = self.get_controls(level="message", has_parent=has_top_level, has_edits=bool(has_edits))
+            await self.enforce_controls(message, controls)
+
+        elif self.is_edit_embed(current_page):
+            controls = self.get_controls(level="edit")
+            await self.enforce_controls(message, controls)
+
+        try:
+            react, user = await ctx.bot.wait_for(
+                "reaction_add",
+                check=self.with_emojis(tuple(controls.keys()), message, ctx.author),
+                timeout=timeout,
+            )
+        except asyncio.TimeoutError:
+            if not ctx.me:
+                return
+            try:
+                if message.channel.permissions_for(ctx.me).manage_messages:
+                    await message.clear_reactions()
+                else:
+                    raise RuntimeError
+            except (discord.Forbidden, RuntimeError):  # cannot remove all reactions
+                for key in controls.keys():
+                    try:
+                        await message.remove_reaction(key, ctx.bot.user)
+                    except discord.Forbidden:
+                        return
+                    except discord.HTTPException:
+                        pass
+            except discord.NotFound:
+                return
+        else:
+            return await controls[react.emoji](ctx, pages, controls, message, page, timeout, react.emoji, has_top_level)
+
+    async def enter_messages_menu(
+        self,
+        ctx: commands.Context,
+        pages: list,
+        controls: dict,
+        message: discord.Message,
+        page: int,
+        timeout: float,
+        emoji: str,
+        has_top_level: bool = False,
+    ):
+        perms = message.channel.permissions_for(ctx.me)
+        if perms.manage_messages:  # Can manage messages, so remove reacts
+            with contextlib.suppress(discord.NotFound):
+                await message.remove_reaction(emoji, ctx.author)
+        # Get jail ID from embed
+        current_page = pages[page]
+        # Embed type can only be "jail" or "edit"
+        jail_id = current_page.fields[2].value if self.is_jail_info_embed(current_page) else current_page.fields[1].value
+        # Get message embeds
+        async with self.config.guild(ctx.guild).history() as history:
+            messages = sorted(
+                history[jail_id],
+                key=lambda m: m["created_at"],
+            )
+        pages = [await self.make_embed(ctx, "message", m, i, len(pages)) for i, m in enumerate(messages)]
+        # Reset page to 0
+        page = 0
+        return await self.menu(ctx, pages, controls, message=message, page=page, timeout=timeout, has_top_level=has_top_level)
+
+    # TODO Make enter_jail_menu and enter_edit_menu methods
