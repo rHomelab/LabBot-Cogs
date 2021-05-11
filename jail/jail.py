@@ -211,7 +211,7 @@ class JailCog(commands.Cog):
             role = ctx.guild.get_role(role_id)
             if not role:
                 return await ctx.send("The configured role no longer exists.")
-            channel_perms = channel.overwrites_for(role) and channel.guild.permissions_for(role)
+            channel_perms = channel.overwrites_for(role) and role.permissions
             if channel_perms.view_channel or channel_perms.read_messages:
                 return await ctx.send(
                     "The configured role can view this channel. Please adjust the channel permissions before proceeding."
