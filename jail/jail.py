@@ -32,7 +32,7 @@ class JailCog(commands.Cog):
             "role_id": None,  # int (ID of the role to add to jailed member)
             "template": {
                 "category_id": None,  # int
-                "permissions": {},  # {$object_id: {type: Literal[member, role], overwrite: {allow: int, deny: int}}}
+                "permissions": None,  # dict {$object_id: {type: Literal[member, role], overwrite: {allow: int, deny: int}}}
                 "topic": None,  # The channel topic
                 "welcome_msg": None,  # The message to be sent by the bot as the first message in the jail
             },
@@ -245,7 +245,7 @@ class JailCog(commands.Cog):
         async with self.config.guild(ctx.guild).template() as template:
             template_dict = template
 
-        if not template_dict["permissions"]:
+        if template_dict["permissions"] is None:
             return await ctx.send("The template channel has not been configured yet. Please configure this before proceeding")
 
         category = ctx.guild.get_channel(template["category_id"])
