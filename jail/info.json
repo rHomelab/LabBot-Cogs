@@ -1,12 +1,17 @@
 {
-  "AUTHOR": "Sneezey",
-  "SHORT": "Jail users into their own holding cells",
-  "DESCRIPTION": "Allows jailing of users to their own, special corner where they can be dealt with individually",
-  "DISABLED": false,
-  "NAME": "jail",
-  "TAGS": [
-    "naughty",
-    "nuisance"
+  "author": [
+    "Issy",
+    "Sneezey"
   ],
-  "INSTALL_MSG": "Usage: `[p]jail`"
+  "short": "Jail users into their own holding cells",
+  "description": "Allows jailing of users to their own, special corner where they can be dealt with individually",
+  "disabled": false,
+  "name": "jail",
+  "tags": [
+    "naughty",
+    "nuisance",
+    "moderation",
+    "utility"
+  ],
+  "install_msg": "Usage: `[p]jail`"
 }
