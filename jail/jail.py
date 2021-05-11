@@ -8,9 +8,8 @@ import contextlib
 import functools
 
 import discord
-from discord import embeds
 from redbot.core import Config, checks, commands
-from redbot.core.utils.menus import close_menu, menu, next_page, prev_page, start_adding_reactions
+from redbot.core.utils.menus import close_menu, start_adding_reactions
 
 
 def humanise_timestamp(t):
@@ -20,14 +19,13 @@ def humanise_timestamp(t):
 class JailCog(commands.Cog):
     """Jail Cog"""
 
-    STANDARD_CONTROLS = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}
-
     def __init__(self, bot):
+        self.STANDARD_CONTROLS = {"⬅️": self.prev_page, "⏹️": self.close_menu, "➡️": self.next_page}
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1249812384)
 
         default_guild_settings = {
-            # [{id: str, channel_id: int, user: {id: int, name: str (abcd#1234), avatar: str}, created_at: float, deleted_at: float}]
+            # [{id: str, channel_id: int, user: {id: int, name: str (abcd#1234), avatar: str}, created_at: float, deleted_at: float, reason: Optional[str]]}]
             "jails": [],
             # {$jail_id: [{author: {id: int, avatar: str, name: str (abcd#1234)}, id: int, content: str, edits[str], created_at: float, Optional[deleted: True]}]}
             "history": {},
@@ -41,11 +39,6 @@ class JailCog(commands.Cog):
         }
 
         self.config.register_guild(**default_guild_settings)
-
-        self.REPLAY_CONTROLS = self.STANDARD_CONTROLS.copy().update({"📝": self.view_edits})  # Used in the jails replay command
-        self.VIEW_EDIT_CONTROLS = self.STANDARD_CONTROLS.copy().update(
-            {"🏠": self.view_messages}
-        )  # Used in the jails replay command
 
     # Events
 
@@ -134,7 +127,7 @@ class JailCog(commands.Cog):
             return
 
         # Check if it's a jail channel
-        jail_info = await self.get_jail(channel.guild, channel_id=channel.id)
+        jail_info = await self.get_jail(channel)
         if not jail_info:
             return
 
@@ -162,28 +155,8 @@ class JailCog(commands.Cog):
             # Most recent first
             all_jails = sorted(jails, key=lambda j: j["created_at"], reverse=True)
 
-        async with self.config.guild(ctx.guild).history() as history:
-            embeds = []
-            for i, jail in enumerate(all_jails):
-                member = (
-                    getattr(ctx.guild.get_member(jail["user"]["id"]), "mention", None)
-                    or f"""{jail["user"]["name"]} ({jail["user"]["name"]})"""
-                )
-                embed = (
-                    discord.Embed(colour=await ctx.embed_colour())
-                    .set_author(name=f"Jails", icon_url=jail["user"]["avatar"])
-                    .add_field(name="Member", value=member)
-                    .add_field(name="Created At", value=humanise_timestamp(jail["created_at"]))
-                    .add_field(
-                        **{"name": "Deleted At", "value": humanise_timestamp(jail["deleted_at"])}
-                        if jail.get("deleted_at")
-                        else {"name": "Active", "value": "​"}
-                    )
-                    .add_field(name="Messages", value=len(history[jail["id"]]))
-                    .add_field(name="UUID", value=f"""{jail["id"]}""")
-                    .set_footer(text=f"{i + 1} of {len(all_jails)}")
-                )
-                embeds.append(embed)
+        embeds = [await self.make_embed(ctx, "jail", j, i, len(all_jails)) for i, j in enumerate(all_jails)]
+        await self.menu(ctx=ctx, pages=embeds, controls=self.get_controls(level="jail"), timeout=120.0, has_top_level=True)
 
     @_jails.group(name="configure")
     async def _jails_configure(self, ctx: commands.Context, channel: discord.CategoryChannel):
@@ -250,7 +223,7 @@ class JailCog(commands.Cog):
             }
         await ctx.send("Channel template configured.")
 
-    @commands.command(name="jail")
+    @commands.command()
     @commands.guild_only()
     @checks.mod()
     async def jail(self, ctx: commands.Context, user: discord.Member, time: Optional[int] = None, *, reason: str = None):
@@ -276,7 +249,7 @@ class JailCog(commands.Cog):
         if not category_channel:
             return await ctx.send("Configured jail area could not be found.")
 
-        overwrites = self.make_overwrites(channel_template["permissions"])
+        overwrites = self.make_overwrites(ctx, channel_template["permissions"])
         overwrites.update({user: discord.PermissionOverwrite(view_channel=True, send_messages=True)})
 
         try:
@@ -300,6 +273,7 @@ class JailCog(commands.Cog):
                         "name": user.display_name or f"{user.name}#{user.discriminator}",
                         "avatar": user.avatar_url,
                     },
+                    "reason": reason,
                 }
             )
 
@@ -403,22 +377,13 @@ class JailCog(commands.Cog):
                 key=lambda m: m["created_at"],
             )
 
-        embeds = []
-        for i, message in enumerate(messages):
-            embed = (
-                discord.Embed(
-                    title=f"Messages for jail {jail_uuid}",
-                    colour=await ctx.embed_colour(),
-                    description=message["content"],
-                )
-                .set_author(name=message["author"]["name"], icon_url=message["author"]["avatar"])
-                .add_field(name="ID", value=message["id"])
-                .set_footer(text=f"{i} of {len(messages)}")
-            )
-            if message.get("edits"):
-                embed.add_field("Edits", value=len(message["edits"]))
-            embeds.append(embed)
-        # TODO create menu system
+        embeds = [await self.make_embed(ctx, "message", m, i, len(messages), jail_uuid) for i, m in enumerate(messages)]
+        await self.menu(
+            ctx=ctx,
+            pages=embeds,
+            controls=self.get_controls(level="message", has_parent=False, has_edits=bool(messages[0].get("edits"))),
+            timeout=120.0,
+        )
 
     # Helper functions
 
@@ -500,7 +465,11 @@ class JailCog(commands.Cog):
                 else:
                     messages = 0
             embed = (
-                discord.Embed(title="Jail Info", colour=await ctx.embed_colour())
+                discord.Embed(
+                    title="Jail Info",
+                    description=f"""**Reason**\n{data["reason"] if data["reason"] else None}""",
+                    colour=await ctx.embed_colour(),
+                )
                 .add_field(name="Member", value=member)
                 .add_field(name="Messages", value=messages)
                 .add_field(name="UUID", value="dgou")
@@ -710,7 +679,7 @@ class JailCog(commands.Cog):
             await self.enforce_controls(message, controls)
 
         try:
-            react, user = await ctx.bot.wait_for(
+            react, _ = await ctx.bot.wait_for(
                 "reaction_add",
                 check=self.with_emojis(tuple(controls.keys()), message, ctx.author),
                 timeout=timeout,
@@ -736,6 +705,37 @@ class JailCog(commands.Cog):
         else:
             return await controls[react.emoji](ctx, pages, controls, message, page, timeout, react.emoji, has_top_level)
 
+    async def enter_jail_menu(
+        self,
+        ctx: commands.Context,
+        pages: list,
+        controls: dict,
+        message: discord.Message,
+        page: int,
+        timeout: float,
+        emoji: str,
+        has_top_level: bool = False,
+    ):
+        """Method for entering the jail info menu from another menu"""
+        perms = message.channel.permissions_for(ctx.me)
+        if perms.manage_messages:  # Can manage messages, so remove reacts
+            with contextlib.suppress(discord.NotFound):
+                await message.remove_reaction(emoji, ctx.author)
+        # Get jail ID from embed
+        current_page = pages[page]
+        # Embed type can only be "message"
+        jail_id = current_page.fields[0].value
+        # Get jail embeds
+        async with self.config.guild(ctx.guild).jails() as jails:
+            jail_info = sorted(
+                jails,
+                key=lambda m: m["created_at"],
+            )
+        pages = [await self.make_embed(ctx, "jail", j, i, len(pages)) for i, j in enumerate(jail_info)]
+        # Reset page to 0
+        page = jail_info.index([i for i in jail_info if i["id"] == jail_id][0])
+        return await self.menu(ctx, pages, controls, message=message, page=page, timeout=timeout, has_top_level=has_top_level)
+
     async def enter_messages_menu(
         self,
         ctx: commands.Context,
@@ -747,6 +747,7 @@ class JailCog(commands.Cog):
         emoji: str,
         has_top_level: bool = False,
     ):
+        """Method for entering the message history menu from another menu"""
         perms = message.channel.permissions_for(ctx.me)
         if perms.manage_messages:  # Can manage messages, so remove reacts
             with contextlib.suppress(discord.NotFound):
@@ -754,16 +755,105 @@ class JailCog(commands.Cog):
         # Get jail ID from embed
         current_page = pages[page]
         # Embed type can only be "jail" or "edit"
-        jail_id = current_page.fields[2].value if self.is_jail_info_embed(current_page) else current_page.fields[1].value
+        jail_id = current_page.fields[2].value if self.is_jail_info_embed(current_page) else current_page.fields[0].value
         # Get message embeds
         async with self.config.guild(ctx.guild).history() as history:
             messages = sorted(
                 history[jail_id],
                 key=lambda m: m["created_at"],
             )
-        pages = [await self.make_embed(ctx, "message", m, i, len(pages)) for i, m in enumerate(messages)]
+
+        pages = [await self.make_embed(ctx, "message", m, i, len(pages), jail_id) for i, m in enumerate(messages)]
+        # Reset page to 0 or index of message if coming from "edit" menu
+        if self.is_edit_embed(current_page):
+            message_id = int(current_page.fields[1].value)
+            page = messages.index([i for i in messages if i["id"] == message_id][0])
+        else:
+            page = 0
+        return await self.menu(ctx, pages, controls, message=message, page=page, timeout=timeout, has_top_level=has_top_level)
+
+    async def enter_edit_menu(
+        self,
+        ctx: commands.Context,
+        pages: list,
+        controls: dict,
+        message: discord.Message,
+        page: int,
+        timeout: float,
+        emoji: str,
+        has_top_level: bool = False,
+    ):
+        """Method for entering the edit history menu from the message history menu"""
+        perms = message.channel.permissions_for(ctx.me)
+        if perms.manage_messages:  # Can manage messages, so remove reacts
+            with contextlib.suppress(discord.NotFound):
+                await message.remove_reaction(emoji, ctx.author)
+        # Get jail ID from embed
+        current_page = pages[page]
+        # Embed type can only be "edit"
+        jail_id = current_page.fields[0].value
+        message_id = current_page.fields[1].value
+        # Get message embeds
+        async with self.config.guild(ctx.guild).history() as history:
+            message = [m for m in history[jail_id] if m["id"] == message_id][0]
+
+        pages = [await self.make_embed(ctx, "edit", e, i, len(pages), jail_id) for i, e in enumerate(message["edits"])]
         # Reset page to 0
         page = 0
         return await self.menu(ctx, pages, controls, message=message, page=page, timeout=timeout, has_top_level=has_top_level)
 
-    # TODO Make enter_jail_menu and enter_edit_menu methods
+    async def prev_page(
+        self,
+        ctx: commands.Context,
+        pages: list,
+        controls: dict,
+        message: discord.Message,
+        page: int,
+        timeout: float,
+        emoji: str,
+        has_top_level: bool,
+    ):
+        perms = message.channel.permissions_for(ctx.me)
+        if perms.manage_messages:  # Can manage messages, so remove react
+            with contextlib.suppress(discord.NotFound):
+                await message.remove_reaction(emoji, ctx.author)
+        if page == 0:
+            page = len(pages) - 1  # Loop around to the last item
+        else:
+            page = page - 1
+        return await self.menu(ctx, pages, controls, message=message, page=page, timeout=timeout, has_top_level=has_top_level)
+
+    async def next_page(
+        self,
+        ctx: commands.Context,
+        pages: list,
+        controls: dict,
+        message: discord.Message,
+        page: int,
+        timeout: float,
+        emoji: str,
+        has_top_level: bool,
+    ):
+        perms = message.channel.permissions_for(ctx.me)
+        if perms.manage_messages:  # Can manage messages, so remove react
+            with contextlib.suppress(discord.NotFound):
+                await message.remove_reaction(emoji, ctx.author)
+        if page == len(pages) - 1:
+            page = 0  # Loop around to the first item
+        else:
+            page = page + 1
+        return await self.menu(ctx, pages, controls, message=message, page=page, timeout=timeout, has_top_level=has_top_level)
+
+    async def close_menu(
+        self,
+        ctx: commands.Context,
+        pages: list,
+        controls: dict,
+        message: discord.Message,
+        page: int,
+        timeout: float,
+        emoji: str,
+        has_top_level: bool,
+    ):
+        with contextlib.suppress(discord.NotFound):
+            await message.delete()
