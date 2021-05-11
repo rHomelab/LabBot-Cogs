@@ -148,6 +148,7 @@ class JailCog(commands.Cog):
     @checks.mod()
     @commands.guild_only()
     async def _jails(self, ctx: commands.Context):
+        """Display jail history"""
         if ctx.invoked_subcommand:
             return
 
@@ -155,11 +156,14 @@ class JailCog(commands.Cog):
             # Most recent first
             all_jails = sorted(jails, key=lambda j: j["created_at"], reverse=True)
 
+        if not all_jails:
+            return await ctx.send("No jails to display.")
+
         embeds = [await self.make_embed(ctx, "jail", j, i, len(all_jails)) for i, j in enumerate(all_jails)]
         await self.menu(ctx=ctx, pages=embeds, controls=self.get_controls(level="jail"), timeout=120.0, has_top_level=True)
 
     @_jails.group(name="configure")
-    async def _jails_configure(self, ctx: commands.Context, channel: discord.CategoryChannel):
+    async def _jails_configure(self, ctx: commands.Context):
         pass
 
     @_jails_configure.command("role")
@@ -340,7 +344,6 @@ class JailCog(commands.Cog):
         """Bail a user out of jail.
         The bot will remove a user's jailed role and delete the associated channel
         """
-        # TODO clean stuff up with this function
         async with self.config.guild(ctx.guild).jails() as jails:
             # Filter by open jails corresponding to the mentioned user
             user_jails = [i for i in jails if i["id"] == user.id and (i.get("channel_id") and not i.get("deleted_at"))]
