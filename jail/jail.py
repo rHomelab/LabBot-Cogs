@@ -223,6 +223,48 @@ class JailCog(commands.Cog):
             }
         await ctx.send("Channel template configured.")
 
+    @_jails.command(name="status")
+    async def jails_status(self, ctx: commands.Context):
+        """Show jail cog config"""
+        not_configured = "*Not configured*"
+        # Get values for embed
+        role_id = await self.config.guild(ctx.guild).role_id()
+        role = ctx.guild.get_role(role_id)
+        if not role:
+            return await ctx.send("The configured role no longer exists. Please re-configure this setting before proceeding.")
+
+        async with self.config.guild(ctx.guild).jails() as jails:
+            jails_list = jails
+
+        async with self.config.guild(ctx.guild).template() as template:
+            template_dict = template
+
+        if not template_dict["permissions"]:
+            return await ctx.send("The template channel has not been configured yet. Please configure this before proceeding")
+
+        category = ctx.guild.get_channel(template["category_id"])
+        if not category:
+            return await ctx.send("The configured channel category")
+
+        description = f"""**Channel Topic**\n{template_dict["topic"] or not_configured}\n\n**Welcome Message**\n{template_dict["welcome_msg"] or not_configured}"""
+
+        # Create embed
+        data = (
+            discord.Embed(
+                description=(description[:1996] + "...") if len(description) > 2000 else description,
+                colour=await ctx.embed_colour(),
+            )
+            .add_field(name="Jailed", value=f"{len(jails_list)} users")
+            .add_field(name="Role", value=role.mention)
+            .add_field(name="Channel Category", value=category.mention)
+        )
+
+        # Send embed
+        try:
+            await ctx.send(embed=data)
+        except discord.Forbidden:
+            await ctx.send("I need the `Embed links` permission to send the cog status.")
+
     @commands.command()
     @commands.guild_only()
     @checks.mod()
@@ -316,51 +358,6 @@ class JailCog(commands.Cog):
             f"Bailed {user.mention} out of jail.",
             allowed_mentions=discord.AllowedMentions(users=False),
         )
-
-    @_jails.command(name="status")
-    async def jails_status(self, ctx: commands.Context, channel: discord.CategoryChannel):
-        """Show status of the jails
-        Example:
-        - `[p]jails status`
-        """
-        not_configured = "*Not configured*"
-        # Get values for embed
-        role_id = await self.config.guild(ctx.guild).role_id()
-        role = ctx.guild.get_role(role_id)
-        if not role:
-            return await ctx.send("The configured role no longer exists. Please re-configure this setting before proceeding.")
-
-        async with self.config.guild(ctx.guild).jails() as jails:
-            jails_list = jails
-
-        async with self.config.guild(ctx.guild).template() as template:
-            template_dict = template
-
-        if not template_dict["permissions"]:
-            return await ctx.send("The template channel has not been configured yet. Please configure this before proceeding")
-
-        category = ctx.guild.get_channel(template["category_id"])
-        if not category:
-            return await ctx.send("The configured channel category")
-
-        description = f"""**Channel Topic**\n{template_dict["topic"] or not_configured}\n\n**Welcome Message**\n{template_dict["welcome_msg"] or not_configured}"""
-
-        # Create embed
-        data = (
-            discord.Embed(
-                description=(description[:1996] + "...") if len(description) > 2000 else description,
-                colour=await ctx.embed_colour(),
-            )
-            .add_field(name="Jailed", value=f"{len(jails_list)} users")
-            .add_field(name="Role", value=role.mention)
-            .add_field(name="Channel Category", value=category.mention)
-        )
-
-        # Send embed
-        try:
-            await ctx.send(embed=data)
-        except discord.Forbidden:
-            await ctx.send("I need the `Embed links` permission to send the cog status.")
 
     @_jails.command("replay")
     async def jails_replay(self, ctx, jail_uuid: str):
