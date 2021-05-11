@@ -255,7 +255,7 @@ class JailCog(commands.Cog):
 
         template = await self.config.guild(ctx.guild).template()
 
-        if template["category_id"]:
+        if not template["category_id"]:
             return await ctx.send("The template channel has not been configured yet. Please configure this before proceeding")
 
         category = ctx.guild.get_channel(template["category_id"])
