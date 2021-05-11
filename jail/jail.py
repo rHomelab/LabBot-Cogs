@@ -174,7 +174,7 @@ class JailCog(commands.Cog):
         """
         if not role.position:
             return await ctx.send("Invalid role.")
-        if role.position >= ctx.me.roles[-1]:
+        if role.position >= ctx.me.roles[-1].position:
             return await ctx.send("Role is too high in the role list; I can not apply it to users.")
 
         await self.config.guild(ctx.guild).role_id.set(role.id)
