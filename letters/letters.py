@@ -77,8 +77,8 @@ class Letters(commands.Cog):
             output = f"{letters}"
 
         # Ensure output isn't too long
-        if len(output) > 4000:
-            return await ctx.send('Input too large. Maximum 43 letters. Numbers alter the max.')
+        if len(output) > 2000:
+            return await ctx.send('Input too large.')
 
         # Send message
         await ctx.send(output)
