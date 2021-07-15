@@ -2,6 +2,7 @@ import re
 
 from redbot.core import commands
 
+
 class Letters(commands.Cog):
     """Letters cog"""
 
