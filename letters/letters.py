@@ -3,17 +3,10 @@ import re
 from redbot.core import commands
 
 # Define numbers -> emotes tuple
-nums = (':zero:', ':one:', ':two:', ':three:', ':four:', ':five:', ':six:', ':seven:', ':eight:', ':nine:')
+nums = (":zero:", ":one:", ":two:", ":three:", ":four:", ":five:", ":six:", ":seven:", ":eight:", ":nine:")
 
 # Define specials -> emotes dict
-specials = {
-    '!' : ':exclamation:',
-    '?' : ':question:',
-    '#' : ':hash:',
-    '\'' : '\'',
-    '.' : '.',
-    ',' : ','
-}
+specials = {"!": ":exclamation:", "?": ":question:", "#": ":hash:", "'": "'", ".": ".", ",": ","}
 
 
 class Letters(commands.Cog):
@@ -34,27 +27,27 @@ class Letters(commands.Cog):
         input = msg.lower()
 
         # Check for raw flag
-        if input.startswith('-raw'):
+        if input.startswith("-raw"):
             raw = True
-            input = input.lstrip('-raw').lstrip()
+            input = input.lstrip("-raw").lstrip()
 
         else:
             raw = False
 
         # Strip unsupported characters
-        regexp = re.compile(r'[^a-z0-9!?\'.#, ]')
+        regexp = re.compile(r"[^a-z0-9!?\'.#, ]")
         if regexp.search(input):
-            input = regexp.sub('', input)
+            input = regexp.sub("", input)
 
         # Initialise letters var
-        letters = ''
+        letters = ""
 
         # For each char in input
         for char in input:
 
             # Double space if char is space
-            if char == ' ':
-                letters += '  '
+            if char == " ":
+                letters += "  "
 
             # Convert to number emote if number
             elif char.isdigit():
@@ -69,7 +62,7 @@ class Letters(commands.Cog):
                 letters += f"{specials[str(char)]}"
 
         # Replace =>3 spaces with two
-        letters = re.sub(' {3,}', '  ', letters)
+        letters = re.sub(" {3,}", "  ", letters)
 
         # Define output
         if raw:
@@ -79,7 +72,7 @@ class Letters(commands.Cog):
 
         # Ensure output isn't too long
         if len(output) > 2000:
-            return await ctx.send('Input too large.')
+            return await ctx.send("Input too large.")
 
         # Send message
         await ctx.send(output)
