@@ -5,6 +5,15 @@ from redbot.core import commands
 # Define numbers -> emotes tuple
 nums = (':zero:', ':one:', ':two:', ':three:', ':four:', ':five:', ':six:', ':seven:', ':eight:', ':nine:')
 
+# Define specials -> emotes dict
+specials = {
+    '!' : ':exclamation:',
+    '?' : ':question:',
+    '#' : ':hash:',
+    '\'' : '\'',
+    '.' : '.'
+}
+
 
 class Letters(commands.Cog):
     """Letters cog"""
@@ -31,10 +40,10 @@ class Letters(commands.Cog):
         else:
             raw = False
 
-        # Ensure it doesn't contain any special chars, numbers, etc.
-        regexp = re.compile(r'[^a-z0-9 ]')
+        # Strip unsupported characters
+        regexp = re.compile(r'[^a-z0-9!?\'.# ]')
         if regexp.search(input):
-            return await ctx.send('This cog accepts only a-z, 0-9, and whitespace characters.')
+            input = regexp.sub('', input)
 
         # Initialise letters var
         letters = ''
@@ -51,8 +60,12 @@ class Letters(commands.Cog):
                 letters += f"{nums[int(char)]} "
 
             # Convert to regional indicator emote if letter
-            else:
+            elif not char.isdigit():
                 letters += f":regional_indicator_{char}: "
+
+            # Convert to character emote
+            else:
+                letters += f"{specials[str(char)]}"
 
         # Replace =>3 spaces with two
         letters = re.sub(' {3,}', '  ', letters)
