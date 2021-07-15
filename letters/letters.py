@@ -35,7 +35,7 @@ def convert_string(input_str: str) -> str:
         input = allowed_chars.sub("", input_str)
 
     # Convert characters to Discord emojis
-    letters = "".join(map(convert_char, input))
+    letters = "".join(map(convert_char, input_str))
     # Replace >= 3 spaces with two
     letters = re.sub(" {3,}", "  ", letters)
     # Correct punctuation spacing
