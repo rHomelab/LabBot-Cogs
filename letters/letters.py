@@ -9,9 +9,6 @@ nums = (':zero:', ':one:', ':two:', ':three:', ':four:', ':five:', ':six:', ':se
 class Letters(commands.Cog):
     """Letters cog"""
 
-    def __init__(self, bot):
-        self.bot = bot
-
     @commands.command()
     async def letters(self, ctx, *, msg):
         """Outputs large emote letters (\"regional indicators\") from input text.
