@@ -21,7 +21,7 @@ class Letters(commands.Cog):
         """
 
         # Grab message content
-        input = msg.content
+        input = msg.content.lower()
 
         # Ensure it doesn't contain any special chars, numbers, etc.
         regexp = re.compile(r'[^a-zA-Z ]')
