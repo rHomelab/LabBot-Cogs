@@ -32,7 +32,7 @@ def convert_string(input_str: str) -> str:
     """Convert a string to discord emojis"""
     # Strip unsupported characters
     if allowed_chars.search(input_str):
-        input = allowed_chars.sub("", input_str)
+        input_str = allowed_chars.sub("", input_str)
 
     # Convert characters to Discord emojis
     letters = "".join(map(convert_char, input_str))
