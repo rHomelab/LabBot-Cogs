@@ -15,7 +15,7 @@ class Letters(commands.Cog):
         Accepts a-z, 0-9, and whitespace only.
 
         Example:
-        - `[p]letters I'd like this text as emotes 123`
+        - `[p]letters I would like this text as emotes 123`
         """
 
         # Grab message content

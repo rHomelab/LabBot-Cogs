@@ -11,6 +11,6 @@
         "reply",
         "utility"
     ],
-    "install_msg": "Usage: `[p]letters abcxyz`",
+    "install_msg": "Usage: `[p]letters abcxyz 123`",
     "end_user_data_statement": "No user data is stored by this cog."
 }
