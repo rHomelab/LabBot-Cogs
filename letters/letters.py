@@ -37,13 +37,13 @@ class Letters(commands.Cog):
                 if char == ' ':
                     letters += '  '
 
-                # Convert to regional indicator emote if letter
-                elif not char.isdigit():
-                    letters += f":regional_indicator_{char}: "
-
                 # Convert to number emote if number
                 elif char.isdigit():
                     letters += f"{nums[int(char)]} "
+
+                # Convert to regional indicator emote if letter
+                else:
+                    letters += f":regional_indicator_{char}: "
 
             # Replace =>3 spaces with two
             letters = re.sub(' {3,}', '  ', letters)
