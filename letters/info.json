@@ -3,7 +3,7 @@
         "tigattack"
     ],
     "short": "Outputs large emote letters from input text.",
-    "description": "Convert a string of letters into large emote letters (\"regional indicators\")",
+    "description": "Convert a string of letters/numbers into large emote letters (\"regional indicators\")",
     "disabled": false,
     "name": "Letters",
     "tags": [
