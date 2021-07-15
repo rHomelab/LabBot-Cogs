@@ -12,14 +12,24 @@ class Letters(commands.Cog):
     @commands.command()
     async def letters(self, ctx, *, msg):
         """Outputs large emote letters (\"regional indicators\") from input text.
-        Accepts a-z, 0-9, and whitespace only.
+
+        The result can be outputted as raw emote code using `-raw` flag.
 
         Example:
         - `[p]letters I would like this text as emotes 123`
+        - `[p]letters -raw I would like this text as raw emote code 123`
         """
 
         # Grab message content
         input = msg.lower()
+
+        # Check for raw flag
+        if input.startswith('-raw'):
+            raw = True
+            input = input.lstrip('-raw').lstrip()
+
+        else:
+            raw = False
 
         # Ensure it doesn't contain any special chars, numbers, etc.
         regexp = re.compile(r'[^a-z0-9 ]')
@@ -47,6 +57,11 @@ class Letters(commands.Cog):
         # Replace =>3 spaces with two
         letters = re.sub(' {3,}', '  ', letters)
 
-        # Define and send message
-        output = f"{letters}\n```{letters}```"
+        # Define output
+        if raw:
+            output = f"```{letters}```"
+        else:
+            output = f"{letters}"
+
+        # Send message
         await ctx.send(output)
