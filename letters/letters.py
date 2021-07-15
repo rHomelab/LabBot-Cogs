@@ -8,6 +8,25 @@ nums = (":zero:", ":one:", ":two:", ":three:", ":four:", ":five:", ":six:", ":se
 # Define specials -> emotes dict
 specials = {"!": ":exclamation:", "?": ":question:", "#": ":hash:", "'": "'", ".": ".", ",": ","}
 
+allowed_chars = re.compile(r"[^a-z0-9!?\'.#, ]")
+
+def char_convert(char: str) -> str:
+    """Convert character to discord emoji"""
+    # Double space if char is space
+    if char == " ":
+        return "  "
+
+    # Convert to number emote if number
+    elif char.isdigit():
+        return f"{nums[int(char)]} "
+
+    # Convert to regional indicator emote if letter
+    elif char.isalpha():
+        return f":regional_indicator_{char}: "
+
+    # Convert to character emote
+    else:
+        return specials[char]
 
 class Letters(commands.Cog):
     """Letters cog"""
@@ -27,48 +46,23 @@ class Letters(commands.Cog):
         input = msg.lower()
 
         # Check for raw flag
+        raw = False
         if input.startswith("-raw"):
             raw = True
             input = input.lstrip("-raw").lstrip()
 
-        else:
-            raw = False
-
         # Strip unsupported characters
-        regexp = re.compile(r"[^a-z0-9!?\'.#, ]")
-        if regexp.search(input):
-            input = regexp.sub("", input)
+        if allowed_chars.search(input):
+            input = allowed_chars.sub("", input)
 
         # Initialise letters var
-        letters = ""
-
-        # For each char in input
-        for char in input:
-
-            # Double space if char is space
-            if char == " ":
-                letters += "  "
-
-            # Convert to number emote if number
-            elif char.isdigit():
-                letters += f"{nums[int(char)]} "
-
-            # Convert to regional indicator emote if letter
-            elif char.isalpha():
-                letters += f":regional_indicator_{char}: "
-
-            # Convert to character emote
-            else:
-                letters += f"{specials[str(char)]}"
+        letters = "".join(map(char_convert, input))
 
         # Replace =>3 spaces with two
         letters = re.sub(" {3,}", "  ", letters)
 
         # Define output
-        if raw:
-            output = f"```{letters}```"
-        else:
-            output = f"{letters}"
+        output = f"```{letters}```" if raw else letters
 
         # Ensure output isn't too long
         if len(output) > 2000:
