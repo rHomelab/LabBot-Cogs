@@ -12,7 +12,7 @@ class Letters(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    async def letters(self, ctx):
+    async def letters(self, ctx, msg: discord.Message):
         """Outputs large emote letters (\"regional indicators\") based on input text.
         Accepts A-Z only.
 
@@ -21,7 +21,7 @@ class Letters(commands.Cog):
         """
 
         # Grab message content
-        input = ctx.Message.content
+        input = msg.content
 
         # Ensure it doesn't contain any special chars, numbers, etc.
         regexp = re.compile(r'[^a-zA-Z ]')
@@ -41,5 +41,5 @@ class Letters(commands.Cog):
                     letters+=f":regional_indicator_{letter}: "
             
             # Define and send message
-            msg = f"{letters}\n`{letters}`"
-            await ctx.send(msg)
+            output = f"{letters}\n`{letters}`"
+            await ctx.send(output)
