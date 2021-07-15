@@ -60,7 +60,7 @@ class Letters(commands.Cog):
                 letters += f"{nums[int(char)]} "
 
             # Convert to regional indicator emote if letter
-            elif not char.isdigit():
+            elif char.isalpha():
                 letters += f":regional_indicator_{char}: "
 
             # Convert to character emote
