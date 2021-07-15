@@ -12,7 +12,7 @@ class Letters(commands.Cog):
     @commands.command()
     async def letters(self, ctx, *, msg):
         """Outputs large emote letters (\"regional indicators\") from input text.
-        Accepts A-Z, 0-9, and whitespace only.
+        Accepts a-z, 0-9, and whitespace only.
 
         Example:
         - `[p]letters I'd like this text as emotes 123`
@@ -22,9 +22,9 @@ class Letters(commands.Cog):
         input = msg.lower()
 
         # Ensure it doesn't contain any special chars, numbers, etc.
-        regexp = re.compile(r'[^a-zA-Z0-9 ]')
+        regexp = re.compile(r'[^a-z0-9 ]')
         if regexp.search(input):
-            await ctx.send('This cog accepts only A-Z, 0-9, and whitespace characters.')
+            await ctx.send('This cog accepts only a-z, 0-9, and whitespace characters.')
 
         else:
             # Initialise letters var
