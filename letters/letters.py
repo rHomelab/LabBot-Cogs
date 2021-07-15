@@ -2,9 +2,9 @@ import re
 
 from redbot.core import commands
 
-
 # Define numbers -> emotes tuple
 nums = (':zero:', ':one:', ':two:', ':three:', ':four:', ':five:', ':six:', ':seven:', ':eight:', ':nine:')
+
 
 class Letters(commands.Cog):
     """Letters cog"""
