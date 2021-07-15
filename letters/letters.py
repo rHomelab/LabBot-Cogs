@@ -23,10 +23,6 @@ class Letters(commands.Cog):
         # Grab message content
         input = msg.lower()
 
-        # Define regex searches for letters and numbers
-        reletter = re.compile(r'[a-zA-Z]')
-        renumber = re.compile(r'[0-9]')
-
         # Define numbers -> emotes dict
         nums = {
             0 : ':zero:',
@@ -58,11 +54,11 @@ class Letters(commands.Cog):
                     letters += '  '
 
                 # Convert to regional indicator emote if letter
-                elif reletter.search(char):
+                elif not char.isdigit():
                     letters += f":regional_indicator_{char}: "
 
                 # Convert to number emote if number
-                elif renumber.search(char):
+                elif char.isdigit():
                     letters += f"{nums[int(char)]} "
 
             # Define and send message
