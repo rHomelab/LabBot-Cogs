@@ -21,6 +21,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
   - [Feed](#feed)
   - [Google](#google)
   - [LaTeX](#latex)
+  - [Letters](#letters)
   - [Notes](#notes)
   - [Penis](#penis)
   - [Purge](#purge)
@@ -63,6 +64,7 @@ A massive thank you to all who've helped out with this project ❤️
 - **[Feed](#feed):** This allows users to feed each other.
 - **[Google](#google):** Send a google link to someone.
 - **[LaTeX](#latex):** Render a LaTeX statement.
+- **[Letters](#letters):** Outputs large emote letters/numbers from input text.
 - **[Notes](#notes):** Manage notes and warnings against users.
 - **[Penis](#penis):** Allows users to check the size of their penis.
 - **[Purge](#purge):** This will purge users based on criteria.
@@ -149,6 +151,12 @@ This cog allows users to send google links to each other.
 This cog allows users to display complex mathematical information using LaTeX renderings.
 
 `[p]latex <latex statement>`
+
+### Letters
+
+This cog converts a string of letters/numbers into large emote letters ("regional indicators") or numbers.
+
+`[p]letters some words and numbers 123`
 
 ### Notes
 
