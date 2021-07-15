@@ -1,0 +1,16 @@
+{
+    "author": [
+        "tigattack"
+    ],
+    "short": "Outputs large emote letters from input text.",
+    "description": "Convert a string of letters into large emote letters (\"regional indicators\")",
+    "disabled": false,
+    "name": "Letters",
+    "tags": [
+        "fun",
+        "reply",
+        "utility"
+    ],
+    "install_msg": "Usage: `[p]letters abcxyz`",
+    "end_user_data_statement": "No user data is stored by this cog."
+}
