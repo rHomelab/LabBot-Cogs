@@ -61,6 +61,9 @@ class Letters(commands.Cog):
                 elif char.isdigit():
                     letters += f"{nums[int(char)]} "
 
+            # Replace =>3 spaces with two
+            letters = re.sub(' {3,}', '  ', letters)
+
             # Define and send message
             output = f"{letters}\n```{letters}```"
             await ctx.send(output)
