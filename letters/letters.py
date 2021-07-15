@@ -63,7 +63,7 @@ class Letters(commands.Cog):
 
                 # Convert to number emote if number
                 elif renumber.search(char):
-                    letters += f"{nums[char]} "
+                    letters += f"{nums[int(char)]} "
 
             # Define and send message
             output = f"{letters}\n`{letters}`"
