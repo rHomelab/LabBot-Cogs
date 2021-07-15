@@ -1,9 +1,6 @@
 import re
 
-import discord
 from redbot.core import commands
-from redbot.core.utils.chat_formatting import pagify
-
 
 class Letters(commands.Cog):
     """Letters cog"""
