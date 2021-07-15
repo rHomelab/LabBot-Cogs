@@ -10,6 +10,7 @@ specials = {"!": ":exclamation:", "?": ":question:", "#": ":hash:", "'": "'", ".
 
 allowed_chars = re.compile(r"[^a-z0-9!?\'.#, ]")
 
+
 def convert_char(char: str) -> str:
     """Convert character to discord emoji"""
     # Double space if char is space
@@ -28,6 +29,7 @@ def convert_char(char: str) -> str:
     else:
         return f"{specials[char]} "
 
+
 def convert_string(input_str: str) -> str:
     """Convert a string to discord emojis"""
     # Strip unsupported characters
@@ -42,6 +44,7 @@ def convert_string(input_str: str) -> str:
     letters = re.sub(r"[!?\'.#,:] ([!?\'.#,])", r":\1", letters)
 
     return letters
+
 
 class Letters(commands.Cog):
     """Letters cog"""
