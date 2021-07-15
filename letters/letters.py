@@ -11,7 +11,8 @@ specials = {
     '?' : ':question:',
     '#' : ':hash:',
     '\'' : '\'',
-    '.' : '.'
+    '.' : '.',
+    ',' : ','
 }
 
 
@@ -41,7 +42,7 @@ class Letters(commands.Cog):
             raw = False
 
         # Strip unsupported characters
-        regexp = re.compile(r'[^a-z0-9!?\'.# ]')
+        regexp = re.compile(r'[^a-z0-9!?\'.#, ]')
         if regexp.search(input):
             input = regexp.sub('', input)
 
