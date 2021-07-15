@@ -62,5 +62,5 @@ class Letters(commands.Cog):
                     letters += f"{nums[int(char)]} "
 
             # Define and send message
-            output = f"{letters}\n`{letters}`"
+            output = f"{letters}\n```{letters}```"
             await ctx.send(output)
