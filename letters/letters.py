@@ -26,7 +26,7 @@ def convert_char(char: str) -> str:
 
     # Convert to character emote
     else:
-        return specials[char]
+        return f"{specials[char]} "
 
 def convert_string(input_str: str) -> str:
     """Convert a string to discord emojis"""
