@@ -3,6 +3,9 @@ import re
 from redbot.core import commands
 
 
+# Define numbers -> emotes tuple
+nums = (':zero:', ':one:', ':two:', ':three:', ':four:', ':five:', ':six:', ':seven:', ':eight:', ':nine:')
+
 class Letters(commands.Cog):
     """Letters cog"""
 
@@ -20,20 +23,6 @@ class Letters(commands.Cog):
 
         # Grab message content
         input = msg.lower()
-
-        # Define numbers -> emotes dict
-        nums = {
-            0 : ':zero:',
-            1 : ':one:',
-            2 : ':two:',
-            3 : ':three:',
-            4 : ':four:',
-            5 : ':five:',
-            6 : ':six:',
-            7 : ':seven:',
-            8 : ':eight:',
-            9 : ':nine:'
-        }
 
         # Ensure it doesn't contain any special chars, numbers, etc.
         regexp = re.compile(r'[^a-zA-Z0-9 ]')
