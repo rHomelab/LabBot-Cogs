@@ -154,9 +154,11 @@ This cog allows users to display complex mathematical information using LaTeX re
 
 ### Letters
 
-This cog converts a string of letters/numbers into large emote letters ("regional indicators") or numbers.
+This cog converts a string of letters/numbers into large emote letters ("regional indicators") or numbers.  
+`-raw` flag can be used to output raw emote code.
 
-`[p]letters some words and numbers 123`
+`[p]letters I would like this text as emotes 123`
+`[p]letters -raw I would like this text as raw emote code 123`
 
 ### Notes
 
