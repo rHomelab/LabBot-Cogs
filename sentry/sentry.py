@@ -32,14 +32,14 @@ class SentryCog(commands.Cog):
         self.bot.remove_before_invoke_hook(self.before_invoke)
         return super().cog_unload()
 
-    async def before_invoke(self, context: commands.context.Context, *args, **kwargs):
+    async def before_invoke(self, context: commands.context.Context):
         """Method invoked before any red command. Start a transaction."""
         transaction = start_transaction(op="command", name="Command %s" % context.command.name)
         transaction.set_data("message", context.message.content)
         transaction.set_tag("message", context.message.content)
         setattr(context, "__sentry_transaction", transaction)
 
-    async def after_invoke(self, context: commands.context.Context, *args, **kwargs):
+    async def after_invoke(self, context: commands.context.Context):
         """Method invoked after any red command. Checks if the command failed, and
         then tries to send the last exception to sentry."""
         transaction: Optional[Transaction] = getattr(context, "__sentry_transaction", start_transaction())

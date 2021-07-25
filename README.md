@@ -29,6 +29,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
   - [Reactrole](#reactrole)
   - [Report](#report)
   - [Roleinfo](#roleinfo)
+  - [Sentry](#sentry)
   - [Verify](#verify)
   - [xkcd](#xkcd)
 - [License](#license)
@@ -72,6 +73,7 @@ A massive thank you to all who've helped out with this project ❤️
 - **[Reactrole](#reactrole):** Allows roles to be applied and removed using reactions.
 - **[Report](#report):** Allows users to report issues.
 - **[Roleinfo](#roleinfo):** Displays info on a role
+- **[Sentry](#sentry):** Send unhandled errors to sentry.
 - **[Verify](#verify):** Allows users to verify themselves.
 - **[xkcd](#xkcd):** Allows users to look at xkcd comics.
 
@@ -154,7 +156,7 @@ This cog allows users to display complex mathematical information using LaTeX re
 
 ### Letters
 
-This cog converts a string of letters/numbers into large emote letters ("regional indicators") or numbers.  
+This cog converts a string of letters/numbers into large emote letters ("regional indicators") or numbers.
 `-raw` flag can be used to output raw emote code.
 
 `[p]letters I would like this text as emotes 123`
@@ -231,6 +233,10 @@ This cog will allow members to send a report into a channel where it can be revi
 Allows you to view info on a role
 
 - `[p]roleinfo <role>`
+
+### Sentry
+
+Send unhandled errors and performance metrics to sentry.
 
 ### Verify
 
