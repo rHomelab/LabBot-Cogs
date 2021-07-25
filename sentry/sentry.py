@@ -15,18 +15,28 @@ class SentryCog(commands.Cog):
     """Sentry error reporting cog."""
 
     bot: Red
+    _is_initialized: bool
 
     def __init__(self, bot: Red):
         super().__init__()
         self.bot = bot
+        self._is_initialized = False
+
+        bot.before_invoke(self.before_invoke)
+        bot.after_invoke(self.after_invoke)
+
+    async def ensure_client_init(self):
+        if self._is_initialized:
+            return
+        dsn = await self.bot.get_shared_api_tokens("sentry")
         # pylint: disable=abstract-class-instantiated
         sentry_init(
+            dsn=dsn,
             traces_sample_rate=1,
             integrations=[],
             default_integrations=False,
         )
-        bot.before_invoke(self.before_invoke)
-        bot.after_invoke(self.after_invoke)
+        self._is_initialized = True
 
     def cog_unload(self):
         self.bot.remove_before_invoke_hook(self.before_invoke)
@@ -34,6 +44,7 @@ class SentryCog(commands.Cog):
 
     async def before_invoke(self, context: commands.context.Context):
         """Method invoked before any red command. Start a transaction."""
+        await self.ensure_client_init()
         transaction = start_transaction(op="command", name="Command %s" % context.command.name)
         transaction.set_data("message", context.message.content)
         transaction.set_tag("message", context.message.content)
@@ -42,6 +53,7 @@ class SentryCog(commands.Cog):
     async def after_invoke(self, context: commands.context.Context):
         """Method invoked after any red command. Checks if the command failed, and
         then tries to send the last exception to sentry."""
+        await self.ensure_client_init()
         transaction: Optional[Transaction] = getattr(context, "__sentry_transaction", start_transaction())
         transaction.set_status("ok")
 
