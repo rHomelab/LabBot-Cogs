@@ -10,6 +10,8 @@ from sentry_sdk import start_transaction
 from sentry_sdk.api import set_tag
 from sentry_sdk.tracing import Transaction
 
+# Configure
+# ^set api sentry dsn,https://fooo@bar.baz/9
 
 class SentryCog(commands.Cog):
     """Sentry error reporting cog."""
@@ -28,10 +30,10 @@ class SentryCog(commands.Cog):
     async def ensure_client_init(self):
         if self._is_initialized:
             return
-        dsn = await self.bot.get_shared_api_tokens("sentry")
+        keys = await self.bot.get_shared_api_tokens("sentry")
         # pylint: disable=abstract-class-instantiated
         sentry_init(
-            dsn=dsn,
+            dsn=keys.get("dsn", None),
             traces_sample_rate=1,
             integrations=[],
             default_integrations=False,
