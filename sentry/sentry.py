@@ -12,7 +12,7 @@ from sentry_sdk.api import set_tag
 from sentry_sdk.tracing import Transaction
 
 # Configure
-# ^set api sentry dsn,https://fooo@bar.baz/9
+# [p]set api sentry dsn,https://fooo@bar.baz/9
 
 
 class SentryCog(commands.Cog):
