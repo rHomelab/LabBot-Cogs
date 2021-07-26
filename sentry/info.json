@@ -1,0 +1,16 @@
+{
+    "author": [
+        "BeryJu"
+    ],
+    "short": "Sentry cog",
+    "description": "Sends exceptions and stacktraces to sentry.",
+    "disabled": false,
+    "name": "sentry",
+    "tags": [
+        "sentry"
+    ],
+    "requirements": [
+        "sentry-sdk"
+    ],
+    "install_msg": "Install: `[p]set api sentry dsn,https://fooo@bar.baz/9`"
+}
