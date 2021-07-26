@@ -1,6 +1,7 @@
 import sys
 from typing import Optional
 
+from discord import Message
 from discord.ext.commands.errors import CommandInvokeError
 from redbot.core import commands
 from redbot.core.bot import Red
@@ -12,6 +13,7 @@ from sentry_sdk.tracing import Transaction
 
 # Configure
 # ^set api sentry dsn,https://fooo@bar.baz/9
+
 
 class SentryCog(commands.Cog):
     """Sentry error reporting cog."""
@@ -48,8 +50,11 @@ class SentryCog(commands.Cog):
         """Method invoked before any red command. Start a transaction."""
         await self.ensure_client_init()
         transaction = start_transaction(op="command", name="Command %s" % context.command.name)
-        transaction.set_data("message", context.message.content)
-        transaction.set_tag("message", context.message.content)
+        msg: Message = context.message
+        transaction.set_data("message", msg.content)
+        transaction.set_tag("message", msg.content)
+        transaction.set_tag("user", msg.author.display_name)
+        transaction.set_tag("command", context.command.name)
         setattr(context, "__sentry_transaction", transaction)
 
     async def after_invoke(self, context: commands.context.Context):
@@ -70,7 +75,10 @@ class SentryCog(commands.Cog):
             value = value.original
 
         transaction.set_status("unknown_error")
-        set_tag("message", context.message.content)
+        msg: Message = context.message
+        set_tag("message", msg.content)
+        set_tag("user", msg.author.display_name)
+        set_tag("command", context.command.name)
         capture_exception(value)
 
         transaction.finish()
