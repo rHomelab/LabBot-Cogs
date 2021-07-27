@@ -62,20 +62,20 @@ class SentryCog(commands.Cog):
     async def sentry_set_env(self, context: commands.context.Context, new_value: str):
         """Set sentry environment"""
         if not context.guild:
-            await context.send(("Environment can only be changed from a discord server as " "it's a per-server setting."))
+            await context.send("That command is not available in DMs. Sentry environment is a per-guild setting.")
             return
         await self.config.guild(context.guild).environment.set(new_value)
-        await context.send(f"Value of environment has been changed to '{new_value}'!")
+        await context.send(f"Sentry environment has been changed to '{new_value}'!")
 
     @commands.command()
     @checks.mod()
     async def sentry_get_env(self, context: commands.context.Context):
         """Get sentry environment"""
         if not context.guild:
-            await context.send(("Environment can only be changed from a discord server as " "it's a per-server setting."))
+            await context.send("That command is not available in DMs. Sentry environment is a per-guild setting.")
             return
         environment_val = await self.config.guild(context.guild).environment()
-        await context.send(f"The value of environment is '{environment_val}'")
+        await context.send(f"The Sentry environment is '{environment_val}'")
 
     @commands.command()
     @checks.mod()

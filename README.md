@@ -240,9 +240,9 @@ Send unhandled errors and performance metrics to sentry.
 
 Configure Sentry DSN using `[p]set api sentry dsn,https://fooo@bar.baz/9`, then load the Cog `[p]load sentry`.
 
-Sentry environment can be configured using `[p]sentry_set_env my-discord-server`.
+The Sentry environment can be configured per-guild using `[p]sentry_set_env my-discord-server`.
 
-Test the cog by running `[p]sentry_test`.
+The configuration can be tested by sending a test exception to Sentry using `[p]sentry_test`.
 
 ### Verify
 
