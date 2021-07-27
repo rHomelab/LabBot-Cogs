@@ -240,6 +240,10 @@ Send unhandled errors and performance metrics to sentry.
 
 Configure Sentry DSN using `[p]set api sentry dsn,https://fooo@bar.baz/9`, then load the Cog `[p]load sentry`.
 
+- `[p]sentry get_env` - Returns the currently configured Sentry environment.
+- `[p]sentry set_env` - Set the currently configured Sentry environment. Requires a reload of the cog.
+- `[p]sentry test` - Raise a test exception to test the Sentry connection.
+
 ### Verify
 
 This cog will allow users to prove they're not a bot by having to read rules and complete an action. They will then be given the verified role if they can complete this.
