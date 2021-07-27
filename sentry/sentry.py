@@ -57,23 +57,19 @@ class SentryCog(commands.Cog):
     @checks.mod()
     @commands.group(name="sentry", pass_context=True)
     async def _sentry(self, ctx: commands.context.Context):
-        """Automatically reply to messages matching certain trigger phrases"""
+        """Command group for sentry settings"""
 
+    @commands.guild_only()
     @_sentry.command(name="set_env")
     async def sentry_set_env(self, context: commands.context.Context, new_value: str):
         """Set sentry environment"""
-        if not context.guild:
-            await context.send("That command is not available in DMs. Sentry environment is a per-guild setting.")
-            return
         await self.config.guild(context.guild).environment.set(new_value)
         await context.send(f"Sentry environment has been changed to '{new_value}'!")
 
+    @commands.guild_only()
     @_sentry.command(name="get_env")
     async def sentry_get_env(self, context: commands.context.Context):
         """Get sentry environment"""
-        if not context.guild:
-            await context.send("That command is not available in DMs. Sentry environment is a per-guild setting.")
-            return
         environment_val = await self.config.guild(context.guild).environment()
         await context.send(f"The Sentry environment is '{environment_val}'")
 
