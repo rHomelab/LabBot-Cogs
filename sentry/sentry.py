@@ -24,10 +24,10 @@ class SentryCog(commands.Cog):
         self._is_initialized = False
 
         self.config = Config.get_conf(self, identifier=34848138412384)
-        default_guild = {
+        default_global = {
             "environment": "",
         }
-        self.config.register_guild(**default_guild)
+        self.config.register_global(**default_global)
 
         bot.before_invoke(self.before_invoke)
         bot.after_invoke(self.after_invoke)
@@ -59,18 +59,16 @@ class SentryCog(commands.Cog):
     async def _sentry(self, ctx: commands.context.Context):
         """Command group for sentry settings"""
 
-    @commands.guild_only()
     @_sentry.command(name="set_env")
     async def sentry_set_env(self, context: commands.context.Context, new_value: str):
         """Set sentry environment"""
-        await self.config.guild(context.guild).environment.set(new_value)
+        await self.config.environment.set(new_value)
         await context.send(f"Sentry environment has been changed to '{new_value}'!")
 
-    @commands.guild_only()
     @_sentry.command(name="get_env")
     async def sentry_get_env(self, context: commands.context.Context):
         """Get sentry environment"""
-        environment_val = await self.config.guild(context.guild).environment()
+        environment_val = await self.config.environment()
         await context.send(f"The Sentry environment is '{environment_val}'")
 
     @_sentry.command(name="test")
