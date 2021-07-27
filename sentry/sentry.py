@@ -3,7 +3,7 @@ from typing import Optional
 
 from discord import Message
 from discord.ext.commands.errors import CommandInvokeError
-from redbot.core import commands, checks
+from redbot.core import checks, commands
 from redbot.core.bot import Config, Red
 from sentry_sdk import capture_exception
 from sentry_sdk import init as sentry_init
@@ -62,10 +62,7 @@ class SentryCog(commands.Cog):
     async def sentry_set_env(self, context: commands.context.Context, new_value: str):
         """Set sentry environment"""
         if not context.guild:
-            await context.send((
-                "Environment can only be changed from a discord server as "
-                "it's a per-server setting."
-            ))
+            await context.send(("Environment can only be changed from a discord server as " "it's a per-server setting."))
             return
         await self.config.guild(context.guild).environment.set(new_value)
         await context.send(f"Value of environment has been changed to '{new_value}'!")
@@ -75,10 +72,7 @@ class SentryCog(commands.Cog):
     async def sentry_get_env(self, context: commands.context.Context):
         """Get sentry environment"""
         if not context.guild:
-            await context.send((
-                "Environment can only be changed from a discord server as "
-                "it's a per-server setting."
-            ))
+            await context.send(("Environment can only be changed from a discord server as " "it's a per-server setting."))
             return
         environment_val = await self.config.guild(context.guild).environment()
         await context.send(f"The value of environment is '{environment_val}'")
@@ -94,10 +88,12 @@ class SentryCog(commands.Cog):
         await self.ensure_client_init(context)
         msg: Message = context.message
         # set_user applies to the current scope, so it also applies to the transaction
-        set_user({
-            "id": msg.author.id,
-            "username": msg.author.display_name,
-        })
+        set_user(
+            {
+                "id": msg.author.id,
+                "username": msg.author.display_name,
+            }
+        )
         transaction = start_transaction(op="command", name="Command %s" % context.command.name)
         transaction.set_tag("discord_message", msg.content)
         transaction.set_tag("discord_command", context.command.name)
@@ -124,10 +120,12 @@ class SentryCog(commands.Cog):
 
         transaction.set_status("unknown_error")
         msg: Message = context.message
-        set_user({
-            "id": msg.author.id,
-            "username": msg.author.display_name,
-        })
+        set_user(
+            {
+                "id": msg.author.id,
+                "username": msg.author.display_name,
+            }
+        )
         set_tag("discord_message", msg.content)
         set_tag("discord_command", context.command.name)
         capture_exception(value)
