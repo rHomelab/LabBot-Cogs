@@ -69,8 +69,10 @@ class SentryCog(commands.Cog):
     async def after_invoke(self, context: commands.context.Context):
         """Method invoked after any red command. Checks if the command failed, and
         then tries to send the last exception to sentry."""
-        transaction: Optional[Transaction] = getattr(context, "__sentry_transaction", start_transaction())
         await self.ensure_client_init(context)
+        transaction: Optional[Transaction] = getattr(context, "__sentry_transaction", None)
+        if not transaction:
+            return
         transaction.set_status("ok")
 
         if not context.command_failed:
