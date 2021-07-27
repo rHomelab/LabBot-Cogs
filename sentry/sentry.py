@@ -11,9 +11,6 @@ from sentry_sdk import start_transaction
 from sentry_sdk.api import set_tag, set_user
 from sentry_sdk.tracing import Transaction
 
-# Configure
-# [p]set api sentry dsn,https://fooo@bar.baz/9
-
 
 class SentryCog(commands.Cog):
     """Sentry error reporting cog."""
@@ -57,8 +54,12 @@ class SentryCog(commands.Cog):
         self.bot.remove_before_invoke_hook(self.before_invoke)
         return super().cog_unload()
 
-    @commands.command()
     @checks.mod()
+    @commands.group(name="sentry", pass_context=True)
+    async def _sentry(self, ctx: commands.context.Context):
+        """Automatically reply to messages matching certain trigger phrases"""
+
+    @_sentry.command(name="set_env")
     async def sentry_set_env(self, context: commands.context.Context, new_value: str):
         """Set sentry environment"""
         if not context.guild:
@@ -67,8 +68,7 @@ class SentryCog(commands.Cog):
         await self.config.guild(context.guild).environment.set(new_value)
         await context.send(f"Sentry environment has been changed to '{new_value}'!")
 
-    @commands.command()
-    @checks.mod()
+    @_sentry.command(name="get_env")
     async def sentry_get_env(self, context: commands.context.Context):
         """Get sentry environment"""
         if not context.guild:
@@ -77,8 +77,7 @@ class SentryCog(commands.Cog):
         environment_val = await self.config.guild(context.guild).environment()
         await context.send(f"The Sentry environment is '{environment_val}'")
 
-    @commands.command()
-    @checks.mod()
+    @_sentry.command(name="test")
     async def sentry_test(self, context: commands.context.Context):
         """Test sentry"""
         raise ValueError("test error")
