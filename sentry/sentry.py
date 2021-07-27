@@ -8,7 +8,7 @@ from redbot.core.bot import Config, Red
 from sentry_sdk import capture_exception
 from sentry_sdk import init as sentry_init
 from sentry_sdk import start_transaction
-from sentry_sdk.api import set_tag
+from sentry_sdk.api import set_tag, set_user
 from sentry_sdk.tracing import Transaction
 
 # Configure
@@ -92,12 +92,15 @@ class SentryCog(commands.Cog):
     async def before_invoke(self, context: commands.context.Context):
         """Method invoked before any red command. Start a transaction."""
         await self.ensure_client_init(context)
-        transaction = start_transaction(op="command", name="Command %s" % context.command.name)
         msg: Message = context.message
-        transaction.set_data("message", msg.content)
-        transaction.set_tag("message", msg.content)
-        transaction.set_tag("user", msg.author.display_name)
-        transaction.set_tag("command", context.command.name)
+        # set_user applies to the current scope, so it also applies to the transaction
+        set_user({
+            "id": msg.author.id,
+            "username": msg.author.display_name,
+        })
+        transaction = start_transaction(op="command", name="Command %s" % context.command.name)
+        transaction.set_tag("discord_message", msg.content)
+        transaction.set_tag("discord_command", context.command.name)
         setattr(context, "__sentry_transaction", transaction)
 
     async def after_invoke(self, context: commands.context.Context):
@@ -121,9 +124,12 @@ class SentryCog(commands.Cog):
 
         transaction.set_status("unknown_error")
         msg: Message = context.message
-        set_tag("message", msg.content)
-        set_tag("user", msg.author.display_name)
-        set_tag("command", context.command.name)
+        set_user({
+            "id": msg.author.id,
+            "username": msg.author.display_name,
+        })
+        set_tag("discord_message", msg.content)
+        set_tag("discord_command", context.command.name)
         capture_exception(value)
 
         transaction.finish()
