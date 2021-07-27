@@ -3,7 +3,7 @@ from typing import Optional
 
 from discord import Message
 from discord.ext.commands.errors import CommandInvokeError
-from redbot.core import commands
+from redbot.core import commands, checks
 from redbot.core.bot import Config, Red
 from sentry_sdk import capture_exception
 from sentry_sdk import init as sentry_init
@@ -39,7 +39,9 @@ class SentryCog(commands.Cog):
         """Ensure client is initialised"""
         if self._is_initialized:
             return
-        environment = await self.config.guild(context.guild).environment()
+        environment = ""
+        if context.guild:
+            environment = await self.config.guild(context.guild).environment()
         keys = await self.bot.get_shared_api_tokens("sentry")
         # pylint: disable=abstract-class-instantiated
         sentry_init(
@@ -54,6 +56,38 @@ class SentryCog(commands.Cog):
     def cog_unload(self):
         self.bot.remove_before_invoke_hook(self.before_invoke)
         return super().cog_unload()
+
+    @commands.command()
+    @checks.mod()
+    async def sentry_set_env(self, context: commands.context.Context, new_value: str):
+        """Set sentry environment"""
+        if not context.guild:
+            await context.send((
+                "Environment can only be changed from a discord server as "
+                "it's a per-server setting."
+            ))
+            return
+        await self.config.guild(context.guild).environment.set(new_value)
+        await context.send(f"Value of environment has been changed to '{new_value}'!")
+
+    @commands.command()
+    @checks.mod()
+    async def sentry_get_env(self, context: commands.context.Context):
+        """Get sentry environment"""
+        if not context.guild:
+            await context.send((
+                "Environment can only be changed from a discord server as "
+                "it's a per-server setting."
+            ))
+            return
+        environment_val = await self.config.guild(context.guild).environment()
+        await context.send(f"The value of environment is '{environment_val}'")
+
+    @commands.command()
+    @checks.mod()
+    async def sentry_test(self, context: commands.context.Context):
+        """Test sentry"""
+        raise ValueError("test error")
 
     async def before_invoke(self, context: commands.context.Context):
         """Method invoked before any red command. Start a transaction."""
