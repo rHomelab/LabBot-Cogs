@@ -37,9 +37,7 @@ class SentryCog(commands.Cog):
         """Ensure client is initialised"""
         if self._is_initialized:
             return
-        environment = ""
-        if context.guild:
-            environment = await self.config.guild(context.guild).environment()
+        environment = await self.config.environment()
         keys = await self.bot.get_shared_api_tokens("sentry")
         # pylint: disable=abstract-class-instantiated
         sentry_init(
