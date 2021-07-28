@@ -2,6 +2,7 @@ import sys
 from typing import Optional
 
 from discord import Message
+from discord.channel import TextChannel
 from discord.ext.commands.errors import CommandInvokeError
 from redbot.core import checks, commands
 from redbot.core.bot import Config, Red
@@ -36,9 +37,7 @@ class SentryCog(commands.Cog):
         """Ensure client is initialised"""
         if self._is_initialized:
             return
-        environment = ""
-        if context.guild:
-            environment = await self.config.guild(context.guild).environment()
+        environment = await self.config.environment()
         keys = await self.bot.get_shared_api_tokens("sentry")
         # pylint: disable=abstract-class-instantiated
         sentry_init(
@@ -89,7 +88,11 @@ class SentryCog(commands.Cog):
         )
         transaction = start_transaction(op="command", name="Command %s" % context.command.name)
         transaction.set_tag("discord_message", msg.content)
+        transaction.set_tag("discord_guild", msg.guild.name)
         transaction.set_tag("discord_command", context.command.name)
+        if isinstance(msg.channel, TextChannel):
+            transaction.set_tag("discord_channel", msg.channel.name)
+            transaction.set_tag("discord_channel_id", msg.channel.id)
         setattr(context, "__sentry_transaction", transaction)
 
     async def after_invoke(self, context: commands.context.Context):
@@ -120,7 +123,11 @@ class SentryCog(commands.Cog):
             }
         )
         set_tag("discord_message", msg.content)
+        set_tag("discord_guild", msg.guild.name)
         set_tag("discord_command", context.command.name)
+        if isinstance(msg.channel, TextChannel):
+            set_tag("discord_channel", msg.channel.name)
+            set_tag("discord_channel_id", msg.channel.id)
         capture_exception(value)
 
         transaction.finish()
