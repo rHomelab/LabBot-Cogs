@@ -88,8 +88,10 @@ class SentryCog(commands.Cog):
         )
         transaction = start_transaction(op="command", name="Command %s" % context.command.name)
         transaction.set_tag("discord_message", msg.content)
-        transaction.set_tag("discord_guild", msg.guild.name)
-        transaction.set_tag("discord_command", context.command.name)
+        if context.command:
+            transaction.set_tag("discord_command", context.command.name)
+        if msg.guild:
+            transaction.set_tag("discord_guild", msg.guild.name)
         if isinstance(msg.channel, TextChannel):
             transaction.set_tag("discord_channel", msg.channel.name)
             transaction.set_tag("discord_channel_id", msg.channel.id)
@@ -123,8 +125,10 @@ class SentryCog(commands.Cog):
             }
         )
         set_tag("discord_message", msg.content)
-        set_tag("discord_guild", msg.guild.name)
-        set_tag("discord_command", context.command.name)
+        if context.command:
+            set_tag("discord_command", context.command.name)
+        if msg.guild:
+            set_tag("discord_guild", msg.guild.name)
         if isinstance(msg.channel, TextChannel):
             set_tag("discord_channel", msg.channel.name)
             set_tag("discord_channel_id", msg.channel.id)
