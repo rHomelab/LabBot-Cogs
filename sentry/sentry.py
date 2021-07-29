@@ -73,6 +73,7 @@ class SentryCog(commands.Cog):
     @_sentry.command(name="test")
     async def sentry_test(self, context: commands.context.Context):
         """Test sentry"""
+        await context.send("An exception will now be raised. Check Sentry to confirm.")
         raise ValueError("test error")
 
     async def before_invoke(self, context: commands.context.Context):
