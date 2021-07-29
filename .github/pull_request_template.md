@@ -12,8 +12,8 @@ FILL OUT THE BELOW SECTIONS AS APPROPRIATE
 Resolves #
 
 ## Changes
-### New Features
-* Adds feature which does x, y, and z.
+### Features / Fixes
+* Adds feature/fix which does xyz.
 
 ### Breaking Changes
 * Adds breaking change which causes \<issue\>.
