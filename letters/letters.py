@@ -63,7 +63,7 @@ class Letters(commands.Cog):
     """Letters cog"""
 
     @commands.command()
-    async def letters(self, ctx: commands.Context, raw: Optional[raw_flag] = False, *, msg: convert_string):
+    async def letters(self, ctx: commands.Context, raw: Optional[raw_flag] = False, *, msg: StringConverter):
         """Outputs large emote letters (\"regional indicators\") from input text.
 
         The result can be outputted as raw emote code using `-raw` flag.
