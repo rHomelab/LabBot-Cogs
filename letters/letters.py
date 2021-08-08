@@ -43,6 +43,8 @@ def convert_string(input_str: str) -> str:
     letters = re.sub(" {3,}", "  ", letters)
     # Correct punctuation spacing
     letters = re.sub(r"([!?\'.#,:]) ([!?\'.#,])", r"\1\2", letters)
+    # Necessary for edge cases
+    letters = re.sub(r"([!?\'.#,:]) ([!?\'.#,])", r"\1\2", letters)
 
     return letters
 
