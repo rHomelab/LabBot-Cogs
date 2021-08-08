@@ -1,4 +1,5 @@
 import re
+import discord
 from typing import Optional
 from redbot.core import commands
 
@@ -30,9 +31,9 @@ def convert_char(char: str) -> str:
         return f"{specials[char]} "
 
 
-def convert_string(input_str: str) -> str:
+async def convert_string(ctx: commands.Context, input_str: str) -> str:
     """Convert a string to discord emojis"""
-    input_str = input_str.lower()
+    input_str = (await commands.clean_content(fix_channel_mentions=True).convert(ctx, input_str)).lower()
     # Strip unsupported characters
     if allowed_chars.search(input_str):
         input_str = allowed_chars.sub("", input_str)
