@@ -36,7 +36,7 @@ def correct_punctuation_spacing(input_str: str) -> str:
     return re.sub(r"([!?'.#,:]) ([!?'.#,])", r"\1\2", input_str)
 
 
-def string_converter(self, ctx: commands.Context, input_str: str) -> str:
+def string_converter(input_str: str) -> str:
     """Convert a string to discord emojis"""
     # Make the whole string lowercase
     input_str = input_str.lower()
