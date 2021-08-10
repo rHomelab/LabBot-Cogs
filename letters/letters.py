@@ -1,6 +1,7 @@
 import re
-import discord
 from typing import Optional
+
+import discord
 from redbot.core import commands
 
 # Define numbers -> emotes tuple
@@ -31,24 +32,26 @@ def convert_char(char: str) -> str:
         return f"{specials[char]} "
 
 
-class StringConverter(commands.Converter):
-    async def convert(self, ctx: commands.Context, input_str: str) -> str:
-        """Convert a string to discord emojis"""
-        input_str = (await commands.clean_content(fix_channel_mentions=True).convert(ctx, input_str)).lower()
-        # Strip unsupported characters
-        if allowed_chars.search(input_str):
-            input_str = allowed_chars.sub("", input_str)
+def correct_punctuation_spacing(input_str: str) -> str:
+    return re.sub(r"([!?'.#,:]) ([!?'.#,])", r"\1\2", input_str)
 
-        # Convert characters to Discord emojis
-        letters = "".join(map(convert_char, input_str))
-        # Replace >= 3 spaces with two
-        letters = re.sub(" {3,}", "  ", letters)
-        # Correct punctuation spacing
-        letters = re.sub(r"([!?\'.#,:]) ([!?\'.#,])", r"\1\2", letters)
-        # Necessary for edge cases
-        letters = re.sub(r"([!?\'.#,:]) ([!?\'.#,])", r"\1\2", letters)
 
-        return letters
+def string_converter(self, ctx: commands.Context, input_str: str) -> str:
+    """Convert a string to discord emojis"""
+    # Make the whole string lowercase
+    input_str = input_str.lower()
+    # Strip unsupported characters
+    if allowed_chars.search(input_str):
+        input_str = allowed_chars.sub("", input_str)
+
+    # Convert characters to Discord emojis
+    letters = "".join(map(convert_char, input_str))
+    # Replace >= 3 spaces with two
+    letters = re.sub(" {3,}", "  ", letters)
+    # Correct punctuation spacing
+    letters = correct_punctuation_spacing(correct_punctuation_spacing(letters))
+
+    return letters
 
 
 def raw_flag(argument: str) -> bool:
@@ -63,7 +66,7 @@ class Letters(commands.Cog):
     """Letters cog"""
 
     @commands.command()
-    async def letters(self, ctx: commands.Context, raw: Optional[raw_flag] = False, *, msg: StringConverter):
+    async def letters(self, ctx: commands.Context, raw: Optional[raw_flag] = False, *, msg: string_converter):
         """Outputs large emote letters (\"regional indicators\") from input text.
 
         The result can be outputted as raw emote code using `-raw` flag.
