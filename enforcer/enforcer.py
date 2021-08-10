@@ -10,6 +10,7 @@ from redbot.core.utils.menus import close_menu, menu, next_page, prev_page
 
 KEY_ENABLED = "enabled"
 KEY_MINCHARS = "minchars"
+KEY_MAXCHARS = "maxchars"
 KEY_NOTEXT = "notext"
 KEY_NOMEDIA = "nomedia"
 KEY_REQUIREMEDIA = "requiremedia"
@@ -25,6 +26,7 @@ class EnforcerCog(commands.Cog):
     ATTRIBUTES = {
         KEY_ENABLED: {"type": "bool"},
         KEY_MINCHARS: {"type": "number"},
+        KEY_MAXCHARS: {"type": "number"},
         KEY_NOTEXT: {"type": "bool"},
         KEY_NOMEDIA: {"type": "bool"},
         KEY_REQUIREMEDIA: {"type": "bool"},
@@ -141,6 +143,7 @@ class EnforcerCog(commands.Cog):
 
         - `enabled` - Is this channel enabled for enforcing. Default false.
         - `minchars` - Minimum characters in a message. Default 0.
+        - `maxchars` - Maximum characters in a message. Default 0 (disabled).
         - `notext` - Message must have no text. Default false.
         - `requiremedia` - Message must have an attachment. Default false.
         - `nomedia` - Message must not have an attachment. Default false.
@@ -286,6 +289,10 @@ class EnforcerCog(commands.Cog):
         if (KEY_MINCHARS in channel) and (len(message.content) < channel[KEY_MINCHARS]):
             # They breached minchars attribute
             return "Not enough characters"
+
+        if (KEY_MAXCHARS in channel) and (len(message.content) > channel[KEY_MAXCHARS]):
+            # They breached maxchars attribute
+            return "Too many characters"
 
         if channel.get(KEY_NOMEDIA) or channel.get(KEY_REQUIREMEDIA):
             # Check the embeds
