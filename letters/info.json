@@ -1,6 +1,7 @@
 {
     "author": [
-        "tigattack"
+        "tigattack",
+        "Issy"
     ],
     "short": "Outputs large emote letters from input text.",
     "description": "Convert a string of letters/numbers into large emote letters (\"regional indicators\")",

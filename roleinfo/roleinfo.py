@@ -1,13 +1,16 @@
 """discord red-bot roleinfo cog"""
 import discord
 from redbot.core import commands
+from redbot.core.bot import Red
 from redbot.core.utils.mod import is_mod_or_superior as is_mod
 
 
 class RoleInfoCog(commands.Cog):
     """Roleinfo cog"""
 
-    def __init__(self, bot):
+    bot: Red
+
+    def __init__(self, bot: Red):
         self.bot = bot
 
     @commands.command("roleinfo")
@@ -27,12 +30,13 @@ class RoleInfoCog(commands.Cog):
 
     async def make_role_embed(self, role: discord.Role) -> discord.Embed:
         """Generate the role info embed"""
-        embed = discord.Embed(title="Role info", colour=role.colour, timestamp=role.created_at)
-        embed.add_field(name="Name", value=role.name)
-        embed.add_field(name="Members", value=len(role.members))
-        embed.add_field(name="Hoist", value="Yes" if role.hoist else "No")
-        embed.add_field(name="Mentionable", value="Yes" if role.mentionable else "No")
-        embed.add_field(name="Position", value=len(role.guild.roles) - role.position)
-        embed.add_field(name="ID", value=role.id)
-        embed.set_footer(text="Created")
-        return embed
+        return (
+            discord.Embed(title="Role info", colour=role.colour)
+            .add_field(name="Name", value=role.name)
+            .add_field(name="Members", value=len(role.members))
+            .add_field(name="Hoist", value="Yes" if role.hoist else "No")
+            .add_field(name="Mentionable", value="Yes" if role.mentionable else "No")
+            .add_field(name="Position", value=len(role.guild.roles) - role.position)
+            .add_field(name="ID", value=role.id)
+            .add_field(name="Created at", value=f"<t:{int(role.created_at.timestamp())}:F>")
+        )

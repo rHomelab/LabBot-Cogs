@@ -118,7 +118,8 @@ Example:
 | Attribute           | Type   | Description                                                                                                      |
 | ------------------- | ------ | ---------------------------------------------------------------------------------------------------------------- |
 | `enabled`           | `bool` | Whether to enable enforcements on a channel                                                                      |
-| `minchars`          | `int`  | How many characters a message must contain to be allowed into the channel                                        |
+| `minchars`          | `int`  | The minimum number of characters a message must contain to be allowed into the channel                           |
+| `maxchars`          | `int`  | The maximum number of characters a message may contain to be allowed into the channel                            |
 | `notext`            | `bool` | The sent message must have _no_ text, i.e. should be an image-only message                                       |
 | `requiremedia`      | `bool` | The sent message must contain an attached image                                                                  |
 | `nomedia`           | `bool` | The sent message must **not** contain an attached image                                                          |
@@ -135,6 +136,7 @@ In which case, the following would be appropriate
 [p]enforcer configure #serverpics requiremedia true
 [p]enforcer configure #serverpics minimumguildage 600
 [p]enforcer configure #serverpics minchars 20
+[p]enforcer configure #serverpics maxchars 300
 [p]enforcer configure enabled true
 ```
 

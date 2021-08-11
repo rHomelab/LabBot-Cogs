@@ -1,5 +1,7 @@
+from redbot.core.bot import Red
+
 from .notes import NotesCog
 
 
-def setup(bot):
+def setup(bot: Red):
     bot.add_cog(NotesCog(bot))
