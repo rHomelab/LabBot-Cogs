@@ -81,7 +81,7 @@ class ReportCog(commands.Cog):
             # Failed to get the channel
             return
 
-        data = self.make_report_embed(ctx, message)
+        data = self.make_report_embed(ctx, message, emergency=False)
         await log.send(embed=data)
 
         confirm = await self.config.guild(ctx.guild).confirmations()
@@ -115,7 +115,7 @@ class ReportCog(commands.Cog):
             # Failed to get the channel
             return
 
-        data = self.make_report_embed(ctx, message)
+        data = self.make_report_embed(ctx, message, emergency=True)
         mod_pings = " ".join([i.mention for i in log.members if not i.bot and str(i.status) in ["online", "idle"]])
         if not mod_pings:  # If no online/idle mods
             mod_pings = " ".join([i.mention for i in log.members if not i.bot])
@@ -170,11 +170,11 @@ class ReportCog(commands.Cog):
             channels.append({"id": str(ctx.channel.id), "allowed": True})
             return True
 
-    def make_report_embed(self, ctx: commands.Context, message: str) -> discord.Embed:
+    def make_report_embed(self, ctx: commands.Context, message: str, emergency: bool) -> discord.Embed:
         """Construct the embed to be sent"""
         return (
             discord.Embed(
-                colour=discord.Colour.orange(),
+                colour=discord.Colour.red() if emergency else discord.Colour.orange(),
                 description=escape(message or "<no message>"),
             )
             .set_author(name="Report", icon_url=ctx.author.avatar_url)
