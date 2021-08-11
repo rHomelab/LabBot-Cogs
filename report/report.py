@@ -3,13 +3,17 @@ from distutils.util import strtobool
 
 import discord
 from redbot.core import Config, checks, commands
+from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import escape
 
 
 class ReportCog(commands.Cog):
     """Report Cog"""
 
-    def __init__(self, bot):
+    bot: Red
+    config: Config
+
+    def __init__(self, bot: Red):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1092901)
 
@@ -141,7 +145,7 @@ class ReportCog(commands.Cog):
         bool_conversion = bool(supported_rules.index(rule.lower()))
 
         async with self.config.guild(ctx.guild).channels() as channels:
-            data = list(filter(lambda c: c["id"] == str(channel.id), channels))
+            data = [c for c in channels if c["id"] == str(channel.id)]
             if data:
                 data[0]["allowed"] = bool_conversion
             else:
@@ -157,7 +161,7 @@ class ReportCog(commands.Cog):
     async def enabled_channel_check(self, ctx: commands.Context) -> bool:
         """Checks that reports/emergency commands are enabled in the current channel"""
         async with self.config.guild(ctx.guild).channels() as channels:
-            channel = list(filter(lambda c: c["id"] == str(ctx.channel.id), channels))
+            channel = [c for c in channels if c["id"] == str(ctx.channel.id)]
 
             if channel:
                 return channel[0]["allowed"]
@@ -166,26 +170,28 @@ class ReportCog(commands.Cog):
             channels.append({"id": str(ctx.channel.id), "allowed": True})
             return True
 
-    def make_report_embed(self, ctx: commands.Context, message: str):
+    def make_report_embed(self, ctx: commands.Context, message: str) -> discord.Embed:
         """Construct the embed to be sent"""
-        data = discord.Embed(
-            colour=discord.Colour.orange(),
-            description=escape(message or "<no message>"),
-            timestamp=ctx.message.created_at,
+        return (
+            discord.Embed(
+                colour=discord.Colour.orange(),
+                description=escape(message or "<no message>"),
+            )
+            .set_author(name="Report", icon_url=ctx.author.avatar_url)
+            .add_field(name="Reporter", value=ctx.author.mention)
+            .add_field(name="Channel", value=ctx.channel.mention)
+            .add_field(name="Timestamp", value=f"<t:{int(ctx.message.created_at.timestamp())}:F>")
         )
-        data.set_author(name="Report", icon_url=ctx.author.avatar_url)
-        data.add_field(name="Reporter", value=ctx.author.mention)
-        data.add_field(name="Channel", value=ctx.channel.mention)
-        return data
 
     def make_reporter_reply(self, ctx: commands.Context, message: str, emergency: bool) -> discord.Embed:
         """Construct the reply embed to be sent"""
-        data = discord.Embed(
-            colour=discord.Colour.red() if emergency else discord.Colour.orange(),
-            description=escape(message or "<no message>"),
-            timestamp=ctx.message.created_at,
+        return (
+            discord.Embed(
+                colour=discord.Colour.red() if emergency else discord.Colour.orange(),
+                description=escape(message or "<no message>"),
+            )
+            .set_author(name="Report Received", icon_url=ctx.author.avatar_url)
+            .add_field(name="Server", value=ctx.guild.name)
+            .add_field(name="Channel", value=ctx.channel.mention)
+            .add_field(name="Timestamp", value=f"<t:{int(ctx.message.created_at.timestamp())}:F>")
         )
-        data.set_author(name="Report Received", icon_url=ctx.author.avatar_url)
-        data.add_field(name="Server", value=ctx.guild.name)
-        data.add_field(name="Channel", value=ctx.channel.mention)
-        return data

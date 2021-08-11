@@ -231,22 +231,22 @@ class NotesCog(commands.Cog):
         - `[p]notes list`
         """
         user_id = getattr(user, "id", user)
+
+        def note_to_dict(note: dict) -> dict:
+            return {
+                "id": note["id"],
+                "member": ctx.guild.get_member(note["member"]) or note["member"],
+                "modname": getattr(ctx.guild.get_member(note["reporter"]), "name", note["reporterstr"]),
+                "display_time": int(note["date"]),
+                "date": note["date"],
+                "message": note["message"],
+            }
+
         async with self.config.guild(ctx.guild).notes() as discord_notes:
             notes = [
-                f"""📝#{note["id"]} **{note["member"]} - Added by {note["modname"]}** - {note["display_time"]}\n {note["message"]}"""
+                f"""📝#{note["id"]} **{note["member"]} - Added by {note["modname"]}** - <t:{note["display_time"]}:F>\n {note["message"]}"""
                 for note in sorted(
-                    [
-                        {
-                            "id": i["id"],
-                            "member": ctx.guild.get_member(i["member"]) or i["member"],
-                            "modname": getattr(ctx.guild.get_member(i["reporter"]), "name", i["reporterstr"]),
-                            "display_time": dt.utcfromtimestamp(i["date"]).strftime("%Y-%m-%d %H:%M:%SZ"),
-                            "date": i["date"],
-                            "message": i["message"],
-                        }
-                        for i in (filter(lambda n: n["member"] == user_id, discord_notes) if user else discord_notes)
-                        if not i["deleted"]
-                    ],
+                    [note_to_dict(n) for n in discord_notes if n["member"] == user_id and not n["deleted"]],
                     key=lambda n: n["date"],
                     reverse=True,
                 )
@@ -254,20 +254,9 @@ class NotesCog(commands.Cog):
 
         async with self.config.guild(ctx.guild).warnings() as discord_warnings:
             warnings = [
-                f"""⚠️#{note["id"]} **{note["member"]} - Added by {note["modname"]}** - {note["display_time"]}\n {note["message"]}"""
+                f"""⚠️#{note["id"]} **{note["member"]} - Added by {note["modname"]}** - <t:{note["display_time"]}:F>\n {note["message"]}"""
                 for note in sorted(
-                    [
-                        {
-                            "id": i["id"],
-                            "member": ctx.guild.get_member(i["member"]) or i["member"],
-                            "modname": getattr(ctx.guild.get_member(i["reporter"]), "name", i["reporterstr"]),
-                            "display_time": dt.utcfromtimestamp(i["date"]).strftime("%Y-%m-%d %H:%M:%SZ"),
-                            "date": i["date"],
-                            "message": i["message"],
-                        }
-                        for i in (filter(lambda n: n["member"] == user_id, discord_warnings) if user else discord_warnings)
-                        if not i["deleted"]
-                    ],
+                    [note_to_dict(n) for n in discord_warnings if n["member"] == user_id and not n["deleted"]],
                     key=lambda n: n["date"],
                     reverse=True,
                 )
@@ -281,9 +270,9 @@ class NotesCog(commands.Cog):
         embeds = [
             discord.Embed(
                 title=(
-                    f"Notes for {user} - {len(warnings)} " + f"warnings, {len(notes)} notes"
+                    f"Notes for {user} - {len(warnings)} warnings, {len(notes)} notes"
                     if user
-                    else f"All notes and warnings - {len(warnings)} " + f"warnings, {len(notes)} notes"
+                    else f"All notes and warnings - {len(warnings)} warnings, {len(notes)} notes"
                 ),
                 description=page,
                 colour=await ctx.embed_colour(),
