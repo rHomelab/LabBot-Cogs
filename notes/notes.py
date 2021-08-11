@@ -4,6 +4,7 @@ from datetime import datetime as dt
 
 import discord
 from redbot.core import Config, checks, commands
+from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.menus import close_menu, menu, next_page, prev_page
 from redbot.core.utils.mod import is_admin_or_superior
@@ -14,7 +15,10 @@ CUSTOM_CONTROLS = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_pag
 class NotesCog(commands.Cog):
     """Notes Cog"""
 
-    def __init__(self, bot):
+    bot: Red
+    config: Config
+
+    def __init__(self, bot: Red):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=127318281)
 
