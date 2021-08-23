@@ -5,7 +5,7 @@ from typing import List, Optional
 
 import discord
 import Levenshtein as lev
-from redbot.core import Config, commands, checks
+from redbot.core import Config, checks, commands
 from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.menus import close_menu, menu, next_page, prev_page
 from redbot.core.utils.mod import is_mod_or_superior
