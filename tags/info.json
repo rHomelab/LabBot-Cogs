@@ -1,0 +1,17 @@
+{
+    "author": [
+        "Issy"
+    ],
+    "short": "Store content for future retrieval.",
+    "description": "Store content for future retrieval.",
+    "disabled": false,
+    "name": "tags",
+    "tags": [
+        "fun",
+        "utility"
+    ],
+    "install_msg": "See how to use this cog with [p]help tag",
+    "requirements": [
+        "python-Levenshtein"
+    ]
+}

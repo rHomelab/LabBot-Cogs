@@ -1,0 +1,366 @@
+import random
+import re
+import time
+from collections import Counter
+from typing import List
+
+import discord
+import Levenshtein as lev
+from redbot.core import Config, commands
+from redbot.core.utils.chat_formatting import pagify
+from redbot.core.utils.menus import close_menu, menu, next_page, prev_page
+from redbot.core.utils.mod import is_mod_or_superior
+
+from .exceptions import CanNotManageTag, TagNotFound
+
+CUSTOM_CONTROLS = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}
+
+
+class TagNameConverter(commands.clean_content):
+    async def convert(self, ctx: commands.Context, argument: str) -> str:
+        converted = await super().convert(ctx, argument.lower())
+        lowered = converted.lower().strip()
+
+        if not lowered:
+            raise commands.BadArgument("Missing tag name.")
+
+        if len(lowered) > 100:
+            raise commands.BadArgument("Tag name is a maximum of 100 characters.")
+
+        first_word = lowered.split()[0]
+
+        # get tag command.
+        root = ctx.bot.get_command("tag")
+        if first_word in root.all_commands:
+            raise commands.BadArgument("This tag name starts with a reserved word.")
+
+        return lowered
+
+
+class TagsCog(commands.Cog):
+    config: Config
+
+    def __init__(self):
+        self.config = Config.get_conf(self, identifier=377212919068229633)
+
+        default_guild_config = {
+            "aliases": [],  # {source: str, target: str (tag.id)}
+            "tags": [],  # {id: str, name: str, content: str, author: {id: int, username: str (user.name + '#' + user.discriminator)}}
+            "usage": [],  # {tag_id: str (tag.id), user_id: int (user.id)}
+        }
+
+        self.config.register_guild(**default_guild_config)
+
+    # Command groups
+
+    @commands.guild_only
+    @commands.group(name="tag", invoke_without_command=True)
+    async def tag_group(self, ctx: commands.Context, *, tag_name: TagNameConverter):
+        """
+        Allows you to tag text for later retrieval.
+        If a subcommand is not called, then this will search the tag database
+        for the tag requested.
+        """
+
+        try:
+            tag = await self.get_tag(ctx.guild, tag_name)
+        except TagNotFound as error:
+            return await ctx.send(error)
+
+        await ctx.send(tag["content"])
+
+        # update the usage
+        await self.update_tag_usage(ctx, tag)
+
+    @tag_group.group(name="alias")
+    async def tag_alias(self, ctx: commands.Context):
+        pass
+
+    @tag_group.group(name="create", aliases=["add", "new"])
+    async def tag_create(self, ctx: commands.Command, tag_name: TagNameConverter, *, tag_content: str):
+        """Creates a tag for later reference"""
+        try:
+            # Check if tag already exists
+            await self.get_tag(ctx.guild, tag_name)
+            return await ctx.send("A tag already exists with this name.")
+        except TagNotFound:
+            # Tag does not already exist
+            pass
+
+        async with self.config.guild(ctx.guild).tags() as tags:
+            tags.append(
+                {
+                    "id": self.generate_tag_id(ctx),
+                    "name": tag_name,
+                    "content": tag_content,
+                    "author": {"id": ctx.author.id, "username": str(ctx.author)},
+                }
+            )
+
+        await ctx.send("Tag created.")
+
+    # Commands
+
+    @tag_group.command(name="stats")
+    async def tag_stats(self, ctx: commands.Context, stats_target: discord.Member = None):
+        tags = await self.config.guild(ctx.guild).tags()
+        usage = await self.config.guild(ctx.guild).usage()
+
+        def get_tag_by_id(tag_id: str) -> dict:
+            # Tags are guaranteed to exist if they are referenced in usage
+            return [t for t in tags if t["id"] == tag_id][0]
+
+        def get_tag_usage_count(tag_id: str) -> int:
+            return len([u for u in usage if u["tag_id"] == tag_id])
+
+        # Guild tag stats
+        if not stats_target:
+
+            top_tags = "\n".join(
+                f"""**{i}.** {get_tag_by_id(elem[0])["name"]} ({elem[1]} uses)"""
+                for i, elem in enumerate(
+                    sorted(Counter([u["tag_id"] for u in usage]).items(), key=lambda i: i[1], reverse=True)[:3], start=1
+                )
+            )
+            top_users = "\n".join(
+                f"""**{i}.** <@{elem[0]}> ({elem[1]} uses)"""
+                for i, elem in enumerate(
+                    sorted(Counter([u["user_id"] for u in usage]).items(), key=lambda i: i[1], reverse=True)[:3], start=1
+                )
+            )
+            top_creators = "\n".join(
+                f"""**{i}.** <@{elem[0]}> ({elem[1]} tags)"""
+                for i, elem in enumerate(
+                    sorted(Counter([t["author"]["id"] for t in tags]).items(), key=lambda i: i[1], reverse=True)[:3],
+                    start=1,
+                )
+            )
+
+            embed = (
+                discord.Embed(
+                    title="Tag stats", description=f"{len(tags)} tags, {len(usage)} tag uses", colour=await ctx.embed_colour()
+                )
+                .add_field(name="Top tags", value=top_tags or "None", inline=False)
+                .add_field(name="Top users", value=top_users or "None", inline=False)
+                .add_field(name="Top creators", value=top_creators or "None", inline=False)
+            )
+            return await ctx.send(embed=embed)
+
+        # Member tag stats
+        elif isinstance(stats_target, discord.Member):
+            owned_tags: List[dict] = [t for t in tags if t["author"]["id"] == stats_target.id]
+            owned_tag_uses: int = sum([get_tag_usage_count(t) for t in owned_tags])
+            tag_cmd_uses: int = len([u for u in usage if u["user_id"] == stats_target.id])
+            top_owned_tags = "\n".join(
+                f"""**{i}.** {get_tag_by_id(elem[0])["name"]} ({elem[1]} uses)"""
+                for i, elem in enumerate(
+                    sorted(
+                        Counter([u["tag_id"] for u in usage if u["tag_id"] in [t["id"] for t in owned_tags]]).items(),
+                        key=lambda i: i[1],
+                        reverse=True,
+                    )[:3],
+                    start=1,
+                )
+            )
+
+            embed = (
+                discord.Embed(colour=await ctx.embed_colour())
+                .set_author(name=f"{stats_target.name}#{stats_target.discriminator}", icon_url=stats_target.avatar_url)
+                .add_field(name="Owned tags", value=owned_tags)
+                .add_field(name="Owned tag uses", value=owned_tag_uses)
+                .add_field(name="Tag command uses", value=tag_cmd_uses)
+                .add_field(name="Top owned tags", value=top_owned_tags)
+            )
+            return await ctx.send(embed=embed)
+
+    @tag_group.command(name="info")
+    async def tag_info(self, ctx: commands.Context, tag_name: TagNameConverter):
+        """View info about a tag"""
+        try:
+            tag = await self.get_tag(ctx.guild, tag_name)
+        except TagNotFound as error:
+            return await ctx.send(error)
+
+        usage = await self.config.guild(ctx.guild).usage()
+        aliases = await self.config.guild(ctx.guild).aliases()
+        tag_aliases = "\n".join(a["source"] for a in aliases if a["target"] == tag["id"])
+
+        embed = (
+            discord.Embed(title=tag["name"], colour=await ctx.embed_colour())
+            .add_field(name="Owner", value=f"""<@{tag["author"]["id"]}>""")
+            .add_field(name="Uses", value=len([u for u in usage if u["tag_id"] == tag["id"]]))
+            .add_field(name="Rank", value=await self.get_tag_rank(ctx.guild, tag["id"]))
+            .add_field(name="Aliases", value=tag_aliases or None)
+        )
+        await ctx.send(embed)
+
+    @tag_alias.command(name="create", aliases=["add"])
+    async def tag_alias_create(self, ctx: commands.Context, alias: TagNameConverter, *, target_name: TagNameConverter):
+        # Check that tag exists
+        try:
+            tag = await self.get_tag(ctx.guild, target_name)
+        except TagNotFound as error:
+            return await ctx.send(error)
+
+        async with self.config.guild(ctx.guild).aliases() as aliases:
+            # Check that alias name isn't already taken (by alias or tag)
+            try:
+                await self.get_tag(ctx.guild, alias)
+                return await ctx.send("This name is already taken.")
+            except TagNotFound:
+                # Name not already taken
+                pass
+
+            if [a for a in aliases if a["source"] == alias]:
+                return await ctx.send("This name is already taken.")
+
+            aliases.append({"source": alias, "target": tag["id"]})
+
+        await ctx.send(f"Alias `{alias}` -> `{target_name}` added.")
+
+    @tag_group.command(name="edit")
+    async def tag_edit(self, ctx: commands.Context, tag_name: TagNameConverter, new_content: str):
+        """
+        Edit a tag you own.
+        Make sure you save a copy of the old content, because you can't rollback your edits.
+        """
+        try:
+            tag = await self.get_tag(ctx.guild, tag_name)
+        except TagNotFound as error:
+            return await ctx.send(error)
+
+        if tag["author"]["id"] != ctx.author.id:
+            return await ctx.send(CanNotManageTag())
+
+        async with self.config.guild(ctx.guild).tags() as tags:
+            tag_match = [t for t in tags if t["id"] == tag["id"]]
+            if not tag_match:
+                # Tag not found for some reason.
+                # This should only happen in extreme edge cases caused by race conditions.
+                return await ctx.send(TagNotFound())
+
+            (tag_match,) = tag_match  # Extract the tag from the list
+            tag_match.update({"content": new_content})
+            await ctx.send("Tag content updated.")
+
+    @tag_group.command(name="delete", aliases=["remove"])
+    async def tag_delete(self, ctx: commands.Context, tag_name: TagNameConverter):
+        """
+        Deletes a tag, along with all aliases pointing to said tag.
+        """
+        try:
+            tag = await self.get_tag(ctx.guild, tag_name)
+        except TagNotFound as error:
+            return await ctx.send(error)
+
+        # Only the tag owner or guild moderators can delete a tag
+        can_manage_tag = (tag["author"]["id"] == ctx.author.id) or (await is_mod_or_superior(ctx.bot, ctx.author))
+        if not can_manage_tag:
+            return await ctx.send(CanNotManageTag())
+
+        await self.delete_tag(ctx.guild, tag["id"])
+        await ctx.send("Tag deleted.")
+
+    @tag_group.command(name="search")
+    async def tag_search(self, ctx: commands.Context, *, search_term: TagNameConverter):
+        """Search for a tag by name."""
+
+        def remove_whitespace(input_string: str) -> str:
+            return "".join(input_string.split())
+
+        def search_match(search_term: str, arg: str) -> bool:
+            arg = remove_whitespace(arg)
+            return (search_term in arg) or (lev.distance(search_term, arg) <= len(search_term) / 5)
+
+        tags = await self.config.guild(ctx.guild).tags()
+        modified_term = remove_whitespace(search_term)
+        matched_tags = [t["name"] for t in tags if search_match(modified_term, t["name"])]
+        if not matched_tags:
+            return await ctx.send("No tags found matching this search.")
+
+        pages = list(pagify("\n".join(f"**{i}.** {elem}" for i, elem in enumerate(matched_tags, start=1)), shorten_by=58))
+        embeds = [
+            (
+                discord.Embed(title=f"Tag search results", description=page, colour=await ctx.embed_colour()).set_footer(
+                    text=f"{i} of {len(pages)}"
+                )
+            )
+            for i, page in enumerate(pages, start=1)
+        ]
+        if len(embeds) == 1:
+            await ctx.send(embed=embeds)
+        elif len(embeds) > 1:
+            await menu(ctx, pages=embeds, controls=CUSTOM_CONTROLS)
+
+    # Helper functions
+
+    async def get_tag(self, guild: discord.Guild, name: str, *, check_aliases: bool = True) -> dict:
+        """
+        Retrieves a tag from config by name or alias name.
+        Raises TagNotFound
+        """
+        try:
+            tags = await self.config.guild(guild).tags()
+            matched_tag = [t for t in tags if t["name"] == name]
+            if matched_tag:
+                return matched_tag[0]
+
+            assert check_aliases == True
+
+            aliases = await self.config.guild(guild).aliases()
+            matched_alias = [t for t in aliases if t["source"] == name]
+
+            assert len(matched_alias) == 1
+
+            return await self.get_tag_by_id(guild, matched_alias[0]["target"])
+        except AssertionError:
+            raise TagNotFound
+
+    async def get_tag_by_id(self, guild: discord.Guild, tag_id: int) -> dict:
+        """
+        Retrieves a tag from the database by tag ID.
+        Raises TagNotFound
+        """
+        tags = await self.config.guild(guild).tags()
+        tag_match = [t for t in tags if t["id"] == tag_id]
+        if tag_match:
+            return tag_match[0]
+        else:
+            raise TagNotFound
+
+    async def update_tag_usage(self, ctx: commands.Context, tag: dict):
+        """Logs when someone uses a tag"""
+        async with self.config.guild(ctx.guild).tag_usage() as usage:
+            usage.append({"tag_id": tag["id"], "user_id": str(ctx.author.id)})
+
+    async def delete_tag(self, guild: discord.Guild, tag_id: str):
+        """Deletes a tag and any references to a tag from the DB"""
+        # Remove tag from tags list
+        async with self.config.guild(guild).tags() as tags:
+            tags = [t for t in tags if t["id"] != tag_id]
+        # Remove all usage occurrences related to the tag
+        async with self.config.guild(guild).usage() as usage:
+            usage = [u for u in usage if u["tag_id"] != tag_id]
+        # Remove all aliases pointing to the tag
+        async with self.config.guild(guild).aliases() as aliases:
+            aliases = [a for a in aliases if a["target"] != tag_id]
+
+    def generate_tag_id(self, ctx: commands.Context) -> str:
+        """Generates a random ID seeded from context information and current time."""
+        state = random.getstate()
+        random.seed(f"{ctx.guild.id}{ctx.channel.id}{ctx.author.id}")
+        uuid = f"""{int(time.time())}{str(random.randint(0, 99999999)).rjust(8, "0")}"""
+        random.setstate(state)
+        return uuid
+
+    async def get_tag_rank(self, guild: discord.Guild, tag_id: str) -> int:
+        """
+        Fetches the rank of the tag given, based on how many times it has been used compared to all other tags in the guild.
+        """
+        usage = await self.config.guild(guild).usage()
+        # Number of occurrences for each tag in usage
+        counts = Counter([u["tag_id"] for u in usage])
+        tag_count = counts.get(tag_id, 0)
+        # All unique counts, sorted highest - lowest
+        unique_counts = sorted(set(counts.values()), reverse=True)
+        return (unique_counts.index(tag_count) if tag_count in unique_counts else len(unique_counts)) + 1
