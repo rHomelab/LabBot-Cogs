@@ -1,12 +1,11 @@
 import random
-import re
 import time
 from collections import Counter
-from typing import List
+from typing import List, Optional
 
 import discord
 import Levenshtein as lev
-from redbot.core import Config, commands
+from redbot.core import Config, commands, checks
 from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.menus import close_menu, menu, next_page, prev_page
 from redbot.core.utils.mod import is_mod_or_superior
@@ -47,9 +46,120 @@ class TagsCog(commands.Cog):
             "aliases": [],  # {source: str, target: str (tag.id)}
             "tags": [],  # {id: str, name: str, content: str, author: {id: int, username: str (user.name + '#' + user.discriminator)}}
             "usage": [],  # {tag_id: str (tag.id), user_id: int (user.id)}
+            "log_channel": None,  # int (channel.id)
         }
 
         self.config.register_guild(**default_guild_config)
+
+    # Events
+
+    @commands.Cog.listener()
+    async def on_tag_create(self, ctx: commands.Context, tag: dict):
+        log_channel = await self.get_log_channel(ctx.guild)
+        if not log_channel:
+            return
+
+        log_embed = (
+            discord.Embed(title="Tag created", description=tag["content"], colour=await ctx.embed_colour())
+            .add_field(name="Author", value=ctx.author.mention)
+            .add_field(name="Tag ID", value=tag["id"])
+        )
+        await log_channel.send(embed=log_embed)
+
+    @commands.Cog.listener()
+    async def on_tag_delete(self, ctx: commands.Context, tag: dict, aliases: List[str]):
+        log_channel = await self.get_log_channel(ctx.guild)
+        if not log_channel:
+            return
+
+        log_embed = (
+            discord.Embed(title="Tag deleted", description=tag["content"], colour=discord.Colour.red())
+            .add_field(name="Name", value=tag["name"])
+            .add_field(name="Aliases", value="\n".join(aliases) or None)
+            .add_field(name="Deleted by", value=ctx.author.mention)
+        )
+        await log_channel.send(embed=log_embed)
+
+    @commands.Cog.listener()
+    async def on_tag_transfer(self, ctx: commands.Context, old_owner: dict, new_owner: discord.Member):
+        log_channel = await self.get_log_channel(ctx.guild)
+        if not log_channel:
+            return
+
+        if new_owner == ctx.author:
+            log_embed = (
+                discord.Embed(title="Tag claimed", colour=await ctx.embed_colour())
+                .add_field(name="Previous owner", value=f"""{old_owner["username"]}\n<@{old_owner["id"]}>""")
+                .add_field(name="Claimed by", value=new_owner.mention)
+            )
+        else:
+            log_embed = (
+                discord.Embed(title="Tag ownership transferred", colour=await ctx.embed_colour())
+                .add_field(name="Previous owner", value=f"""{old_owner["username"]}\n<@{old_owner["id"]}>""")
+                .add_field(name="New owner", value=new_owner.mention)
+                .add_field(name="Transferred by", value=ctx.author.mention)
+            )
+        await log_channel.send(embed=log_embed)
+
+    @commands.Cog.listener()
+    async def on_tag_edit(self, ctx: commands.Context, tag: dict, old_content):
+        log_channel = await self.get_log_channel(ctx.guild)
+        if not log_channel:
+            return
+
+        def shorten_to(input_str: str, length: int) -> str:
+            return f"{input_str[:length - 3]}..." if len(input_str) > length else input_str[:length]
+
+        log_embed = discord.Embed(
+            title="Tag edited",
+            description=f"""
+            **Before**
+            {shorten_to(old_content, 2037)}
+            **After**
+            {shorten_to(tag["content"], 2037)}
+            """,
+            colour=await ctx.embed_colour(),
+        )
+        await log_channel.send(embed=log_embed)
+
+    @commands.Cog.listener()
+    async def on_tag_rename(self, ctx: commands.Context, old_name: str, new_name: str):
+        log_channel = await self.get_log_channel(ctx.guild)
+        if not log_channel:
+            return
+
+        log_embed = (
+            discord.Embed(title="Tag renamed", colour=await ctx.embed_colour())
+            .add_field(name="Before", value=old_name)
+            .add_field(name="After", value=new_name)
+        )
+        await log_channel.send(embed=log_embed)
+
+    @commands.Cog.listener()
+    async def on_tag_alias_create(self, ctx: commands.Context, alias_name: str, tag_name: str):
+        log_channel = await self.get_log_channel(ctx.guild)
+        if not log_channel:
+            return
+
+        log_embed = (
+            discord.Embed(title="Tag alias created", colour=await ctx.embed_colour())
+            .add_field(name="Alias", value=alias_name)
+            .add_field(name="Tag", value=tag_name)
+        )
+        await log_channel.send(embed=log_embed)
+
+    @commands.Cog.listener()
+    async def on_tag_alias_delete(self, ctx: commands.Context, alias_name: str, tag_name: str):
+        log_channel = await self.get_log_channel(ctx.guild)
+        if not log_channel:
+            return
+
+        log_embed = (
+            discord.Embed(title="Tag alias removed", colour=await ctx.embed_colour())
+            .add_field(name="Alias", value=alias_name)
+            .add_field(name="Tag", values=tag_name)
+        )
+        await log_channel.send(embed=log_embed)
 
     # Command groups
 
@@ -61,7 +171,6 @@ class TagsCog(commands.Cog):
         If a subcommand is not called, then this will search the tag database
         for the tag requested.
         """
-
         try:
             tag = await self.get_tag(ctx.guild, tag_name)
         except TagNotFound as error:
@@ -79,25 +188,28 @@ class TagsCog(commands.Cog):
     @tag_group.group(name="create", aliases=["add", "new"])
     async def tag_create(self, ctx: commands.Command, tag_name: TagNameConverter, *, tag_content: str):
         """Creates a tag for later reference"""
+        # Check if tag already exists
         try:
-            # Check if tag already exists
             await self.get_tag(ctx.guild, tag_name)
-            return await ctx.send("A tag already exists with this name.")
         except TagNotFound:
             # Tag does not already exist
             pass
+        else:
+            # Tag already exists
+            return await ctx.send("A tag already exists with this name.")
 
         async with self.config.guild(ctx.guild).tags() as tags:
-            tags.append(
-                {
-                    "id": self.generate_tag_id(ctx),
-                    "name": tag_name,
-                    "content": tag_content,
-                    "author": {"id": ctx.author.id, "username": str(ctx.author)},
-                }
-            )
+            tag = {
+                "id": self.generate_tag_id(ctx),
+                "name": tag_name,
+                "content": tag_content,
+                "author": {"id": ctx.author.id, "username": str(ctx.author)},
+            }
+
+            tags.append(tag)
 
         await ctx.send("Tag created.")
+        ctx.bot.dispatch("tag_create", ctx, tag)
 
     # Commands
 
@@ -205,11 +317,13 @@ class TagsCog(commands.Cog):
         async with self.config.guild(ctx.guild).aliases() as aliases:
             # Check that alias name isn't already taken (by alias or tag)
             try:
-                await self.get_tag(ctx.guild, alias)
-                return await ctx.send("This name is already taken.")
+                tag = await self.get_tag(ctx.guild, alias)
             except TagNotFound:
                 # Name not already taken
                 pass
+            else:
+                # Name already taken
+                return await ctx.send("This name is already taken.")
 
             if [a for a in aliases if a["source"] == alias]:
                 return await ctx.send("This name is already taken.")
@@ -217,6 +331,7 @@ class TagsCog(commands.Cog):
             aliases.append({"source": alias, "target": tag["id"]})
 
         await ctx.send(f"Alias `{alias}` -> `{target_name}` added.")
+        ctx.bot.dispatch("tag_alias_create", ctx, tag)
 
     @tag_group.command(name="edit")
     async def tag_edit(self, ctx: commands.Context, tag_name: TagNameConverter, new_content: str):
@@ -233,15 +348,11 @@ class TagsCog(commands.Cog):
             return await ctx.send(CanNotManageTag())
 
         async with self.config.guild(ctx.guild).tags() as tags:
-            tag_match = [t for t in tags if t["id"] == tag["id"]]
-            if not tag_match:
-                # Tag not found for some reason.
-                # This should only happen in extreme edge cases caused by race conditions.
-                return await ctx.send(TagNotFound())
-
-            (tag_match,) = tag_match  # Extract the tag from the list
+            (tag_match,) = [t for t in tags if t["id"] == tag["id"]]
+            old_content = tag_match["content"]
             tag_match.update({"content": new_content})
             await ctx.send("Tag content updated.")
+            ctx.bot.dispatch("tag_edit", ctx, tag_match, old_content)
 
     @tag_group.command(name="delete", aliases=["remove"])
     async def tag_delete(self, ctx: commands.Context, tag_name: TagNameConverter):
@@ -258,8 +369,18 @@ class TagsCog(commands.Cog):
         if not can_manage_tag:
             return await ctx.send(CanNotManageTag())
 
-        await self.delete_tag(ctx.guild, tag["id"])
+        # Remove tag from tags list
+        async with self.config.guild(ctx.guild).tags() as tags:
+            tags = [t for t in tags if t["id"] != tag["id"]]
+        # Remove all usage occurrences related to the tag
+        async with self.config.guild(ctx.guild).usage() as usage:
+            usage = [u for u in usage if u["tag_id"] != tag["id"]]
+        # Remove all aliases pointing to the tag
+        async with self.config.guild(ctx.guild).aliases() as aliases:
+            aliases_to_be_deleted = [a["source"] for a in aliases if a["target"] == tag["id"]]
+            aliases = [a for a in aliases if a["source"] in aliases_to_be_deleted]
         await ctx.send("Tag deleted.")
+        ctx.bot.dispatch("tag_delete", ctx, tag, aliases_to_be_deleted)
 
     @tag_group.command(name="search")
     async def tag_search(self, ctx: commands.Context, *, search_term: TagNameConverter):
@@ -292,7 +413,67 @@ class TagsCog(commands.Cog):
         elif len(embeds) > 1:
             await menu(ctx, pages=embeds, controls=CUSTOM_CONTROLS)
 
+    @tag_group.command(name="claim")
+    async def tag_claim(self, ctx: commands.Context, tag_name: TagNameConverter):
+        """Claim a tag if the owner of the tag has left the server"""
+        try:
+            tag = await self.get_tag(ctx.guild, tag_name)
+        except TagNotFound as error:
+            return await ctx.send(error)
+
+        try:
+            ctx.guild.fetch_member(tag["author"]["id"])
+        except discord.HTTPException:
+            # Member not found
+            pass
+        else:
+            # Member is in guild
+            return await ctx.send("You can only claim a tag if the tag owner has left the server.")
+
+        async with self.config.guild(ctx.guild).tags() as tags:
+            (tag_match,) = [t for t in tags if t["id"] == tag["id"]]
+            old_owner = tag_match["author"].copy()
+            tag_match.update({"author": {"id": ctx.author.id, "username": str(ctx.author)}})
+            await ctx.send("Tag claimed.")
+            ctx.bot.dispatch("tag_transfer", ctx, old_owner, ctx.author)
+
+    @tag_group.command(name="transfer")
+    async def tag_transfer(self, ctx: commands.Context, tag_name: TagNameConverter, new_owner: discord.Member):
+        """Transfer ownership of a tag to someone else."""
+        try:
+            tag = await self.get_tag(ctx.guild, tag_name)
+        except TagNotFound as error:
+            return await ctx.send(error)
+
+        can_manage_tag = (tag["author"]["id"] == ctx.author.id) or (await is_mod_or_superior(ctx.bot, ctx.author))
+        if not can_manage_tag:
+            return await ctx.send(CanNotManageTag())
+
+        async with self.config.guild(ctx.guild).tags() as tags:
+            (tag_match,) = [t for t in tags if t["id"] == tag["id"]]
+            old_owner = tag_match["author"].copy()
+            tag_match.update({"author": {"id": new_owner.id, "username": str(new_owner)}})
+            await ctx.send(f"Tag transferred to {new_owner.mention}", allowed_mentions=discord.AllowedMentions.none)
+            ctx.bot.dispatch("tag_transfer", ctx, old_owner, new_owner)
+
+    @checks.mod()
+    @tag_group.command(name="logchannel")
+    async def tag_logchannel(self, ctx: commands.Context, channel: discord.TextChannel):
+        """Configure the log channel for this cog."""
+        perms: discord.Permissions = channel.permissions_for(ctx.guild.me)
+        if not all([perms.send_messages, perms.embed_links]):
+            return await ctx.send("I need permission to send messages and embed links in the log channel")
+
+        await self.config.guild(ctx.guild).logchannel.set(channel.id)
+        await ctx.tick()
+
     # Helper functions
+
+    async def get_log_channel(self, guild: discord.Guild) -> Optional[discord.TextChannel]:
+        log_channel_id = await self.config.guild(guild).log_channel()
+        if not log_channel_id:
+            return None
+        return guild.get_channel(log_channel_id)
 
     async def get_tag(self, guild: discord.Guild, name: str, *, check_aliases: bool = True) -> dict:
         """
@@ -332,18 +513,6 @@ class TagsCog(commands.Cog):
         """Logs when someone uses a tag"""
         async with self.config.guild(ctx.guild).tag_usage() as usage:
             usage.append({"tag_id": tag["id"], "user_id": str(ctx.author.id)})
-
-    async def delete_tag(self, guild: discord.Guild, tag_id: str):
-        """Deletes a tag and any references to a tag from the DB"""
-        # Remove tag from tags list
-        async with self.config.guild(guild).tags() as tags:
-            tags = [t for t in tags if t["id"] != tag_id]
-        # Remove all usage occurrences related to the tag
-        async with self.config.guild(guild).usage() as usage:
-            usage = [u for u in usage if u["tag_id"] != tag_id]
-        # Remove all aliases pointing to the tag
-        async with self.config.guild(guild).aliases() as aliases:
-            aliases = [a for a in aliases if a["target"] != tag_id]
 
     def generate_tag_id(self, ctx: commands.Context) -> str:
         """Generates a random ID seeded from context information and current time."""
