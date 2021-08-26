@@ -2,7 +2,7 @@ import random
 import time
 from collections import Counter
 from typing import List, Optional
-
+import math
 import discord
 import Levenshtein as lev
 from redbot.core import Config, checks, commands
@@ -10,9 +10,9 @@ from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.menus import close_menu, menu, next_page, prev_page
 from redbot.core.utils.mod import is_mod_or_superior
 
-from .exceptions import CanNotManageTag, TagNotFound
+from .exceptions import CanNotManageTag, TagNotFound, TagConversionFailed
 
-CUSTOM_CONTROLS = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}
+MENU_CONTROLS = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}
 
 
 class TagNameConverter(commands.clean_content):
@@ -36,6 +36,17 @@ class TagNameConverter(commands.clean_content):
         return lowered
 
 
+class TagConverter(commands.Converter):
+    async def convert(self, ctx: commands.Context, argument: str) -> dict:
+        tag_name = TagNameConverter().convert(ctx, argument)
+        cog = ctx.cog
+        try:
+            tag = await cog.get_tag(ctx.guild, tag_name)
+            return tag
+        except TagNotFound:
+            raise TagConversionFailed
+
+
 class TagsCog(commands.Cog):
     config: Config
 
@@ -46,6 +57,7 @@ class TagsCog(commands.Cog):
             "aliases": [],  # {source: str, target: str (tag.id)}
             "tags": [],  # {id: str, name: str, content: str, author: {id: int, username: str (user.name + '#' + user.discriminator)}}
             "usage": [],  # {tag_id: str (tag.id), user_id: int (user.id)}
+            "blocked_members": [],  # {id: int, username: str (user.name + '#' + user.discriminator)}
             "log_channel": None,  # int (channel.id)
         }
 
@@ -165,17 +177,12 @@ class TagsCog(commands.Cog):
 
     @commands.guild_only
     @commands.group(name="tag", invoke_without_command=True)
-    async def tag_group(self, ctx: commands.Context, *, tag_name: TagNameConverter):
+    async def tag_group(self, ctx: commands.Context, *, tag: TagConverter):
         """
         Allows you to tag text for later retrieval.
         If a subcommand is not called, then this will search the tag database
         for the tag requested.
         """
-        try:
-            tag = await self.get_tag(ctx.guild, tag_name)
-        except TagNotFound as error:
-            return await ctx.send(error)
-
         await ctx.send(tag["content"])
 
         # update the usage
@@ -191,12 +198,10 @@ class TagsCog(commands.Cog):
         # Check if tag already exists
         try:
             await self.get_tag(ctx.guild, tag_name)
+            return await ctx.send("A tag already exists with this name.")
         except TagNotFound:
             # Tag does not already exist
             pass
-        else:
-            # Tag already exists
-            return await ctx.send("A tag already exists with this name.")
 
         async with self.config.guild(ctx.guild).tags() as tags:
             tag = {
@@ -286,13 +291,8 @@ class TagsCog(commands.Cog):
             return await ctx.send(embed=embed)
 
     @tag_group.command(name="info")
-    async def tag_info(self, ctx: commands.Context, tag_name: TagNameConverter):
+    async def tag_info(self, ctx: commands.Context, tag: TagConverter):
         """View info about a tag"""
-        try:
-            tag = await self.get_tag(ctx.guild, tag_name)
-        except TagNotFound as error:
-            return await ctx.send(error)
-
         usage = await self.config.guild(ctx.guild).usage()
         aliases = await self.config.guild(ctx.guild).aliases()
         tag_aliases = "\n".join(a["source"] for a in aliases if a["target"] == tag["id"])
@@ -307,43 +307,30 @@ class TagsCog(commands.Cog):
         await ctx.send(embed)
 
     @tag_alias.command(name="create", aliases=["add"])
-    async def tag_alias_create(self, ctx: commands.Context, alias: TagNameConverter, *, target_name: TagNameConverter):
-        # Check that tag exists
+    async def tag_alias_create(self, ctx: commands.Context, alias: TagNameConverter, *, tag: TagConverter):
+        # Check that alias name isn't already taken by another tag
         try:
-            tag = await self.get_tag(ctx.guild, target_name)
-        except TagNotFound as error:
-            return await ctx.send(error)
+            await self.get_tag(ctx.guild, alias)
+            return await ctx.send("This name is already taken.")
+        except TagNotFound:
+            # Name not already taken
+            pass
 
         async with self.config.guild(ctx.guild).aliases() as aliases:
-            # Check that alias name isn't already taken (by alias or tag)
-            try:
-                tag = await self.get_tag(ctx.guild, alias)
-            except TagNotFound:
-                # Name not already taken
-                pass
-            else:
-                # Name already taken
-                return await ctx.send("This name is already taken.")
-
             if [a for a in aliases if a["source"] == alias]:
                 return await ctx.send("This name is already taken.")
 
             aliases.append({"source": alias, "target": tag["id"]})
 
-        await ctx.send(f"Alias `{alias}` -> `{target_name}` added.")
+        await ctx.send(f"""Alias `{alias}` -> `{tag["name"]}` added.""")
         ctx.bot.dispatch("tag_alias_create", ctx, tag)
 
     @tag_group.command(name="edit")
-    async def tag_edit(self, ctx: commands.Context, tag_name: TagNameConverter, new_content: str):
+    async def tag_edit(self, ctx: commands.Context, tag: TagConverter, new_content: str):
         """
         Edit a tag you own.
         Make sure you save a copy of the old content, because you can't rollback your edits.
         """
-        try:
-            tag = await self.get_tag(ctx.guild, tag_name)
-        except TagNotFound as error:
-            return await ctx.send(error)
-
         if tag["author"]["id"] != ctx.author.id:
             return await ctx.send(CanNotManageTag())
 
@@ -355,15 +342,10 @@ class TagsCog(commands.Cog):
             ctx.bot.dispatch("tag_edit", ctx, tag_match, old_content)
 
     @tag_group.command(name="delete", aliases=["remove"])
-    async def tag_delete(self, ctx: commands.Context, tag_name: TagNameConverter):
+    async def tag_delete(self, ctx: commands.Context, tag: TagConverter):
         """
         Deletes a tag, along with all aliases pointing to said tag.
         """
-        try:
-            tag = await self.get_tag(ctx.guild, tag_name)
-        except TagNotFound as error:
-            return await ctx.send(error)
-
         # Only the tag owner or guild moderators can delete a tag
         can_manage_tag = (tag["author"]["id"] == ctx.author.id) or (await is_mod_or_superior(ctx.bot, ctx.author))
         if not can_manage_tag:
@@ -411,16 +393,27 @@ class TagsCog(commands.Cog):
         if len(embeds) == 1:
             await ctx.send(embed=embeds)
         elif len(embeds) > 1:
-            await menu(ctx, pages=embeds, controls=CUSTOM_CONTROLS)
+            await menu(ctx, pages=embeds, controls=MENU_CONTROLS)
+
+    @tag_group.command(name="all")
+    async def tag_all(self, ctx: commands.Context):
+        """View all the tags in this server"""
+        tags = await self.config.guild(ctx.guild).tags()
+        pages = [
+            discord.Embed(
+                description="\n".join(
+                    f"**{tag_n}.** {tag_name}"
+                    for tag_n, tag_name in enumerate(tags[page_start : page_start + 20], start=page_start)
+                ),
+                colour=await ctx.embed_colour(),
+            ).set_footer(text=f"{page_n} of {math.ceil(len(tags) / 20)}")
+            for page_n, page_start in enumerate(range(0, len(tags), 20), start=1)
+        ]
+        await menu(ctx, pages, controls=MENU_CONTROLS, timeout=180.0)
 
     @tag_group.command(name="claim")
-    async def tag_claim(self, ctx: commands.Context, tag_name: TagNameConverter):
+    async def tag_claim(self, ctx: commands.Context, tag: TagConverter):
         """Claim a tag if the owner of the tag has left the server"""
-        try:
-            tag = await self.get_tag(ctx.guild, tag_name)
-        except TagNotFound as error:
-            return await ctx.send(error)
-
         try:
             ctx.guild.fetch_member(tag["author"]["id"])
         except discord.HTTPException:
@@ -438,13 +431,8 @@ class TagsCog(commands.Cog):
             ctx.bot.dispatch("tag_transfer", ctx, old_owner, ctx.author)
 
     @tag_group.command(name="transfer")
-    async def tag_transfer(self, ctx: commands.Context, tag_name: TagNameConverter, new_owner: discord.Member):
+    async def tag_transfer(self, ctx: commands.Context, tag: TagConverter, new_owner: discord.Member):
         """Transfer ownership of a tag to someone else."""
-        try:
-            tag = await self.get_tag(ctx.guild, tag_name)
-        except TagNotFound as error:
-            return await ctx.send(error)
-
         can_manage_tag = (tag["author"]["id"] == ctx.author.id) or (await is_mod_or_superior(ctx.bot, ctx.author))
         if not can_manage_tag:
             return await ctx.send(CanNotManageTag())
@@ -466,6 +454,11 @@ class TagsCog(commands.Cog):
 
         await self.config.guild(ctx.guild).logchannel.set(channel.id)
         await ctx.tick()
+
+    @checks.mod()
+    @tag_group.command(name="block")
+    async def tag_block(self, ctx: commands.Context, member: discord.Member):
+        """Block a member from creating tags"""
 
     # Helper functions
 

@@ -1,4 +1,4 @@
-from redbot.core.commands import CommandError
+from redbot.core.commands import CommandError, BadArgument
 
 
 class TagsCogException(CommandError):
@@ -20,3 +20,10 @@ class CanNotManageTag(TagsCogException):
 
     def __str__(self):
         return "You are not authorised to manage this tag."
+
+
+class TagConversionFailed(BadArgument):
+    """Raised when a tag could not be found via the tag converter"""
+
+    def __str__(self):
+        return "No tag with this name was found."
