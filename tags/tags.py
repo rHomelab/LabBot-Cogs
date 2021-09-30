@@ -329,7 +329,7 @@ class TagsCog(commands.Cog):
     async def tag_edit(self, ctx: commands.Context, tag: TagConverter, new_content: str):
         """
         Edit a tag you own.
-        Make sure you save a copy of the old content, because you can't rollback your edits.
+        Make sure you save a copy of the old content, because you can't undo your edits.
         """
         if tag["author"]["id"] != ctx.author.id:
             return await ctx.send(CanNotManageTag())
