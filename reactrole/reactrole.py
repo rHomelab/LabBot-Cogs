@@ -1,6 +1,8 @@
 """discord red-bot reactrole cog"""
+from typing import Optional
 import discord
 from redbot.core import Config, checks, commands
+from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.menus import close_menu, menu, next_page, prev_page
 
@@ -10,7 +12,10 @@ CUSTOM_CONTROLS = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_pag
 class ReactRoleCog(commands.Cog):
     """ReactRole Cog"""
 
-    def __init__(self, bot):
+    bot: Red
+    config: Config
+
+    def __init__(self, bot: Red):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=124123498)
 
@@ -19,7 +24,7 @@ class ReactRoleCog(commands.Cog):
         self.config.register_guild(**default_guild_settings)
 
     @commands.Cog.listener()
-    async def on_raw_reaction_add(self, payload):
+    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         """
         Member adds reaction to a message
         """
@@ -48,7 +53,7 @@ class ReactRoleCog(commands.Cog):
                     await payload.member.add_roles(role)
 
     @commands.Cog.listener()
-    async def on_raw_reaction_remove(self, payload):
+    async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
         """
         Member removes reaction from a message
         """
@@ -85,7 +90,7 @@ class ReactRoleCog(commands.Cog):
         self,
         ctx: commands.Context,
         message: discord.Message,
-        reaction: str,
+        reaction: discord.Emoji,
         role: discord.Role,
     ):
         """Creates a new react role
@@ -93,69 +98,47 @@ class ReactRoleCog(commands.Cog):
         Example:
         - `[p]reactrole add <message id> <reaction> <role>`
         """
+        data = {"message": message.id, "reaction": str(reaction), "role": role.id, "channel": message.channel.id}
         async with self.config.guild(ctx.guild).roles() as roles:
-            added = False
+            # This should only return 1 item at max because items are checked for uniqueness before adding them
+            exists = [item for item in roles if item == data]
+            if exists:
+                return await ctx.send("React role already exists.")
 
-            for item in roles:
-                # Check if a result already exists
-                if (
-                    item["message"] == message.id
-                    and item["reaction"] == str(reaction)
-                    and item["role"] == role.id
-                    and item["channel"] == message.channel.id
-                ):
-                    added = True
+            try:
+                await message.add_reaction(str(reaction))
+            except Exception:
+                return await ctx.send("Unable to add emoji message to message")
 
-            if added:
-                await ctx.send("React Role already exists.")
-            else:
-                try:
-                    await message.add_reaction(str(reaction))
-
-                    roles.append(
-                        {
-                            "message": message.id,
-                            "reaction": str(reaction),
-                            "role": role.id,
-                            "channel": message.channel.id,
-                        }
-                    )
-                    await ctx.send("Configured React Role.")
-                except Exception:
-                    await ctx.send("Unable to add emoji message to message")
+            roles.append(data)
+            await ctx.send("Configured react role.")
 
     @_reactrole.command("remove")
     async def remove_reactrole(
         self,
         ctx: commands.Context,
         message: discord.Message,
-        reaction: str,
+        reaction: discord.Emoji,
         role: discord.Role,
     ):
         """Removes a configured react role
 
         Example:
-        - `[p]reactrole remove <message id> <reaction> <role>`
+        - `[p]reactrole remove 360678601227763712-893601663435276318 :kek: @moderator`
         """
+        data = {"message": message.id, "reaction": str(reaction), "role": role.id, "channel": message.channel.id}
         async with self.config.guild(ctx.guild).roles() as roles:
-            exists = False
-
-            for item in roles:
-                # Check if a result already exists
-                if (
-                    item["message"] == message.id
-                    and item["reaction"] == str(reaction)
-                    and item["role"] == role.id
-                    and item["channel"] == message.channel.id
-                ):
-                    exists = item
-
-            roles.remove(exists)
-
+            # This should only return 1 item at max because items are checked for uniqueness before adding them
+            exists = [item for item in roles if item == data]
             if exists:
-                await ctx.send("React Role removed.")
+                roles.remove(data)
+                try:
+                    await message.clear_reaction(reaction)
+                except discord.NotFound:
+                    pass
+                await ctx.send("React role removed.")
             else:
-                await ctx.send("React Role didn't exist.")
+                return await ctx.send("React role doesn't exist.")
 
     @_reactrole.command("list")
     async def reactrole_list(self, ctx: commands.Context):
@@ -181,15 +164,16 @@ class ReactRoleCog(commands.Cog):
 
         # Pagify implementation
         # https://github.com/Cog-Creators/Red-DiscordBot/blob/9698baf6e74f6b34f946189f05e2559a60e83706/redbot/core/utils/chat_formatting.py#L208
-        pages = pagify("\n\n".join(messages), shorten_by=58)
-        embeds = []
-        for index, page in enumerate(pages):
-            embed = discord.Embed(
-                title=f"React Roles - Page {index + 1}/{len(list(pages))}",
+        pages = list(pagify("\n\n".join(messages), shorten_by=58))
+
+        embeds = [
+            discord.Embed(
+                title=f"React Roles - Page {index + 1}/{len(pages)}",
                 description=page,
                 colour=(await ctx.embed_colour()),
             )
-            embeds.append(embed)
+            for index, page in enumerate(pages)
+        ]
 
         await menu(
             ctx,
@@ -199,7 +183,7 @@ class ReactRoleCog(commands.Cog):
         )
 
     @_reactrole.command("enable")
-    async def reactrole_enable(self, ctx):
+    async def reactrole_enable(self, ctx: commands.Context):
         """Enables the ReactRole's functionality
 
         Example:
@@ -209,7 +193,7 @@ class ReactRoleCog(commands.Cog):
         await ctx.send("Enabled ReactRole.")
 
     @_reactrole.command("disable")
-    async def reactrole_disable(self, ctx):
+    async def reactrole_disable(self, ctx: commands.Context):
         """Disables the ReactRole's functionality
 
         Example:
