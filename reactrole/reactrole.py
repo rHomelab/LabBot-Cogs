@@ -1,5 +1,4 @@
 """discord red-bot reactrole cog"""
-from typing import Optional
 import discord
 from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
