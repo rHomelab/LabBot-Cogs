@@ -1,4 +1,4 @@
-from .custommessage import CustomMsgCog
+from .custom_msg import CustomMsgCog
 from redbot.core.bot import Red
 
 
