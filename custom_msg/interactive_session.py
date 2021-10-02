@@ -123,6 +123,9 @@ class EmbedBuilder(InteractiveSession):
             embed.description = await self.get_description()
             await self.ctx.send("Description added.")
         self.payload.update({"embed": embed})
+        if not embed:
+            await self.ctx.send("You can't have an empty embed.\n Please go through the options again.")
+            return await self.run()
         if await self.confirm_sample():
             return self.payload
         else:
