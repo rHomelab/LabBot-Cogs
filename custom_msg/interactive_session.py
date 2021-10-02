@@ -74,11 +74,9 @@ class EmbedBuilder(InteractiveSession):
         MAX_LENGTH = 4096
         if send_tutorial:
             await self.ctx.send(
-                f"""
-                The description can be up to {MAX_LENGTH} characters in length.
-                For this section you may send multiple messages, and you can send `retry()` to clear the description and start again.
-                Sending `finish()` will complete the description and move forward to the next stage.
-                """
+                f"The description can be up to {MAX_LENGTH} characters in length.\n"
+                "For this section you may send multiple messages, and you can send `retry()` to clear the description and start again.\n"
+                "Sending `finish()` will complete the description and move forward to the next stage."
             )
         description: List[str] = []
         while len("\n".join(description)) <= MAX_LENGTH:
@@ -100,7 +98,7 @@ class EmbedBuilder(InteractiveSession):
                 )
                 continue
 
-            description.append(response.content)
+            description.append(response)
 
         return "\n".join(description)
 
