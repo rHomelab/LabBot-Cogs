@@ -19,8 +19,11 @@ class CustomMsgCog(commands.Cog):
         if channel is None:
             channel = ctx.channel
 
-        message = await self.handle_session(ctx, channel.send)
-        await ctx.send("Message sent.\n" f"For future reference, the message ID is {message.channel.id}-{message.id}")
+        async def callback(**kwargs):
+            message = await channel.send(**kwargs)
+            await ctx.send("Message sent.\n" f"For future reference, the message ID is {message.channel.id}-{message.id}")
+
+        await self.handle_session(ctx, callback)
 
     @msg_cmd.command(name="edit")
     async def msg_edit(self, ctx: commands.Context, message: discord.Message):
@@ -31,7 +34,7 @@ class CustomMsgCog(commands.Cog):
         await ctx.send("Message edited.")
 
     @staticmethod
-    async def handle_session(ctx: commands.Context, callback: Callable[[Any], Awaitable[discord.Message]]) -> discord.Message:
+    async def handle_session(ctx: commands.Context, callback: Callable[[Any], None]):
         try:
             payload = await make_session(ctx)
             await callback(**payload)
