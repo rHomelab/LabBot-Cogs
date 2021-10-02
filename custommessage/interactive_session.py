@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, List, Mapping, Union
+from typing import Any, List, Dict, Union
 
 import discord
 from redbot.core import commands
@@ -12,7 +12,7 @@ class SessionCancelled(Exception):
 
 class InteractiveSession:
     ctx: commands.Context
-    payload: Mapping[str, Any]
+    payload: Dict[str, Any]
 
     def __init__(self, ctx: commands.Context):
         self.ctx = ctx
@@ -49,9 +49,9 @@ class InteractiveSession:
 
 
 class MessageBuilder(InteractiveSession):
-    payload: Mapping[str, str]
+    payload: Dict[str, str]
 
-    async def run(self) -> Mapping[str, str]:
+    async def run(self) -> Dict[str, str]:
         content = await self.get_response("Please enter the message you want to send.")
         check = await self.get_boolean_answer("Are you sure you want to send this?")
         if not check:
@@ -62,7 +62,7 @@ class MessageBuilder(InteractiveSession):
 
 
 class EmbedBuilder(InteractiveSession):
-    payload: Mapping[str, discord.Embed]
+    payload: Dict[str, discord.Embed]
 
     async def get_title(self) -> str:
         title = await self.get_response("What should the title be?")
@@ -102,12 +102,14 @@ class EmbedBuilder(InteractiveSession):
 
         return "\n".join(description)
 
-    async def run(self) -> Mapping[str, discord.Embed]:
+    async def run(self) -> Dict[str, discord.Embed]:
         embed = discord.Embed(colour=await self.ctx.embed_colour())
         if await self.get_boolean_answer("Do you want a title on this embed?"):
             embed.title = await self.get_title()
         if await self.get_boolean_answer("Do you want to add a description?"):
             embed.description = await self.get_description()
+        self.payload.update({"embed": embed})
+        return self.payload
 
 
 async def make_session(ctx: commands.Context) -> Union[MessageBuilder, EmbedBuilder]:

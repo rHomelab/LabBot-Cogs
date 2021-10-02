@@ -7,6 +7,8 @@
     "disabled": false,
     "name": "custommessage",
     "tags": [
+        "utility",
+        "admin"
     ],
-    "install_msg": ""
+    "install_msg": "Usage: `[p]msg create <channel>`"
 }
