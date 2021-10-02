@@ -23,7 +23,7 @@ class InteractiveSession:
 
     async def get_response(self, question: str) -> str:
         await self.ctx.send(question)
-        response = await self.ctx.bot.wait_for("message", check=self.predicate, timeout=60 * 10)
+        response = (await self.ctx.bot.wait_for("message", check=self.predicate, timeout=60 * 10)).content
         if response == "exit()":
             raise SessionCancelled
         return response
@@ -82,7 +82,9 @@ class EmbedBuilder(InteractiveSession):
             )
         description: List[str] = []
         while len("\n".join(description)) <= MAX_LENGTH:
-            response: discord.Message = await self.ctx.bot.wait_for("message", check=self.predicate, timeout=60 * 10)
+            response = (await self.ctx.bot.wait_for("message", check=self.predicate, timeout=60 * 10)).content
+            if response == "exit()":
+                raise SessionCancelled
             if response == "retry()":
                 return await self.get_description(send_tutorial=False)
             elif response == "finish()":
