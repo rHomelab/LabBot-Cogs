@@ -1,8 +1,9 @@
+import math
 import random
 import time
 from collections import Counter
 from typing import List, Optional
-import math
+
 import discord
 import Levenshtein as lev
 from redbot.core import Config, checks, commands
@@ -10,7 +11,7 @@ from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.menus import close_menu, menu, next_page, prev_page
 from redbot.core.utils.mod import is_mod_or_superior
 
-from .exceptions import CanNotManageTag, TagNotFound, TagConversionFailed
+from .exceptions import CanNotManageTag, TagConversionFailed, TagNotFound
 
 MENU_CONTROLS = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}
 
@@ -175,7 +176,7 @@ class TagsCog(commands.Cog):
 
     # Command groups
 
-    @commands.guild_only
+    @commands.guild_only()
     @commands.group(name="tag", invoke_without_command=True)
     async def tag_group(self, ctx: commands.Context, *, tag: TagConverter):
         """
