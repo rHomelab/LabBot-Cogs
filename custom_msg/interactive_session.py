@@ -136,13 +136,23 @@ class EmbedBuilder(InteractiveSession):
         else:
             return await self.run()
 
+    async def confirm_sample(self) -> bool:
+        """
+        Sends the constructed payload and confirms the user is happy with it.
+        """
+        await self.ctx.send("Here is the embed you have created.")
+        await self.ctx.send(**self.payload)
+        return await self.get_boolean_answer("Are you happy with this?")
+
 
 class MixedBuilder(InteractiveSession):
     payload: Dict[str, Union[str, discord.Embed]]
 
     async def run(self) -> Dict[str, Union[str, discord.Embed]]:
         message_payload = await MessageBuilder.from_session(self).run()
+        await self.ctx.send("Message added.")
         embed_payload = await EmbedBuilder.from_session(self).run()
+        await self.ctx.send("Embed added.")
 
         self.payload.update(message_payload)
         self.payload.update(embed_payload)
