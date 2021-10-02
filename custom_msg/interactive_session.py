@@ -78,6 +78,8 @@ class EmbedBuilder(InteractiveSession):
             await self.ctx.send("The title must be 256 characters or less.")
             return await self.get_title()
 
+        return title
+
     async def get_description(self, *, send_tutorial: bool = True) -> str:
         MAX_LENGTH = 4096
         if send_tutorial:
@@ -112,8 +114,6 @@ class EmbedBuilder(InteractiveSession):
 
             description.append(response)
 
-        print("description:", description)
-
         return "\n".join(description)
 
     async def run(self) -> Dict[str, discord.Embed]:
@@ -127,8 +127,6 @@ class EmbedBuilder(InteractiveSession):
             await self.ctx.send("Description added.")
 
         self.payload.update({"embed": embed})
-        print("embed title:", embed.title)
-        print("embed description:", embed.description)
         if not embed:
             await self.ctx.send("You can't use an empty embed.\n Please go through the options again.")
             return await self.run()
