@@ -89,12 +89,16 @@ class EmbedBuilder(InteractiveSession):
                 break
 
             if len("\n".join(["\n".join(description), response])) > MAX_LENGTH:
-                remaining_chars = MAX_LENGTH - len("\n".join(description))
+                remaining_chars = MAX_LENGTH - len("\n".join(description)) - 1
+                if remaining_chars == 0:
+                    if not await self.get_boolean_answer("Max char limit reached. Do you want to submit this description?"):
+                        return await self.get_description(send_tutorial=False)
+                    else:
+                        break
+
                 await self.ctx.send(
-                    f"""
-                    This segment of the description is too long, please retry this part.
-                    You have {remaining_chars} remaining.
-                    """
+                    "This segment of the description is too long, please retry this part.\n"
+                    f"You have {remaining_chars} characters remaining."
                 )
                 continue
 
@@ -106,8 +110,10 @@ class EmbedBuilder(InteractiveSession):
         embed = discord.Embed(colour=await self.ctx.embed_colour())
         if await self.get_boolean_answer("Do you want a title on this embed?"):
             embed.title = await self.get_title()
+            await self.ctx.send("Title added.")
         if await self.get_boolean_answer("Do you want to add a description?"):
             embed.description = await self.get_description()
+            await self.ctx.send("Description added.")
         self.payload.update({"embed": embed})
         return self.payload
 
