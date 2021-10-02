@@ -137,12 +137,24 @@ class EmbedBuilder(InteractiveSession):
             return await self.run()
 
 
+class MixedBuilder(InteractiveSession):
+    payload: Dict[str, Union[str, discord.Embed]]
+
+    async def run(self) -> Dict[str, Union[str, discord.Embed]]:
+        message_payload = await MessageBuilder.from_session(self).run()
+        embed_payload = await EmbedBuilder.from_session(self).run()
+
+        self.payload.update(message_payload)
+        self.payload.update(embed_payload)
+        return self.payload
+
+
 async def make_session(ctx: commands.Context) -> Union[MessageBuilder, EmbedBuilder]:
     await ctx.send(
         "Entering the interactive message builder. You can send `exit()` at any point to cancel the current builder."
     )
     session = InteractiveSession(ctx)
-    builders = {"embed": EmbedBuilder, "message": MessageBuilder}
+    builders = {"embed": EmbedBuilder, "message": MessageBuilder, "both": MixedBuilder}
     builder: Union[MessageBuilder, EmbedBuilder] = builders[
         await session.get_literal_answer("Do you want this to be an embed or regular message?", builders.keys())
     ].from_session(session)
