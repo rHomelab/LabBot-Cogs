@@ -16,7 +16,7 @@ class InteractiveSession:
 
     def __init__(self, ctx: commands.Context):
         self.ctx = ctx
-        self.payload = {"message": None, "embed": None}
+        self.payload = {"content": None, "embed": None}
 
     def predicate(self, message: discord.Message) -> bool:
         return message.channel == self.ctx.channel and message.author == self.ctx.author
