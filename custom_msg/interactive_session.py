@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, List, Dict, Union
+from typing import Any, Dict, List, Union
 
 import discord
 from redbot.core import commands
@@ -47,18 +47,26 @@ class InteractiveSession:
     def from_session(cls, session: InteractiveSession) -> InteractiveSession:
         return cls(session.ctx)
 
+    async def confirm_sample(self) -> bool:
+        """
+        Method to be used by subclasses only.
+        Sends the constructed payload and confirms the user is happy with it.
+        """
+        await self.ctx.send("Here is the message you have created.")
+        await self.ctx.send(**self.payload)
+        return await self.get_boolean_answer("Are you happy with this?")
+
 
 class MessageBuilder(InteractiveSession):
     payload: Dict[str, str]
 
     async def run(self) -> Dict[str, str]:
         content = await self.get_response("Please enter the message you want to send.")
-        check = await self.get_boolean_answer("Are you sure you want to send this?")
-        if not check:
-            return await self.run()
-        else:
-            self.payload.update({"content": content})
+        self.payload.update({"content": content})
+        if await self.confirm_sample():
             return self.payload
+        else:
+            return await self.run()
 
 
 class EmbedBuilder(InteractiveSession):
@@ -115,7 +123,10 @@ class EmbedBuilder(InteractiveSession):
             embed.description = await self.get_description()
             await self.ctx.send("Description added.")
         self.payload.update({"embed": embed})
-        return self.payload
+        if await self.confirm_sample():
+            return self.payload
+        else:
+            return await self.run()
 
 
 async def make_session(ctx: commands.Context) -> Union[MessageBuilder, EmbedBuilder]:
