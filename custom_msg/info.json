@@ -5,7 +5,7 @@
     "short": "",
     "description": "",
     "disabled": false,
-    "name": "custom-msg",
+    "name": "custom_msg",
     "tags": [
         "utility",
         "admin"
