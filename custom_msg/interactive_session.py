@@ -16,7 +16,7 @@ class InteractiveSession:
 
     def __init__(self, ctx: commands.Context):
         self.ctx = ctx
-        self.payload = {}
+        self.payload = {"message": None, "embed": None}
 
     def predicate(self, message: discord.Message) -> bool:
         return message.channel == self.ctx.channel and message.author == self.ctx.author
@@ -32,11 +32,11 @@ class InteractiveSession:
         if not all([a.islower() for a in answers]):
             raise ValueError("All values in the answer list must be lowercase")
 
-        possible_answers = " / ".join(f"`{a}`" for a in answers)
+        possible_answers = "/".join(f"`{a}`" for a in answers)
         while True:
             answer = (await self.get_response(f"{question} {possible_answers}")).lower()
             if answer not in answers:
-                await self.ctx.send(f"Please send a valid answer {possible_answers}")
+                await self.ctx.send(f"Please send a valid answer (listed below)")
             else:
                 return answer
 
