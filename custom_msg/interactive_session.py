@@ -119,13 +119,16 @@ class EmbedBuilder(InteractiveSession):
         if await self.get_boolean_answer("Do you want a title on this embed?"):
             embed.title = await self.get_title()
             await self.ctx.send("Title added.")
+
         if await self.get_boolean_answer("Do you want to add a description?"):
             embed.description = await self.get_description()
             await self.ctx.send("Description added.")
+
         self.payload.update({"embed": embed})
         if not embed:
-            await self.ctx.send("You can't have an empty embed.\n Please go through the options again.")
+            await self.ctx.send("You can't use an empty embed.\n Please go through the options again.")
             return await self.run()
+
         if await self.confirm_sample():
             return self.payload
         else:
