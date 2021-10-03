@@ -192,6 +192,9 @@ class TagsCog(commands.Cog):
             ).set_footer(text=f"{page_n} of {math.ceil(len(tags) / 20)}")
             for page_n, page_start in enumerate(range(0, len(tags), 20), start=1)
         ]
+        if not pages:
+            return await ctx.send("There are no tags in this server.")
+
         await menu(ctx, pages, controls=MENU_CONTROLS, timeout=180.0)
 
     @tag_group.group(name="alias")
