@@ -140,8 +140,9 @@ class TagsCog(commands.Cog):
             "tags": [],  # [{id: str, name: str, content: str, author: {id: int, username: str (user.name + '#' + user.discriminator)}}]
             "usage": [],  # [{tag_id: str (tag.id), user_id: int (user.id)}]
             "blocked_members": [],  # [{id: int, username: str (user.name + '#' + user.discriminator)}]
-            "log_channel": None,  # int (channel.id)
+            "logging_channel": None,  # int (channel.id)
             "logging_config": LoggingConfiguration.all().to_int(),  # int
+            "logging_enabled": True,  # False
         }
 
         self.config.register_guild(**default_guild_config)
@@ -151,8 +152,8 @@ class TagsCog(commands.Cog):
     @commands.Cog.listener()
     async def on_tag_create(self, ctx: commands.Context, tag: dict):
         """Logs tag creations to a channel"""
-        log_channel = await self.get_log_channel(ctx.guild)
-        if not log_channel:
+        channel = await self.can_log(ctx, "on_tag_create")
+        if not channel:
             return
 
         log_embed = (
@@ -160,13 +161,13 @@ class TagsCog(commands.Cog):
             .add_field(name="Author", value=ctx.author.mention)
             .add_field(name="Tag ID", value=tag["id"])
         )
-        await log_channel.send(embed=log_embed)
+        await channel.send(embed=log_embed)
 
     @commands.Cog.listener()
     async def on_tag_delete(self, ctx: commands.Context, tag: dict, aliases: List[str]):
         """Logs tag deletions to a channel"""
-        log_channel = await self.get_log_channel(ctx.guild)
-        if not log_channel:
+        channel = await self.can_log(ctx, "on_tag_delete")
+        if not channel:
             return
 
         log_embed = (
@@ -175,13 +176,13 @@ class TagsCog(commands.Cog):
             .add_field(name="Aliases", value="\n".join(aliases) or None)
             .add_field(name="Deleted by", value=ctx.author.mention)
         )
-        await log_channel.send(embed=log_embed)
+        await channel.send(embed=log_embed)
 
     @commands.Cog.listener()
     async def on_tag_transfer(self, ctx: commands.Context, old_owner: dict, new_owner: discord.Member):
         """Logs tag ownership transfer to a channel"""
-        log_channel = await self.get_log_channel(ctx.guild)
-        if not log_channel:
+        channel = await self.can_log(ctx, "on_tag_transfer")
+        if not channel:
             return
 
         if new_owner == ctx.author:
@@ -197,13 +198,13 @@ class TagsCog(commands.Cog):
                 .add_field(name="New owner", value=new_owner.mention)
                 .add_field(name="Transferred by", value=ctx.author.mention)
             )
-        await log_channel.send(embed=log_embed)
+        await channel.send(embed=log_embed)
 
     @commands.Cog.listener()
     async def on_tag_edit(self, ctx: commands.Context, tag: dict, old_content):
         """Logs tag edits to a channel"""
-        log_channel = await self.get_log_channel(ctx.guild)
-        if not log_channel:
+        channel = await self.can_log(ctx, "on_tag_edit")
+        if not channel:
             return
 
         def shorten_to(input_str: str, length: int) -> str:
@@ -219,13 +220,13 @@ class TagsCog(commands.Cog):
             """,
             colour=await ctx.embed_colour(),
         )
-        await log_channel.send(embed=log_embed)
+        await channel.send(embed=log_embed)
 
     @commands.Cog.listener()
     async def on_tag_rename(self, ctx: commands.Context, old_name: str, new_name: str):
         """Logs tag rename events to a channel"""
-        log_channel = await self.get_log_channel(ctx.guild)
-        if not log_channel:
+        channel = await self.can_log(ctx, "on_tag_rename")
+        if not channel:
             return
 
         log_embed = (
@@ -233,13 +234,13 @@ class TagsCog(commands.Cog):
             .add_field(name="Before", value=old_name)
             .add_field(name="After", value=new_name)
         )
-        await log_channel.send(embed=log_embed)
+        await channel.send(embed=log_embed)
 
     @commands.Cog.listener()
     async def on_tag_alias_create(self, ctx: commands.Context, alias_name: str, tag_name: str):
         """Logs tag alias creations to a channel"""
-        log_channel = await self.get_log_channel(ctx.guild)
-        if not log_channel:
+        channel = await self.can_log(ctx, "on_tag_alias_create")
+        if not channel:
             return
 
         log_embed = (
@@ -247,13 +248,13 @@ class TagsCog(commands.Cog):
             .add_field(name="Alias", value=alias_name)
             .add_field(name="Tag", value=tag_name)
         )
-        await log_channel.send(embed=log_embed)
+        await channel.send(embed=log_embed)
 
     @commands.Cog.listener()
     async def on_tag_alias_delete(self, ctx: commands.Context, alias_name: str, tag_name: str):
         """Logs tag alias deletions to a channel"""
-        log_channel = await self.get_log_channel(ctx.guild)
-        if not log_channel:
+        channel = await self.can_log(ctx, "on_tag_alias_delete")
+        if not channel:
             return
 
         log_embed = (
@@ -261,7 +262,7 @@ class TagsCog(commands.Cog):
             .add_field(name="Alias", value=alias_name)
             .add_field(name="Tag", values=tag_name)
         )
-        await log_channel.send(embed=log_embed)
+        await channel.send(embed=log_embed)
 
     # Command groups
 
@@ -278,11 +279,22 @@ class TagsCog(commands.Cog):
         # update the usage
         await self.update_tag_usage(ctx, tag)
 
-    @checks.mod()
     @commands.guild_only()
-    @commands.group(name="tags")
+    @commands.group(name="tags", invoke_without_subcommand=True)
     async def tags_group(self, ctx: commands.Context):
-        pass
+        """View all the tags in this server"""
+        tags = await self.config.guild(ctx.guild).tags()
+        pages = [
+            discord.Embed(
+                description="\n".join(
+                    f"**{tag_n}.** {tag_name}"
+                    for tag_n, tag_name in enumerate(tags[page_start : page_start + 20], start=page_start)
+                ),
+                colour=await ctx.embed_colour(),
+            ).set_footer(text=f"{page_n} of {math.ceil(len(tags) / 20)}")
+            for page_n, page_start in enumerate(range(0, len(tags), 20), start=1)
+        ]
+        await menu(ctx, pages, controls=MENU_CONTROLS, timeout=180.0)
 
     @tag_group.group(name="alias")
     async def tag_alias(self, ctx: commands.Context):
@@ -514,22 +526,6 @@ class TagsCog(commands.Cog):
         elif len(embeds) > 1:
             await menu(ctx, pages=embeds, controls=MENU_CONTROLS)
 
-    @tag_group.command(name="all")
-    async def tag_all(self, ctx: commands.Context):
-        """View all the tags in this server"""
-        tags = await self.config.guild(ctx.guild).tags()
-        pages = [
-            discord.Embed(
-                description="\n".join(
-                    f"**{tag_n}.** {tag_name}"
-                    for tag_n, tag_name in enumerate(tags[page_start : page_start + 20], start=page_start)
-                ),
-                colour=await ctx.embed_colour(),
-            ).set_footer(text=f"{page_n} of {math.ceil(len(tags) / 20)}")
-            for page_n, page_start in enumerate(range(0, len(tags), 20), start=1)
-        ]
-        await menu(ctx, pages, controls=MENU_CONTROLS, timeout=180.0)
-
     @commands.check(can_create_tags)
     @tag_group.command(name="claim")
     async def tag_claim(self, ctx: commands.Context, tag: TagConverter):
@@ -610,6 +606,7 @@ class TagsCog(commands.Cog):
         ]
         await menu(ctx, embeds, controls=MENU_CONTROLS)
 
+    @checks.mod()
     @tags_group.command(name="logchannel")
     async def tags_logchannel(self, ctx: commands.Context, channel: discord.TextChannel):
         """Configure the log channel for this cog."""
@@ -620,6 +617,7 @@ class TagsCog(commands.Cog):
         await self.config.guild(ctx.guild).logchannel.set(channel.id)
         await ctx.tick()
 
+    @checks.mod()
     @tags_group.command(name="log")
     async def tags_log(self, ctx: commands.Context, event_name: LoggingEventName, value: bool):
         """Enable/disable logging certain tag-related events to the logging channel"""
@@ -628,21 +626,55 @@ class TagsCog(commands.Cog):
         await self.config.guild(ctx.guild).logging_config.set(logging_config.to_int())
         await ctx.tick()
 
-    @tags_group.command(name="log")
-    async def tags_logging_config(self, ctx: commands.Context):
+    @checks.mod()
+    @tags_group.group(name="logging", invoke_without_subcommand=True)
+    async def tags_logging_group(self, ctx: commands.Context, enable: bool):
+        """Enable/disable logging of tag-related events"""
+        await self.config.guild(ctx.guild).logging_enabled.set(enable)
+        await ctx.tick()
+
+    @tags_logging_group.command(name="show")
+    async def tags_logging_show(self, ctx: commands.Context):
         """View the logging configuration for the tags cog"""
         logging_config = LoggingConfiguration(await self.config.guild(ctx.guild).logging_config())
+        log_channel_id = await self.config.guild(ctx.guild).logging_channel()
+        log_channel = ctx.guild.get_channel(log_channel_id) if log_channel_id else "Not set"
+        if log_channel:
+            log_channel = log_channel.mention
+        else:
+            log_channel = "Invalid channel"
+
+        description = "\n".join(f"`{key}` - {logging_config.get(key)}" for key in LoggingConfiguration.VALID_FLAGS.keys())
         embed = discord.Embed(
             title="Logging configuration for the tags cog",
             colour=await ctx.embed_colour(),
-            description="\n".join(f"`{key}` - {logging_config.get(key)}" for key in LoggingConfiguration.VALID_FLAGS.keys()),
-        )
+            description=description,
+        ).add_field(name="Channel", value=log_channel)
         await ctx.send(embed=embed)
 
     # Helper functions
 
+    async def can_log(self, ctx: commands.Context, event_name: str) -> Optional[discord.TextChannel]:
+        """
+        Returns the configured logging channel if the following conditions for the guild are met:
+        - Logging is enabled
+        - Logging is enabled for this event
+        - Logging channel is configured
+        - Logging channel is valid
+        """
+        config_group = self.config.guild(ctx.guild)
+        if not await config_group.logging_enabled():
+            return
+
+        logging_config = LoggingConfiguration(await config_group.logging_config())
+        if not logging_config.get(event_name):
+            return
+
+        logging_channel_id = await config_group.logging_channel()
+        return ctx.guild.get_channel(logging_channel_id)
+
     async def get_log_channel(self, guild: discord.Guild) -> Optional[discord.TextChannel]:
-        log_channel_id = await self.config.guild(guild).log_channel()
+        log_channel_id = await self.config.guild(guild).logging_channel()
         if not log_channel_id:
             return None
         return guild.get_channel(log_channel_id)
