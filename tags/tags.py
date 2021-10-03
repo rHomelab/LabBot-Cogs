@@ -1,3 +1,4 @@
+from __future__ import annotations
 import math
 import random
 import time
@@ -14,6 +15,68 @@ from redbot.core.utils.mod import is_mod_or_superior
 from .exceptions import CanNotManageTag, TagConversionFailed, TagNotFound
 
 MENU_CONTROLS = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}
+
+
+class LoggingConfiguration:
+    VALID_FLAGS = {
+        "on_tag_create": 0,
+        "on_tag_delete": 1,
+        "on_tag_transfer": 2,
+        "on_tag_edit": 3,
+        "on_tag_rename": 4,
+        "on_tag_alias_create": 5,
+        "on_tag_alias_delete": 6,
+    }
+
+    _value = 0
+
+    def __init__(self, value: int = 0):
+        self._value = value
+
+    def get(self, key: str) -> bool:
+        """Fetch the boolean value of a flag"""
+        flag_value: int = 1 << self.VALID_FLAGS[key]
+        return self._value & flag_value == flag_value
+
+    def set(self, key: str, value: bool):
+        """Set a flag value to True or False"""
+        if value:  # Set flag to true
+            self._value = self._value | (1 << self.VALID_FLAGS[key])
+        else:  # Set flag to false
+            self._value = self._value ^ (1 << self.VALID_FLAGS[key])
+
+    def update(self, **kwargs: bool):
+        """Bulk update flags"""
+        for key, value in kwargs.items():
+            self.set(key, value)
+
+    @classmethod
+    def all(cls) -> LoggingConfiguration:
+        obj = cls()
+        obj.update(**{key: True for key in cls.VALID_FLAGS})
+        return obj
+
+    def to_int(self) -> int:
+        return self._value
+
+
+class LoggingEventName(commands.Converter):
+    """
+    Command arg converter.
+    Converts to a logging event name, as defined in :LoggingConfiguration.VALID_FLAGS:.
+    """
+
+    async def convert(self, ctx: commands.Context, arg: str) -> str:
+        arg = arg.lower()
+        if arg in LoggingConfiguration.VALID_FLAGS.keys():
+            return arg
+        else:
+            raise commands.BadArgument(
+                message=(
+                    f"`{arg}` is not a valid event name.\n"
+                    "Please refer to the documentation for this cog for an exhaustive list of event names."
+                )
+            )
 
 
 class TagNameConverter(commands.clean_content):
@@ -78,6 +141,7 @@ class TagsCog(commands.Cog):
             "usage": [],  # [{tag_id: str (tag.id), user_id: int (user.id)}]
             "blocked_members": [],  # [{id: int, username: str (user.name + '#' + user.discriminator)}]
             "log_channel": None,  # int (channel.id)
+            "logging_config": LoggingConfiguration.all().to_int(),  # int
         }
 
         self.config.register_guild(**default_guild_config)
@@ -501,17 +565,6 @@ class TagsCog(commands.Cog):
             ctx.bot.dispatch("tag_transfer", ctx, old_owner, new_owner)
 
     @checks.mod()
-    @tags_group.command(name="logchannel")
-    async def tags_logchannel(self, ctx: commands.Context, channel: discord.TextChannel):
-        """Configure the log channel for this cog."""
-        perms: discord.Permissions = channel.permissions_for(ctx.guild.me)
-        if not all([perms.send_messages, perms.embed_links]):
-            return await ctx.send("I need permission to send messages and embed links in the log channel")
-
-        await self.config.guild(ctx.guild).logchannel.set(channel.id)
-        await ctx.tick()
-
-    @checks.mod()
     @tags_group.command(name="block")
     async def tags_block(self, ctx: commands.Context, member: discord.Member):
         """Block a member from creating tags"""
@@ -556,6 +609,35 @@ class TagsCog(commands.Cog):
             for i, page in enumerate(pages)
         ]
         await menu(ctx, embeds, controls=MENU_CONTROLS)
+
+    @tags_group.command(name="logchannel")
+    async def tags_logchannel(self, ctx: commands.Context, channel: discord.TextChannel):
+        """Configure the log channel for this cog."""
+        perms: discord.Permissions = channel.permissions_for(ctx.guild.me)
+        if not all([perms.send_messages, perms.embed_links]):
+            return await ctx.send("I need permission to send messages and embed links in the log channel")
+
+        await self.config.guild(ctx.guild).logchannel.set(channel.id)
+        await ctx.tick()
+
+    @tags_group.command(name="log")
+    async def tags_log(self, ctx: commands.Context, event_name: LoggingEventName, value: bool):
+        """Enable/disable logging certain tag-related events to the logging channel"""
+        logging_config = LoggingConfiguration(await self.config.guild(ctx.guild).logging_config())
+        logging_config.set(event_name, value)
+        await self.config.guild(ctx.guild).logging_config.set(logging_config.to_int())
+        await ctx.tick()
+
+    @tags_group.command(name="log")
+    async def tags_logging_config(self, ctx: commands.Context):
+        """View the logging configuration for the tags cog"""
+        logging_config = LoggingConfiguration(await self.config.guild(ctx.guild).logging_config())
+        embed = discord.Embed(
+            title="Logging configuration for the tags cog",
+            colour=await ctx.embed_colour(),
+            description="\n".join(f"`{key}` - {logging_config.get(key)}" for key in LoggingConfiguration.VALID_FLAGS.keys()),
+        )
+        await ctx.send(embed=embed)
 
     # Helper functions
 
