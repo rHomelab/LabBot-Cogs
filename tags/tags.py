@@ -528,7 +528,7 @@ class TagsCog(commands.Cog):
         await ctx.tick()
 
     @checks.mod()
-    @tags_group.group(name="logging", invoke_without_subcommand=True)
+    @tags_group.group(name="logging", invoke_without_command=True)
     async def tags_logging_group(self, ctx: commands.Context, enable: bool):
         """Enable/disable logging of tag-related events"""
         await self.config.guild(ctx.guild).logging_enabled.set(enable)
