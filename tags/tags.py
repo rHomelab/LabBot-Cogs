@@ -199,7 +199,7 @@ class TagsCog(commands.Cog):
 
     @tag_group.group(name="alias")
     async def tag_alias(self, ctx: commands.Context):
-        pass
+        """Manage tag aliases"""
 
     # Commands
 
@@ -297,7 +297,7 @@ class TagsCog(commands.Cog):
                 .add_field(name="Owned tags", value=owned_tags)
                 .add_field(name="Owned tag uses", value=owned_tag_uses)
                 .add_field(name="Tag command uses", value=tag_cmd_uses)
-                .add_field(name="Top owned tags", value=top_owned_tags)
+                .add_field(name="Top owned tags", value=top_owned_tags or "No owned tags")
             )
             return await ctx.send(embed=embed)
 
