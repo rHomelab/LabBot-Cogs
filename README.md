@@ -30,6 +30,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
   - [Report](#report)
   - [Roleinfo](#roleinfo)
   - [Sentry](#sentry)
+  - [Tags](#tags)
   - [Verify](#verify)
   - [xkcd](#xkcd)
 - [License](#license)
@@ -74,6 +75,7 @@ A massive thank you to all who've helped out with this project ❤️
 - **[Report](#report):** Allows users to report issues.
 - **[Roleinfo](#roleinfo):** Displays info on a role
 - **[Sentry](#sentry):** Send unhandled errors to sentry.
+- **[Tags](#tags):** Store content for future retrieval.
 - **[Verify](#verify):** Allows users to verify themselves.
 - **[xkcd](#xkcd):** Allows users to look at xkcd comics.
 
@@ -246,6 +248,38 @@ Configure Sentry DSN using `[p]set api sentry dsn,https://fooo@bar.baz/9`, then 
 - `[p]sentry set_env` - Set the currently configured Sentry environment. Requires a reload of the cog.
 - `[p]sentry test` - Raise a test exception to test the Sentry connection.
 
+### Tags
+
+This cog allows users to store content that they can call upon at a later date. Tags are public and anyone can call them. This is very similar to customcoms.
+
+Some important notes:
+- This cog only works in guilds
+- Tags are guild-specific
+- Tags can be created by anyone
+- Moderators can block/unblock members from creating tags
+- Moderators *can not* be blocked from creating/managing tags
+- Aliases for tags can be created/deleted by moderators or the owner of the tag to be aliased
+- A tag can be claimed by a user if the author has left the guild
+- Moderators can transfer ownership of tags
+
+Commands:
+- `[p]tag <tag name>` - Retrieves a tag from the database
+- `[p]tag create <tag name> <tag content>` - Creates a tag with the specified name and content. You can create tags with multi-word names by wrapping the name in "quotation marks".
+- `[p]tag stats <member>` - Retrieves stats on either all tags in the guild, or tags linked to a member (if specified). Member stats includes tags authored *and* tags used.
+- `[p]tag info <tag name>` - Retrieves info about a tag.
+- `[p]tag alias create <alias name> <tag name>` - Creates an alias for a tag.
+- `[p]tag alias delete <alias name>` - Deletes an alias for a tag. Does not delete the referenced tag.
+- `[p]tag all` - Lists all tags in the guild.
+- `[p]tag search <search term>` - Searches for tags by name.
+- `[p]tag edit <tag name> <new content>` - Edits a tag with new content.
+- `[p]tag delete <tag name>` - Deletes a tag *and all aliases referencing it.*
+- `[p]tag claim <tag name>` - Transfers ownership of a tag to you, if the tag author has left the guild.
+- `[p]tag transfer <tag name> <member>` - Transfers ownership of a tag to someone else.
+- `[p]tags logchannel <channel>` - Sets the channel to output tag-related logs to.
+- `[p]tags block <member>` - Blocks a member from creating tags and tag aliases.
+- `[p]tags unblock <member>` - Unblocks a member from creating tags and tag aliases.
+- `[p]tags blocked` - Lists all members blocked from creating tags and tag aliases.
+
 ### Verify
 
 This cog will allow users to prove they're not a bot by having to read rules and complete an action. They will then be given the verified role if they can complete this.
@@ -253,7 +287,7 @@ This cog will allow users to prove they're not a bot by having to read rules and
 - `[p]verify block <user>` - Add the specified user to the verification blocklist.
 - `[p]verify channel <channel>` - Set the channel in which the cog listens for verification attemps.
 - `[p]verify logchannel <channel>` - Set the channel in which the cog logs verification attemps.
-- `[p]verify message <message>` - Set the verification string (e.g. `I agree to the rules`.
+- `[p]verify message <message>` - Set the verification string (e.g. `I agree to the rules`).
 - `[p]verify role <role>` - Set the role to which users are added upon successful verification.
 
 Further configuration options can be seen with `[p]verify help`
