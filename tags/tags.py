@@ -178,7 +178,7 @@ class TagsCog(commands.Cog):
         await self.update_tag_usage(ctx, tag)
 
     @commands.guild_only()
-    @commands.group(name="tags", invoke_without_subcommand=True)
+    @commands.group(name="tags", invoke_without_command=True)
     async def tags_group(self, ctx: commands.Context):
         """View all the tags in this server"""
         tags = await self.config.guild(ctx.guild).tags()
