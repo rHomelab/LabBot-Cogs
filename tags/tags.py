@@ -515,7 +515,7 @@ class TagsCog(commands.Cog):
         if not all([perms.send_messages, perms.embed_links]):
             return await ctx.send("I need permission to send messages and embed links in the log channel")
 
-        await self.config.guild(ctx.guild).logchannel.set(channel.id)
+        await self.config.guild(ctx.guild).logging_channel.set(channel.id)
         await ctx.tick()
 
     @checks.mod()
