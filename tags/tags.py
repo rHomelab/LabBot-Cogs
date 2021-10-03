@@ -184,9 +184,10 @@ class TagsCog(commands.Cog):
         tags = await self.config.guild(ctx.guild).tags()
         pages = [
             discord.Embed(
+                title=f"Tags - {len(tags)} total",
                 description="\n".join(
-                    f"**{tag_n}.** {tag_name}"
-                    for tag_n, tag_name in enumerate(tags[page_start : page_start + 20], start=page_start)
+                    f"""**{tag_n}.** {tag["name"]}"""
+                    for tag_n, tag in enumerate(tags[page_start : page_start + 20], start=page_start)
                 ),
                 colour=await ctx.embed_colour(),
             ).set_footer(text=f"{page_n} of {math.ceil(len(tags) / 20)}")
