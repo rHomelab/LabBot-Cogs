@@ -186,7 +186,7 @@ class TagsCog(commands.Cog):
             discord.Embed(
                 title=f"Tags - {len(tags)} total",
                 description="\n".join(
-                    f"""**{tag_n}.** {tag["name"]}"""
+                    f"""**{tag_n + 1}.** {tag["name"]}"""
                     for tag_n, tag in enumerate(tags[page_start : page_start + 20], start=page_start)
                 ),
                 colour=await ctx.embed_colour(),
