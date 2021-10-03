@@ -5,23 +5,21 @@ from .exceptions import TagConversionFailed, TagNotFound
 from .logging_configuration import LoggingConfiguration
 
 
-class LoggingEventName(commands.Converter):
+async def logging_event_name_converter(self, ctx: commands.Context, arg: str) -> str:
     """
     Command arg converter.
     Converts to a logging event name, as defined in :LoggingConfiguration.VALID_FLAGS:.
     """
-
-    async def convert(self, ctx: commands.Context, arg: str) -> str:
-        arg = arg.lower()
-        if arg in LoggingConfiguration.VALID_FLAGS.keys():
-            return arg
-        else:
-            raise commands.BadArgument(
-                message=(
-                    f"`{arg}` is not a valid event name.\n"
-                    "Please refer to the documentation for this cog for an exhaustive list of event names."
-                )
+    arg = arg.lower()
+    if arg in LoggingConfiguration.VALID_FLAGS.keys():
+        return arg
+    else:
+        raise commands.BadArgument(
+            message=(
+                f"`{arg}` is not a valid event name.\n"
+                "Please refer to the documentation for this cog for an exhaustive list of event names."
             )
+        )
 
 
 class TagNameConverter(commands.clean_content):
@@ -50,16 +48,14 @@ class TagNameConverter(commands.clean_content):
         return lowered
 
 
-class TagConverter(commands.Converter):
+async def tag_converter(ctx: commands.Context, argument: str) -> dict:
     """
-    Converter class for use in command args.
-    Fetches a tag by name from config
+    Converter for use in command args.
+    Fetches a tag by name from config.
     """
-
-    async def convert(self, ctx: commands.Context, argument: str) -> dict:
-        tag_name = TagNameConverter().convert(ctx, argument)
-        try:
-            tag = await ctx.cog.get_tag(ctx.guild, tag_name)
-            return tag
-        except TagNotFound:
-            raise TagConversionFailed
+    tag_name = TagNameConverter().convert(ctx, argument)
+    try:
+        tag = await ctx.cog.get_tag(ctx.guild, tag_name)
+        return tag
+    except TagNotFound:
+        raise TagConversionFailed
