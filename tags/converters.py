@@ -54,8 +54,11 @@ async def tag_converter(ctx: commands.Context, argument: str) -> dict:
     Fetches a tag by name from config.
     """
     tag_name = TagNameConverter().convert(ctx, argument)
+    print("successfully converted to tag name")
     try:
+        print("trying to get tag")
         tag = await ctx.cog.get_tag(ctx.guild, tag_name)
+        print("got tag, returning...")
         return tag
     except TagNotFound:
         print("didn't find a tag")
