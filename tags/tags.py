@@ -539,11 +539,14 @@ class TagsCog(commands.Cog):
         """View the logging configuration for the tags cog"""
         logging_config = LoggingConfiguration(await self.config.guild(ctx.guild).logging_config())
         log_channel_id = await self.config.guild(ctx.guild).logging_channel()
-        log_channel = ctx.guild.get_channel(log_channel_id) if log_channel_id else "Not set"
-        if log_channel:
-            log_channel = log_channel.mention
+        if log_channel_id:
+            log_channel = ctx.guild.get_channel(log_channel_id)
+            if log_channel:
+                log_channel = log_channel.mention
+            else:
+                log_channel = "Invalid channel"
         else:
-            log_channel = "Invalid channel"
+            log_channel = "Not set"
 
         description = "\n".join(f"`{key}` - {logging_config.get(key)}" for key in LoggingConfiguration.VALID_FLAGS.keys())
         embed = discord.Embed(
