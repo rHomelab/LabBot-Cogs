@@ -40,12 +40,21 @@ class TagNameConverter(commands.clean_content):
 class TagConverter(commands.Converter):
     async def convert(self, ctx: commands.Context, argument: str) -> dict:
         tag_name = TagNameConverter().convert(ctx, argument)
-        cog = ctx.cog
         try:
-            tag = await cog.get_tag(ctx.guild, tag_name)
+            tag = await ctx.cog.get_tag(ctx.guild, tag_name)
             return tag
         except TagNotFound:
             raise TagConversionFailed
+
+
+# TODO find a use for this method, else remove it
+async def member_can_create_tags(ctx: commands.Context, member: discord.Member) -> bool:
+    blocked_members = await ctx.cog.config.guild(ctx.guild).blocked_members()
+    return not bool([m for m in blocked_members if m["id"] == member.id])
+
+
+async def can_create_tags(ctx: commands.Context) -> bool:
+    return await member_can_create_tags(ctx, ctx.author)
 
 
 class TagsCog(commands.Cog):
@@ -193,7 +202,10 @@ class TagsCog(commands.Cog):
     async def tag_alias(self, ctx: commands.Context):
         pass
 
-    @tag_group.group(name="create", aliases=["add", "new"])
+    # Commands
+
+    @commands.check(can_create_tags)
+    @tag_group.command(name="create", aliases=["add", "new"])
     async def tag_create(self, ctx: commands.Command, tag_name: TagNameConverter, *, tag_content: str):
         """Creates a tag for later reference"""
         # Check if tag already exists
@@ -216,8 +228,6 @@ class TagsCog(commands.Cog):
 
         await ctx.send("Tag created.")
         ctx.bot.dispatch("tag_create", ctx, tag)
-
-    # Commands
 
     @tag_group.command(name="stats")
     async def tag_stats(self, ctx: commands.Context, stats_target: discord.Member = None):
@@ -307,6 +317,7 @@ class TagsCog(commands.Cog):
         )
         await ctx.send(embed)
 
+    @commands.check(can_create_tags)
     @tag_alias.command(name="create", aliases=["add"])
     async def tag_alias_create(self, ctx: commands.Context, alias: TagNameConverter, *, tag: TagConverter):
         # Check that alias name isn't already taken by another tag
@@ -412,6 +423,7 @@ class TagsCog(commands.Cog):
         ]
         await menu(ctx, pages, controls=MENU_CONTROLS, timeout=180.0)
 
+    @commands.check(can_create_tags)
     @tag_group.command(name="claim")
     async def tag_claim(self, ctx: commands.Context, tag: TagConverter):
         """Claim a tag if the owner of the tag has left the server"""
@@ -460,6 +472,39 @@ class TagsCog(commands.Cog):
     @tag_group.command(name="block")
     async def tag_block(self, ctx: commands.Context, member: discord.Member):
         """Block a member from creating tags"""
+        async with self.config.guild(ctx.guild).blocked_members() as blocked_members:
+            match = [m for m in blocked_members if m["id"] == member.id]
+            if match:
+                return await ctx.send("This member is already blocked from creating tags")
+
+            blocked_members.append({"id": member.id, "username": f"{member.name}#{member.discriminator}"})
+
+    @checks.mod()
+    @tag_group.command(name="unblock")
+    async def tag_unblock(self, ctx: commands.Context, member: discord.Member):
+        """Allows a (currently blocked) member to create tags"""
+
+    @checks.mod()
+    @tag_group.command(name="blocked")
+    async def tag_blocked(self, ctx: commands.Context):
+        """View all members blocked from creating tags"""
+        blocked_members = [
+            f"""{getattr(ctx.guild.get_member(m["id"]), "mention") or m["username"]} ({m["id"]})"""
+            for m in await self.config.guild(ctx.guild).blocked_members()
+        ]
+        if not blocked_members:
+            return await ctx.send("No members are currently blocked from creating tags.")
+
+        pages = list(pagify("\n\n".join(blocked_members)))
+        embeds = [
+            (
+                discord.Embed(
+                    title=f"Blocked members - {len(blocked_members)}", description=page, colour=await ctx.embed_colour()
+                ).set_footer(text=f"{i + 1} of {len(pages)}")
+            )
+            for i, page in enumerate(pages)
+        ]
+        await menu(ctx, embeds, controls=MENU_CONTROLS)
 
     # Helper functions
 

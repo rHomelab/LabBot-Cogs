@@ -1,4 +1,4 @@
-from redbot.core.commands import CommandError, BadArgument
+from redbot.core.commands import BadArgument, CommandError
 
 
 class TagsCogException(CommandError):
