@@ -294,7 +294,7 @@ class TagsCog(commands.Cog):
             embed = (
                 discord.Embed(colour=await ctx.embed_colour())
                 .set_author(name=f"{stats_target.name}#{stats_target.discriminator}", icon_url=stats_target.avatar_url)
-                .add_field(name="Owned tags", value=owned_tags)
+                .add_field(name="Owned tags", value=len(owned_tags))
                 .add_field(name="Owned tag uses", value=owned_tag_uses)
                 .add_field(name="Tag command uses", value=tag_cmd_uses)
                 .add_field(name="Top owned tags", value=top_owned_tags or "No owned tags")
