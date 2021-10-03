@@ -269,16 +269,29 @@ Commands:
 - `[p]tag info <tag name>` - Retrieves info about a tag.
 - `[p]tag alias create <alias name> <tag name>` - Creates an alias for a tag.
 - `[p]tag alias delete <alias name>` - Deletes an alias for a tag. Does not delete the referenced tag.
-- `[p]tag all` - Lists all tags in the guild.
+- `[p]tags` - Lists all tags in the guild.
 - `[p]tag search <search term>` - Searches for tags by name.
 - `[p]tag edit <tag name> <new content>` - Edits a tag with new content.
 - `[p]tag delete <tag name>` - Deletes a tag *and all aliases referencing it.*
 - `[p]tag claim <tag name>` - Transfers ownership of a tag to you, if the tag author has left the guild.
 - `[p]tag transfer <tag name> <member>` - Transfers ownership of a tag to someone else.
 - `[p]tags logchannel <channel>` - Sets the channel to output tag-related logs to.
+- `[p]tags log <event name> <true|false>` - Enables/disables the logging of certain events in the logs 
+channel for this cog. An exhaustive list of event names can be seen below.
+- `[p]tags logging <enable|disable>` - Enables/disables logging of tag-related events for the guild. Enabled by default.
+- `[p]tags logging show` - Shows the logging configuration for the guild.
 - `[p]tags block <member>` - Blocks a member from creating tags and tag aliases.
 - `[p]tags unblock <member>` - Unblocks a member from creating tags and tag aliases.
 - `[p]tags blocked` - Lists all members blocked from creating tags and tag aliases.
+
+Logging events:
+- `on_tag_create`
+- `on_tag_delete`
+- `on_tag_transfer`
+- `on_tag_edit`
+- `on_tag_rename`
+- `on_tag_alias_create`
+- `on_tag_alias_delete`
 
 ### Verify
 

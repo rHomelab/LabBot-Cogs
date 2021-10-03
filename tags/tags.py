@@ -1,4 +1,3 @@
-from __future__ import annotations
 import math
 import random
 import time
@@ -12,112 +11,11 @@ from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.menus import close_menu, menu, next_page, prev_page
 from redbot.core.utils.mod import is_mod_or_superior
 
-from .exceptions import CanNotManageTag, TagConversionFailed, TagNotFound
+from .converters import LoggingEventName, TagConverter, TagNameConverter
+from .exceptions import CanNotManageTag, TagNotFound
+from .logging_configuration import LoggingConfiguration
 
 MENU_CONTROLS = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}
-
-
-class LoggingConfiguration:
-    VALID_FLAGS = {
-        "on_tag_create": 0,
-        "on_tag_delete": 1,
-        "on_tag_transfer": 2,
-        "on_tag_edit": 3,
-        "on_tag_rename": 4,
-        "on_tag_alias_create": 5,
-        "on_tag_alias_delete": 6,
-    }
-
-    _value = 0
-
-    def __init__(self, value: int = 0):
-        self._value = value
-
-    def get(self, key: str) -> bool:
-        """Fetch the boolean value of a flag"""
-        flag_value: int = 1 << self.VALID_FLAGS[key]
-        return self._value & flag_value == flag_value
-
-    def set(self, key: str, value: bool):
-        """Set a flag value to True or False"""
-        if value:  # Set flag to true
-            self._value = self._value | (1 << self.VALID_FLAGS[key])
-        else:  # Set flag to false
-            self._value = self._value ^ (1 << self.VALID_FLAGS[key])
-
-    def update(self, **kwargs: bool):
-        """Bulk update flags"""
-        for key, value in kwargs.items():
-            self.set(key, value)
-
-    @classmethod
-    def all(cls) -> LoggingConfiguration:
-        obj = cls()
-        obj.update(**{key: True for key in cls.VALID_FLAGS})
-        return obj
-
-    def to_int(self) -> int:
-        return self._value
-
-
-class LoggingEventName(commands.Converter):
-    """
-    Command arg converter.
-    Converts to a logging event name, as defined in :LoggingConfiguration.VALID_FLAGS:.
-    """
-
-    async def convert(self, ctx: commands.Context, arg: str) -> str:
-        arg = arg.lower()
-        if arg in LoggingConfiguration.VALID_FLAGS.keys():
-            return arg
-        else:
-            raise commands.BadArgument(
-                message=(
-                    f"`{arg}` is not a valid event name.\n"
-                    "Please refer to the documentation for this cog for an exhaustive list of event names."
-                )
-            )
-
-
-class TagNameConverter(commands.clean_content):
-    """
-    Converter class for use in command args.
-    Makes sure the provided argument is a valid tag name (applies length and allowed character rules)
-    """
-
-    async def convert(self, ctx: commands.Context, argument: str) -> str:
-        converted = await super().convert(ctx, argument.lower())
-        lowered = converted.lower().strip()
-
-        if not lowered:
-            raise commands.BadArgument("Missing tag name.")
-
-        if len(lowered) > 100:
-            raise commands.BadArgument("Tag name is a maximum of 100 characters.")
-
-        first_word = lowered.split()[0]
-
-        # get tag command.
-        root = ctx.bot.get_command("tag")
-        if first_word in root.all_commands:
-            raise commands.BadArgument("This tag name starts with a reserved word.")
-
-        return lowered
-
-
-class TagConverter(commands.Converter):
-    """
-    Converter class for use in command args.
-    Fetches a tag by name from config
-    """
-
-    async def convert(self, ctx: commands.Context, argument: str) -> dict:
-        tag_name = TagNameConverter().convert(ctx, argument)
-        try:
-            tag = await ctx.cog.get_tag(ctx.guild, tag_name)
-            return tag
-        except TagNotFound:
-            raise TagConversionFailed
 
 
 async def can_create_tags(ctx: commands.Context) -> bool:
