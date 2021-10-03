@@ -11,7 +11,7 @@ from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.menus import close_menu, menu, next_page, prev_page
 from redbot.core.utils.mod import is_mod_or_superior
 
-from .converters import LoggingEventName, TagConverter, TagNameConverter
+from .converters import logging_event_name_converter, tag_converter, TagNameConverter
 from .exceptions import CanNotManageTag, TagNotFound
 from .logging_configuration import LoggingConfiguration
 
@@ -166,7 +166,7 @@ class TagsCog(commands.Cog):
 
     @commands.guild_only()
     @commands.group(name="tag", invoke_without_command=True)
-    async def tag_group(self, ctx: commands.Context, *, tag: TagConverter):
+    async def tag_group(self, ctx: commands.Context, *, tag: tag_converter):
         """
         Allows you to tag text for later retrieval.
         If a subcommand is not called, then this will search the tag database
@@ -302,7 +302,7 @@ class TagsCog(commands.Cog):
             return await ctx.send(embed=embed)
 
     @tag_group.command(name="info")
-    async def tag_info(self, ctx: commands.Context, tag: TagConverter):
+    async def tag_info(self, ctx: commands.Context, tag: tag_converter):
         """View info about a tag"""
         usage = await self.config.guild(ctx.guild).usage()
         aliases = await self.config.guild(ctx.guild).aliases()
@@ -319,7 +319,7 @@ class TagsCog(commands.Cog):
 
     @commands.check(can_create_tags)
     @tag_alias.command(name="create", aliases=["add"])
-    async def tag_alias_create(self, ctx: commands.Context, alias: TagNameConverter, *, tag: TagConverter):
+    async def tag_alias_create(self, ctx: commands.Context, alias: TagNameConverter, *, tag: tag_converter):
         # Check that alias name isn't already taken by another tag
         try:
             await self.get_tag(ctx.guild, alias)
@@ -358,7 +358,7 @@ class TagsCog(commands.Cog):
             await ctx.send("This alias has been deleted.")
 
     @tag_group.command(name="edit")
-    async def tag_edit(self, ctx: commands.Context, tag: TagConverter, new_content: str):
+    async def tag_edit(self, ctx: commands.Context, tag: tag_converter, new_content: str):
         """
         Edit a tag you own.
         Make sure you save a copy of the old content, because you can't undo your edits.
@@ -374,7 +374,7 @@ class TagsCog(commands.Cog):
             ctx.bot.dispatch("tag_edit", ctx, tag_match, old_content)
 
     @tag_group.command(name="delete", aliases=["remove"])
-    async def tag_delete(self, ctx: commands.Context, tag: TagConverter):
+    async def tag_delete(self, ctx: commands.Context, tag: tag_converter):
         """
         Deletes a tag, along with all aliases pointing to said tag.
         """
@@ -429,7 +429,7 @@ class TagsCog(commands.Cog):
 
     @commands.check(can_create_tags)
     @tag_group.command(name="claim")
-    async def tag_claim(self, ctx: commands.Context, tag: TagConverter):
+    async def tag_claim(self, ctx: commands.Context, tag: tag_converter):
         """Claim a tag if the owner of the tag has left the server"""
         try:
             ctx.guild.fetch_member(tag["author"]["id"])
@@ -448,7 +448,7 @@ class TagsCog(commands.Cog):
             ctx.bot.dispatch("tag_transfer", ctx, old_owner, ctx.author)
 
     @tag_group.command(name="transfer")
-    async def tag_transfer(self, ctx: commands.Context, tag: TagConverter, new_owner: discord.Member):
+    async def tag_transfer(self, ctx: commands.Context, tag: tag_converter, new_owner: discord.Member):
         """Transfer ownership of a tag to someone else."""
         can_manage_tag = (tag["author"]["id"] == ctx.author.id) or (await is_mod_or_superior(ctx.bot, ctx.author))
         if not can_manage_tag:
@@ -520,7 +520,7 @@ class TagsCog(commands.Cog):
 
     @checks.mod()
     @tags_group.command(name="log")
-    async def tags_log(self, ctx: commands.Context, event_name: LoggingEventName, value: bool):
+    async def tags_log(self, ctx: commands.Context, event_name: logging_event_name_converter, value: bool):
         """Enable/disable logging certain tag-related events to the logging channel"""
         logging_config = LoggingConfiguration(await self.config.guild(ctx.guild).logging_config())
         logging_config.set(event_name, value)
