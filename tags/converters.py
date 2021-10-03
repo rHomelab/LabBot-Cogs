@@ -58,4 +58,5 @@ async def tag_converter(ctx: commands.Context, argument: str) -> dict:
         tag = await ctx.cog.get_tag(ctx.guild, tag_name)
         return tag
     except TagNotFound:
+        print("didn't find a tag")
         raise TagConversionFailed
