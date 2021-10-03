@@ -63,7 +63,7 @@ async def can_create_tags(ctx: commands.Context) -> bool:
     Checks that the author is not on the blocked members list.
     """
     blocked_members = await ctx.cog.config.guild(ctx.guild).blocked_members()
-    return not bool([m for m in blocked_members if m["id"] == ctx.author.id])
+    return not bool([m for m in blocked_members if m["id"] == ctx.author.id]) or await is_mod_or_superior(ctx.bot, ctx.author)
 
 
 class TagsCog(commands.Cog):
@@ -73,10 +73,10 @@ class TagsCog(commands.Cog):
         self.config = Config.get_conf(self, identifier=377212919068229633)
 
         default_guild_config = {
-            "aliases": [],  # {source: str, target: str (tag.id)}
-            "tags": [],  # {id: str, name: str, content: str, author: {id: int, username: str (user.name + '#' + user.discriminator)}}
-            "usage": [],  # {tag_id: str (tag.id), user_id: int (user.id)}
-            "blocked_members": [],  # {id: int, username: str (user.name + '#' + user.discriminator)}
+            "aliases": [],  # [{source: str, target: str (tag.id)}]
+            "tags": [],  # [{id: str, name: str, content: str, author: {id: int, username: str (user.name + '#' + user.discriminator)}}]
+            "usage": [],  # [{tag_id: str (tag.id), user_id: int (user.id)}]
+            "blocked_members": [],  # [{id: int, username: str (user.name + '#' + user.discriminator)}]
             "log_channel": None,  # int (channel.id)
         }
 
@@ -213,6 +213,12 @@ class TagsCog(commands.Cog):
 
         # update the usage
         await self.update_tag_usage(ctx, tag)
+
+    @checks.mod()
+    @commands.guild_only()
+    @commands.group(name="tags")
+    async def tags_group(self, ctx: commands.Context):
+        pass
 
     @tag_group.group(name="alias")
     async def tag_alias(self, ctx: commands.Context):
@@ -354,6 +360,26 @@ class TagsCog(commands.Cog):
         await ctx.send(f"""Alias `{alias}` -> `{tag["name"]}` added.""")
         ctx.bot.dispatch("tag_alias_create", ctx, tag)
 
+    @commands.check(can_create_tags)
+    @tag_alias.command(name="delete", aliases=["remove"])
+    async def tag_alias_delete(self, ctx: commands.Context, alias: TagNameConverter):
+        """Delete an alias for a tag"""
+        async with self.config.guild(ctx.guild).aliases() as aliases:
+            # Check that the alias exists
+            try:
+                (match,) = [a for a in aliases if a["source"] == alias]
+            except ValueError:
+                return await ctx.send("This alias does not exist.")
+
+            tag = await self.get_tag(ctx.guild, match["target"], check_aliases=False)
+            # Check that the user can manage this tag
+            if not (tag["author"]["id"] == ctx.author.id or await is_mod_or_superior(ctx.bot, ctx.author)):
+                return await ctx.send("You do not have permission to manage this tag.")
+
+            # Remove the alias
+            aliases.remove(match)
+            await ctx.send("This alias has been deleted.")
+
     @tag_group.command(name="edit")
     async def tag_edit(self, ctx: commands.Context, tag: TagConverter, new_content: str):
         """
@@ -475,8 +501,8 @@ class TagsCog(commands.Cog):
             ctx.bot.dispatch("tag_transfer", ctx, old_owner, new_owner)
 
     @checks.mod()
-    @tag_group.command(name="logchannel")
-    async def tag_logchannel(self, ctx: commands.Context, channel: discord.TextChannel):
+    @tags_group.command(name="logchannel")
+    async def tags_logchannel(self, ctx: commands.Context, channel: discord.TextChannel):
         """Configure the log channel for this cog."""
         perms: discord.Permissions = channel.permissions_for(ctx.guild.me)
         if not all([perms.send_messages, perms.embed_links]):
@@ -486,8 +512,8 @@ class TagsCog(commands.Cog):
         await ctx.tick()
 
     @checks.mod()
-    @tag_group.command(name="block")
-    async def tag_block(self, ctx: commands.Context, member: discord.Member):
+    @tags_group.command(name="block")
+    async def tags_block(self, ctx: commands.Context, member: discord.Member):
         """Block a member from creating tags"""
         async with self.config.guild(ctx.guild).blocked_members() as blocked_members:
             match = [m for m in blocked_members if m["id"] == member.id]
@@ -497,13 +523,21 @@ class TagsCog(commands.Cog):
             blocked_members.append({"id": member.id, "username": f"{member.name}#{member.discriminator}"})
 
     @checks.mod()
-    @tag_group.command(name="unblock")
-    async def tag_unblock(self, ctx: commands.Context, member: discord.Member):
+    @tags_group.command(name="unblock")
+    async def tags_unblock(self, ctx: commands.Context, member: discord.Member):
         """Allows a (currently blocked) member to create tags"""
+        async with self.config.guild(ctx.guild).blocked_members() as blocked_members:
+            try:
+                (match,) = [m for m in blocked_members if m["id"] == member.id]
+                blocked_members.remove(match)
+                await ctx.send("Member now allowed to create tags.")
+            except ValueError:
+                # Member not on block list
+                await ctx.send("Member not on block list.")
 
     @checks.mod()
-    @tag_group.command(name="blocked")
-    async def tag_blocked(self, ctx: commands.Context):
+    @tags_group.command(name="blocked")
+    async def tags_blocked(self, ctx: commands.Context):
         """View all members blocked from creating tags"""
         blocked_members = [
             f"""{getattr(ctx.guild.get_member(m["id"]), "mention") or m["username"]} ({m["id"]})"""
