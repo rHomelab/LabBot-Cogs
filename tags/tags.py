@@ -17,6 +17,11 @@ MENU_CONTROLS = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}
 
 
 class TagNameConverter(commands.clean_content):
+    """
+    Converter class for use in command args.
+    Makes sure the provided argument is a valid tag name (applies length and allowed character rules)
+    """
+
     async def convert(self, ctx: commands.Context, argument: str) -> str:
         converted = await super().convert(ctx, argument.lower())
         lowered = converted.lower().strip()
@@ -38,6 +43,11 @@ class TagNameConverter(commands.clean_content):
 
 
 class TagConverter(commands.Converter):
+    """
+    Converter class for use in command args.
+    Fetches a tag by name from config
+    """
+
     async def convert(self, ctx: commands.Context, argument: str) -> dict:
         tag_name = TagNameConverter().convert(ctx, argument)
         try:
@@ -47,14 +57,13 @@ class TagConverter(commands.Converter):
             raise TagConversionFailed
 
 
-# TODO find a use for this method, else remove it
-async def member_can_create_tags(ctx: commands.Context, member: discord.Member) -> bool:
-    blocked_members = await ctx.cog.config.guild(ctx.guild).blocked_members()
-    return not bool([m for m in blocked_members if m["id"] == member.id])
-
-
 async def can_create_tags(ctx: commands.Context) -> bool:
-    return await member_can_create_tags(ctx, ctx.author)
+    """
+    Command predicate.
+    Checks that the author is not on the blocked members list.
+    """
+    blocked_members = await ctx.cog.config.guild(ctx.guild).blocked_members()
+    return not bool([m for m in blocked_members if m["id"] == ctx.author.id])
 
 
 class TagsCog(commands.Cog):
@@ -77,6 +86,7 @@ class TagsCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_tag_create(self, ctx: commands.Context, tag: dict):
+        """Logs tag creations to a channel"""
         log_channel = await self.get_log_channel(ctx.guild)
         if not log_channel:
             return
@@ -90,6 +100,7 @@ class TagsCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_tag_delete(self, ctx: commands.Context, tag: dict, aliases: List[str]):
+        """Logs tag deletions to a channel"""
         log_channel = await self.get_log_channel(ctx.guild)
         if not log_channel:
             return
@@ -104,6 +115,7 @@ class TagsCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_tag_transfer(self, ctx: commands.Context, old_owner: dict, new_owner: discord.Member):
+        """Logs tag ownership transfer to a channel"""
         log_channel = await self.get_log_channel(ctx.guild)
         if not log_channel:
             return
@@ -125,6 +137,7 @@ class TagsCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_tag_edit(self, ctx: commands.Context, tag: dict, old_content):
+        """Logs tag edits to a channel"""
         log_channel = await self.get_log_channel(ctx.guild)
         if not log_channel:
             return
@@ -146,6 +159,7 @@ class TagsCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_tag_rename(self, ctx: commands.Context, old_name: str, new_name: str):
+        """Logs tag rename events to a channel"""
         log_channel = await self.get_log_channel(ctx.guild)
         if not log_channel:
             return
@@ -159,6 +173,7 @@ class TagsCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_tag_alias_create(self, ctx: commands.Context, alias_name: str, tag_name: str):
+        """Logs tag alias creations to a channel"""
         log_channel = await self.get_log_channel(ctx.guild)
         if not log_channel:
             return
@@ -172,6 +187,7 @@ class TagsCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_tag_alias_delete(self, ctx: commands.Context, alias_name: str, tag_name: str):
+        """Logs tag alias deletions to a channel"""
         log_channel = await self.get_log_channel(ctx.guild)
         if not log_channel:
             return
@@ -231,6 +247,7 @@ class TagsCog(commands.Cog):
 
     @tag_group.command(name="stats")
     async def tag_stats(self, ctx: commands.Context, stats_target: discord.Member = None):
+        """View the stats for all tags in the server, or all the tags for a specific member"""
         tags = await self.config.guild(ctx.guild).tags()
         usage = await self.config.guild(ctx.guild).usage()
 
@@ -554,9 +571,19 @@ class TagsCog(commands.Cog):
             usage.append({"tag_id": tag["id"], "user_id": str(ctx.author.id)})
 
     def generate_tag_id(self, ctx: commands.Context) -> str:
-        """Generates a random ID seeded from context information and current time."""
+        """Generates a random ID seeded from context information and current time"""
         state = random.getstate()
-        random.seed(f"{ctx.guild.id}{ctx.channel.id}{ctx.author.id}")
+        random.seed(f"{ctx.guild.id}{ctx.channel.id}{ctx.message.id}{ctx.author.id}")
+        uuid = "-".join(
+            [
+                str(int(time.time())),
+                str(ctx.guild.id),
+                str(ctx.channel.id),
+                str(ctx.message.id),
+                str(ctx.author.id),
+                str(random.randint(0, 99999999)).rjust(8, "0"),
+            ]
+        )
         uuid = f"""{int(time.time())}{str(random.randint(0, 99999999)).rjust(8, "0")}"""
         random.setstate(state)
         return uuid
