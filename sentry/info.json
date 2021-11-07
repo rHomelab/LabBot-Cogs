@@ -10,7 +10,7 @@
         "sentry"
     ],
     "requirements": [
-        "sentry-sdk"
+        "sentry_sdk"
     ],
     "install_msg": "Install: `[p]set api sentry dsn,https://fooo@bar.baz/9`"
 }
