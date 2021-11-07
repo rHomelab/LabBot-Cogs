@@ -242,6 +242,8 @@ Send unhandled errors and performance metrics to sentry.
 
 Configure Sentry DSN using `[p]set api sentry dsn,https://fooo@bar.baz/9`, then load the Cog `[p]load sentry`.
 
+Requires `pip install -U sentry_sdk`.
+
 - `[p]sentry get_env` - Returns the currently configured Sentry environment.
 - `[p]sentry set_env` - Set the currently configured Sentry environment. Requires a reload of the cog.
 - `[p]sentry test` - Raise a test exception to test the Sentry connection.
