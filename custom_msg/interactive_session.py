@@ -29,19 +29,19 @@ class InteractiveSession:
         return response
 
     async def get_literal_answer(self, question: str, answers: List[str]):
-        if not all([a.islower() for a in answers]):
+        if not all(map(str.lower, answers)):
             raise ValueError("All values in the answer list must be lowercase")
 
         possible_answers = "/".join(f"`{a}`" for a in answers)
         while True:
             answer = (await self.get_response(f"{question} {possible_answers}")).lower()
             if answer not in answers:
-                await self.ctx.send(f"Please send a valid answer (listed below)")
+                await self.ctx.send("Please send a valid answer (listed above)")
             else:
                 return answer
 
     async def get_boolean_answer(self, question: str) -> bool:
-        return True if (await self.get_literal_answer(question, ["y", "n"])) == "y" else False
+        return (await self.get_literal_answer(question, ["y", "n"])) == "y"
 
     @classmethod
     def from_session(cls, session: InteractiveSession) -> InteractiveSession:
@@ -65,8 +65,8 @@ class MessageBuilder(InteractiveSession):
         self.payload.update({"content": content})
         if await self.confirm_sample():
             return self.payload
-        else:
-            return await self.run()
+
+        return await self.run()
 
 
 class EmbedBuilder(InteractiveSession):
@@ -81,25 +81,25 @@ class EmbedBuilder(InteractiveSession):
         return title
 
     async def get_description(self, *, send_tutorial: bool = True) -> str:
-        MAX_LENGTH = 4096
+        max_length = 4096
         if send_tutorial:
             await self.ctx.send(
-                f"The description can be up to {MAX_LENGTH} characters in length.\n"
+                f"The description can be up to {max_length} characters in length.\n"
                 "For this section you may send multiple messages, and you can send `retry()` to clear the description and start again.\n"
                 "Sending `finish()` will complete the description and move forward to the next stage."
             )
         description: List[str] = []
-        while len("\n".join(description)) <= MAX_LENGTH:
+        while len("\n".join(description)) <= max_length:
             response = (await self.ctx.bot.wait_for("message", check=self.predicate, timeout=60 * 10)).content
             if response == "exit()":
                 raise SessionCancelled
-            if response == "retry()":
+            elif response == "retry()":
                 return await self.get_description(send_tutorial=False)
             elif response == "finish()":
                 break
 
-            if len("\n".join(["\n".join(description), response])) > MAX_LENGTH:
-                remaining_chars = MAX_LENGTH - len("\n".join(description)) - 1
+            if len("\n".join(["\n".join(description), response])) > max_length:
+                remaining_chars = max_length - len("\n".join(description)) - 1
                 if remaining_chars == 0:
                     if not await self.get_boolean_answer("Max char limit reached. Do you want to submit this description?"):
                         return await self.get_description(send_tutorial=False)
@@ -157,6 +157,30 @@ class MixedBuilder(InteractiveSession):
         self.payload.update(message_payload)
         self.payload.update(embed_payload)
         return self.payload
+
+
+class QuestionSession(InteractiveSession):
+    ctx: commands.Context
+    question: str
+    answers: Dict[str, Any]
+
+    def __init__(self, ctx: commands.Context):
+        self.ctx = ctx
+        self.answers = {}
+
+    async def __call__(self):
+        pass
+
+    def set_question(self, question: str) -> QuestionSession:
+        self.question = str(question)
+        return self
+
+    def add_answer(self, key: str, value: Any) -> QuestionSession:
+        if key in self.answers:
+            raise KeyError("Key already exists")
+
+        self.answers.update({key: value})
+        return self
 
 
 async def make_session(ctx: commands.Context) -> Union[MessageBuilder, EmbedBuilder]:

@@ -4,7 +4,7 @@ from typing import Any, Awaitable, Callable, Optional
 import discord
 from redbot.core import checks, commands
 
-from .interactive_session import SessionCancelled, make_session
+from .interactive_session import SessionCancelled, make_session, InteractiveSession
 
 
 class CustomMsgCog(commands.Cog):
@@ -21,7 +21,7 @@ class CustomMsgCog(commands.Cog):
 
         async def callback(**kwargs):
             message = await channel.send(**kwargs)
-            await ctx.send("Message sent.\n" f"For future reference, the message ID is {message.channel.id}-{message.id}")
+            await ctx.send(f"Message sent.\nFor future reference, the message ID is {message.channel.id}-{message.id}")
 
         await self.handle_session(ctx, callback)
 
@@ -30,11 +30,15 @@ class CustomMsgCog(commands.Cog):
         if message.author != ctx.me:
             return await ctx.send("You must specify a message that was sent by the bot.")
 
+        if message.content and message.embeds:
+            session = InteractiveSession(ctx)
+            callbacks = {""}
+
         await self.handle_session(ctx, message.edit)
         await ctx.send("Message edited.")
 
     @staticmethod
-    async def handle_session(ctx: commands.Context, callback: Callable[[Any], None]):
+    async def handle_session(ctx: commands.Context, callback: Callable[[Any], Awaitable[None]]):
         try:
             payload = await make_session(ctx)
             await callback(**payload)
