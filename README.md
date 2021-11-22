@@ -242,6 +242,8 @@ Send unhandled errors and performance metrics to sentry.
 
 Configure Sentry DSN using `[p]set api sentry dsn,https://fooo@bar.baz/9`, then load the Cog `[p]load sentry`.
 
+- `[p]sentry get_log_level` - Get the current log level.
+- `[p]sentry set_log_level` - Set the desired log level, must be one of `error`, `warning`, `info` or `debug`. Does not require a reload.
 - `[p]sentry get_env` - Returns the currently configured Sentry environment.
 - `[p]sentry set_env` - Set the currently configured Sentry environment. Requires a reload of the cog.
 - `[p]sentry test` - Raise a test exception to test the Sentry connection.
