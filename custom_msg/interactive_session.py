@@ -159,9 +159,7 @@ class MixedBuilder(InteractiveSession):
         return self.payload
 
     async def confirm_sample(self) -> bool:
-        await self.ctx.send("Here is the embed you have created.")
-        await self.ctx.send(**self.payload)
-        return await self.get_boolean_answer("Are you happy with this?")
+        pass
 
 
 async def make_session(ctx: commands.Context) -> Payload:
