@@ -111,7 +111,7 @@ class ConfigHelper(ConfigHelperABC):
         config_group = self.config.guild(ctx.guild)
         notes = [Note.from_storage(ctx, data) for data in await config_group.notes()]
         warnings = [Note.from_storage(ctx, data, is_warning=True) for data in await config_group.warnings()]
-        return self.sorted_notes(notes + warnings)
+        return self.sorted_notes(warnings + notes)
 
     async def get_notes_by_user(self, ctx: commands.Context, user: MAYBE_MEMBER) -> List[Note]:
         config_group = self.config.guild(ctx.guild)
