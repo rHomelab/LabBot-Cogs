@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import abstractmethod
 from typing import List, Union, TypedDict, Optional
 
 import discord
@@ -52,19 +53,13 @@ class InteractiveSession:
     def from_session(cls, session: InteractiveSession) -> InteractiveSession:
         return cls(session.ctx)
 
+    @abstractmethod
     async def confirm_sample(self) -> bool:
-        """
-        Method to be used by subclasses only.
-        Sends the constructed payload and confirms the user is happy with it.
-        """
-        await self.ctx.send("Here is the message you have created.")
-        await self.ctx.send(**self.payload)
-        return await self.get_boolean_answer("Are you happy with this?")
+        """Sends the constructed payload and confirms the user is happy with it."""
+        pass
 
 
 class MessageBuilder(InteractiveSession):
-    payload: Payload
-
     async def run(self) -> Payload:
         content = await self.get_response("Please enter the message you want to send.")
         self.payload.update({"content": content})
@@ -73,10 +68,13 @@ class MessageBuilder(InteractiveSession):
 
         return await self.run()
 
+    async def confirm_sample(self) -> bool:
+        await self.ctx.send("Here is the message you have created.")
+        await self.ctx.send(**self.payload)
+        return await self.get_boolean_answer("Are you happy with this?")
+
 
 class EmbedBuilder(InteractiveSession):
-    payload: Payload
-
     async def get_title(self) -> str:
         title = await self.get_response("What should the title be?")
         if len(title) > 256:
@@ -142,17 +140,12 @@ class EmbedBuilder(InteractiveSession):
             return await self.run()
 
     async def confirm_sample(self) -> bool:
-        """
-        Sends the constructed payload and confirms the user is happy with it.
-        """
         await self.ctx.send("Here is the embed you have created.")
         await self.ctx.send(**self.payload)
         return await self.get_boolean_answer("Are you happy with this?")
 
 
 class MixedBuilder(InteractiveSession):
-    payload: Payload
-
     async def run(self) -> Payload:
         message_payload = await MessageBuilder.from_session(self).run()
         await self.ctx.send("Message added.")
@@ -164,6 +157,11 @@ class MixedBuilder(InteractiveSession):
             "embed": embed_payload["embed"]
         })
         return self.payload
+
+    async def confirm_sample(self) -> bool:
+        await self.ctx.send("Here is the embed you have created.")
+        await self.ctx.send(**self.payload)
+        return await self.get_boolean_answer("Are you happy with this?")
 
 
 async def make_session(ctx: commands.Context) -> Payload:
