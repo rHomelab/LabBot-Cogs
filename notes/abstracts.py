@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Union, Iterable
+from typing import Callable, Union, Iterable, List
 
 import discord
 from redbot.core import Config, commands
@@ -89,7 +89,7 @@ class ConfigHelperABC(ABC):
         pass
 
     @abstractmethod
-    def sorted_notes(self, notes: Iterable[NoteABC]) -> list[NoteABC]:
+    def sorted_notes(self, notes: Iterable[NoteABC]) -> List[NoteABC]:
         """Sorts notes by date and then sorts notes into buckets by whether they're classed as a warning or not"""
         pass
 
@@ -98,11 +98,11 @@ class ConfigHelperABC(ABC):
         pass
 
     @abstractmethod
-    async def get_all_notes(self, ctx: commands.Context) -> list[NoteABC]:
+    async def get_all_notes(self, ctx: commands.Context) -> List[NoteABC]:
         pass
 
     @abstractmethod
-    async def get_notes_by_user(self, ctx: commands.Context, user: MAYBE_MEMBER) -> list[NoteABC]:
+    async def get_notes_by_user(self, ctx: commands.Context, user: MAYBE_MEMBER) -> List[NoteABC]:
         pass
 
     @abstractmethod

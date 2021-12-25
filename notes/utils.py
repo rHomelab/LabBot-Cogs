@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Callable, Iterable, Union
+from typing import Callable, Iterable, Union, List
 
 import discord
 from redbot.core import Config, commands
@@ -91,7 +91,7 @@ class ConfigHelper(ConfigHelperABC):
     def sort_by_date_and_warning(note: Note) -> float:
         return note.created_at * (int(note.is_warning) + 1)
 
-    def sorted_notes(self, notes: Iterable[Note]) -> list[Note]:
+    def sorted_notes(self, notes: Iterable[Note]) -> List[Note]:
         return sorted(
             filter(self.filter_not_deleted, notes),
             key=self.sort_by_date_and_warning
@@ -107,13 +107,13 @@ class ConfigHelper(ConfigHelperABC):
                 is_warning=is_warning
             ).to_dict())
 
-    async def get_all_notes(self, ctx: commands.Context) -> list[Note]:
+    async def get_all_notes(self, ctx: commands.Context) -> List[Note]:
         config_group = self.config.guild(ctx.guild)
         notes = [Note.from_storage(ctx, data) for data in await config_group.notes()]
         warnings = [Note.from_storage(ctx, data, is_warning=True) for data in await config_group.warnings()]
         return self.sorted_notes(notes + warnings)
 
-    async def get_notes_by_user(self, ctx: commands.Context, user: MAYBE_MEMBER) -> list[Note]:
+    async def get_notes_by_user(self, ctx: commands.Context, user: MAYBE_MEMBER) -> List[Note]:
         config_group = self.config.guild(ctx.guild)
         notes = [Note.from_storage(ctx, data) for data in await config_group.notes()]
         warnings = [Note.from_storage(ctx, data, is_warning=True) for data in await config_group.warnings()]
