@@ -25,11 +25,21 @@ class NotesCog(commands.Cog):
         super().__init__()
         self.config = ConfigHelper()
 
+    # Command groups
+
     @commands.guild_only()
     @checks.mod()
-    @commands.group(name="notes", aliases=["note", "warnings", "warning"])
+    @commands.group(name="notes", aliases=["note"])
     async def _notes(self, ctx: commands.Context):
         pass
+
+    @commands.guild_only()
+    @checks.mod()
+    @commands.group(name="warnings", aliases=["warning"])
+    async def _warnings(self, ctx: commands.Context):
+        pass
+
+    # Note commands
 
     @_notes.command("add")
     async def notes_add(
@@ -40,14 +50,14 @@ class NotesCog(commands.Cog):
         message: str,
     ):
         """Log a note against a user."""
-        await self.config.add_note(ctx, user, message, is_warning=invoked_warning_cmd(ctx))
+        await self.config.add_note(ctx, user, message, is_warning=False)
         await ctx.send("Note added.")
 
     @_notes.command("delete")
     async def notes_delete(self, ctx: commands.Context, note_id: int):
         """Deletes a note."""
         try:
-            await self.config.delete_note(ctx, note_id, is_warning=invoked_warning_cmd(ctx))
+            await self.config.delete_note(ctx, note_id, is_warning=False)
             await ctx.send("Note deleted.")
         except NoteException as error_message:
             await ctx.send(str(error_message))
@@ -56,10 +66,44 @@ class NotesCog(commands.Cog):
     async def notes_restore(self, ctx: commands.Context, note_id: int):
         """Restores a deleted note."""
         try:
-            await self.config.restore_note(ctx, note_id, is_warning=invoked_warning_cmd(ctx))
+            await self.config.restore_note(ctx, note_id, is_warning=False)
             await ctx.send("Note restored.")
         except NoteException as error_message:
             await ctx.send(str(error_message))
+
+    # Warning commands
+
+    @_warnings.command("add")
+    async def warning_add(
+        self,
+        ctx: commands.Context,
+        user: MAYBE_MEMBER,
+        *,
+        message: str,
+    ):
+        """Log a warning against a user."""
+        await self.config.add_note(ctx, user, message, is_warning=True)
+        await ctx.send("Warning added.")
+
+    @_warnings.command("delete")
+    async def warning_delete(self, ctx: commands.Context, note_id: int):
+        """Deletes a warning."""
+        try:
+            await self.config.delete_note(ctx, note_id, is_warning=True)
+            await ctx.send("Warning deleted.")
+        except NoteException as error_message:
+            await ctx.send(str(error_message))
+
+    @_warnings.command("restore")
+    async def warning_restore(self, ctx: commands.Context, note_id: int):
+        """Restores a deleted warning."""
+        try:
+            await self.config.restore_note(ctx, note_id, is_warning=True)
+            await ctx.send("Warning restored.")
+        except NoteException as error_message:
+            await ctx.send(str(error_message))
+
+    # General commands
 
     @checks.bot_has_permissions(embed_links=True)
     @_notes.command("list")

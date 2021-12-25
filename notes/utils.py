@@ -94,7 +94,7 @@ class ConfigHelper(ConfigHelperABC):
     def sorted_notes(self, notes: Iterable[Note]) -> List[Note]:
         return sorted(filter(self.filter_not_deleted, notes), key=self.sort_by_date_and_warning)
 
-    async def add_note(self, ctx: commands.Context, user: MAYBE_MEMBER, message: str, *, is_warning: bool = False):
+    async def add_note(self, ctx: commands.Context, user: MAYBE_MEMBER, message: str, *, is_warning: bool):
         async with getattr(self.config.guild(ctx.guild), "warnings" if is_warning else "notes")() as notes:
             notes.append(Note.new(ctx, len(notes) + 1, user.id, message, is_warning=is_warning).to_dict())
 
@@ -110,7 +110,7 @@ class ConfigHelper(ConfigHelperABC):
         warnings = [Note.from_storage(ctx, data, is_warning=True) for data in await config_group.warnings()]
         return self.sorted_notes(filter(self.filter_match_user_id(user.id), notes + warnings))
 
-    async def delete_note(self, ctx: commands.Context, note_id: int, *, is_warning: bool = False):
+    async def delete_note(self, ctx: commands.Context, note_id: int, *, is_warning: bool):
         async with getattr(self.config.guild(ctx.guild), "warnings" if is_warning else "notes")() as notes:
             try:
                 note = Note.from_storage(ctx, notes[note_id - 1], is_warning=is_warning)
@@ -125,7 +125,7 @@ class ConfigHelper(ConfigHelperABC):
 
             notes[note.note_id - 1] = note.delete().to_dict()
 
-    async def restore_note(self, ctx: commands.Context, note_id: int, *, is_warning: bool = False):
+    async def restore_note(self, ctx: commands.Context, note_id: int, *, is_warning: bool):
         async with getattr(self.config.guild(ctx.guild), "warnings" if is_warning else "notes")() as notes:
             try:
                 note = Note.from_storage(ctx, notes[note_id - 1], is_warning=is_warning)
