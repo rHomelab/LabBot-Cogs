@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from datetime import datetime
 from typing import Callable, Iterable, Union
 
@@ -15,30 +13,7 @@ class NoteException(Exception):
     pass
 
 
-class Note:
-    note_id: int
-    member_id: int
-    message: str
-    reporter_id: int
-    reporter_name: str
-    created_at: float
-    deleted: bool
-    is_warning: bool
-    _guild: discord.Guild
-
-    def __init__(self, **kwargs):
-        if kwargs.keys() != self.__annotations__.keys():
-            raise Exception("Invalid kwargs provided")
-
-        for key, val in kwargs.items():
-            expected_type: type = self.__annotations__[key]
-            if isinstance(expected_type, str):
-                raise TypeError("For some reason all the values of the annotations dictionary have been turned into fucking strings. Everything's fucked, we should've never tricked sand into thinking")
-            if not isinstance(val, expected_type):
-                raise TypeError(f"Expected type {expected_type} for kwarg {key!r}, got type {type(val)} instead")
-
-            setattr(self, key, val)
-
+class Note(NoteABC):
     @classmethod
     def new(cls, ctx: commands.Context, note_id: int, member_id: int, message: str, *, is_warning: bool = False):
         return cls(
@@ -54,7 +29,7 @@ class Note:
         )
 
     @classmethod
-    def from_storage(cls, ctx: commands.Context, data: dict, *, is_warning: bool = False) -> Note:
+    def from_storage(cls, ctx: commands.Context, data: dict, *, is_warning: bool = False):
         return cls(
             note_id=data["id"],
             member_id=data["member"],
@@ -73,14 +48,14 @@ class Note:
         reporter_name = self._guild.get_member(self.reporter_id) or self.reporter_name
         return f"{icon} #{self.note_id} **{member_name} - Added by {reporter_name}** - <t:{int(self.created_at)}:f>\n{self.message}"
 
-    def __lt__(self, other: Note) -> bool:
+    def __lt__(self, other) -> bool:
         return self.created_at < other.created_at
 
-    def delete(self) -> Note:
+    def delete(self):
         self.deleted = True
         return self
 
-    def undelete(self) -> Note:
+    def undelete(self):
         self.deleted = False
         return self
 

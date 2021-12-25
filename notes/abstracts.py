@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from abc import ABC, abstractmethod
 from typing import Callable, Union, Iterable
 
@@ -42,7 +40,7 @@ class NoteABC(ABC):
 
     @classmethod
     @abstractmethod
-    def from_storage(cls, ctx: commands.Context, data: dict, *, is_warning: bool = False) -> NoteABC:
+    def from_storage(cls, ctx: commands.Context, data: dict, *, is_warning: bool = False):
         """Initialise the class from a config record"""
         pass
 
@@ -52,17 +50,17 @@ class NoteABC(ABC):
         pass
 
     @abstractmethod
-    def __lt__(self, other: NoteABC) -> bool:
+    def __lt__(self, other) -> bool:
         """Important for chronological sorting. Compares the created_at attribute of the instances"""
         pass
 
     @abstractmethod
-    def delete(self) -> NoteABC:
+    def delete(self):
         """Sets the deleted value to True"""
         pass
 
     @abstractmethod
-    def undelete(self) -> NoteABC:
+    def undelete(self):
         """Sets the deleted value to False"""
         pass
 
