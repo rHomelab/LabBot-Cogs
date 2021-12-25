@@ -129,7 +129,11 @@ class NotesCog(commands.Cog):
             ctx.bot.loop.create_task(menu(
                 ctx=ctx,
                 pages=embeds,
-                controls={"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page},
+                controls={
+                    "\N{BLACK LEFTWARDS ARROW}\N{VARIATION SELECTOR-16}": prev_page,
+                    "\N{BLACK SQUARE FOR STOP}\N{VARIATION SELECTOR-16}": close_menu,
+                    "\N{BLACK RIGHTWARDS ARROW}\N{VARIATION SELECTOR-16}": next_page
+                },
                 timeout=180.0
             ))
 
