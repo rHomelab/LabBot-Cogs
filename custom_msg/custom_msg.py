@@ -1,10 +1,10 @@
 import asyncio
-from typing import Optional, Set
+from typing import Optional
 
 import discord
 from redbot.core import checks, commands
 
-from .interactive_session import SessionCancelled, make_session, InteractiveSession, Payload
+from .interactive_session import SessionCancelled, make_session, InteractiveSession
 
 
 class CustomMsgCog(commands.Cog):
@@ -43,13 +43,13 @@ class CustomMsgCog(commands.Cog):
 
         payload = {key: val for key, val in payload.items() if val is not None}
 
-        if not payload["content"] and message.content:
+        if not payload.get("content") and message.content:
             if not await InteractiveSession(ctx).get_boolean_answer(
                 "The original message has message content, but you have not specified any. Would you like to keep the original content?"
             ):
                 payload.update({"content": ""})
 
-        if not payload["embed"] and message.embeds:
+        if not payload.get("embed") and message.embeds:
             if not await InteractiveSession(ctx).get_boolean_answer(
                 "The original message has an embed, but you have not specified one. Would you like to keep the original embed?"
             ):
