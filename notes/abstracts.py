@@ -93,7 +93,7 @@ class ConfigHelperABC(ABC):
         pass
 
     @abstractmethod
-    async def add_note(self, ctx: commands.Context, member_id: int, message: str, *, is_warning: bool = False):
+    async def add_note(self, ctx: commands.Context, member_id: int, message: str, *, is_warning: bool):
         pass
 
     @abstractmethod
@@ -105,9 +105,9 @@ class ConfigHelperABC(ABC):
         pass
 
     @abstractmethod
-    async def delete_note(self, ctx: commands.Context, note_id: int, *, is_warning: bool = False):
+    async def delete_note(self, ctx: commands.Context, note_id: int, *, is_warning: bool):
         pass
 
     @abstractmethod
-    async def restore_note(self, ctx: commands.Context, note_id: int, *, is_warning: bool = False):
+    async def restore_note(self, ctx: commands.Context, note_id: int, *, is_warning: bool):
         pass

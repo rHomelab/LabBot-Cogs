@@ -11,6 +11,11 @@ from redbot.core.utils.menus import close_menu, menu, next_page, prev_page
 from .utils import MAYBE_MEMBER, ConfigHelper, NoteException
 
 
+def invoked_warning_cmd(ctx: commands.Context) -> bool:
+    """Useful for finding which alias triggered the command. Checks against the invoked parents attribute. Can only be used in subcommands."""
+    return ctx.invoked_parents[0].startswith("warning")
+
+
 class NotesCog(commands.Cog):
     """Notes Cog"""
 
@@ -20,16 +25,10 @@ class NotesCog(commands.Cog):
         super().__init__()
         self.config = ConfigHelper()
 
-    @commands.group(name="notes")
+    @commands.group(name="notes", aliases=["note", "warnings", "warning"])
     @commands.guild_only()
     @checks.mod()
     async def _notes(self, ctx: commands.Context):
-        pass
-
-    @commands.group(name="warnings")
-    @commands.guild_only()
-    @checks.mod()
-    async def _warnings(self, ctx: commands.Context):
         pass
 
     @_notes.command("add")
@@ -41,35 +40,14 @@ class NotesCog(commands.Cog):
         message: str,
     ):
         """Log a note against a user."""
-        await self.config.add_note(ctx, user, message)
+        await self.config.add_note(ctx, user, message, is_warning=invoked_warning_cmd(ctx))
         await ctx.send("Note added.")
-
-    @_warnings.command("add")
-    async def warnings_add(
-        self,
-        ctx: commands.Context,
-        user: MAYBE_MEMBER,
-        *,
-        message: str,
-    ):
-        """Log a warning against a user."""
-        await self.config.add_note(ctx, user, message, is_warning=True)
-        await ctx.send("Warning added.")
 
     @_notes.command("delete")
     async def notes_delete(self, ctx: commands.Context, note_id: int):
         """Deletes a note."""
         try:
-            await self.config.delete_note(ctx, note_id)
-            await ctx.send("Note deleted.")
-        except NoteException as error_message:
-            await ctx.send(str(error_message))
-
-    @_warnings.command("delete")
-    async def warning_delete(self, ctx: commands.Context, warning_id: int):
-        """Deletes a warning."""
-        try:
-            await self.config.delete_note(ctx, warning_id, is_warning=True)
+            await self.config.delete_note(ctx, note_id, is_warning=invoked_warning_cmd(ctx))
             await ctx.send("Note deleted.")
         except NoteException as error_message:
             await ctx.send(str(error_message))
@@ -78,16 +56,7 @@ class NotesCog(commands.Cog):
     async def notes_restore(self, ctx: commands.Context, note_id: int):
         """Restores a deleted note."""
         try:
-            await self.config.restore_note(ctx, note_id)
-            await ctx.send("Note restored.")
-        except NoteException as error_message:
-            await ctx.send(str(error_message))
-
-    @_warnings.command("restore")
-    async def warnings_restore(self, ctx: commands.Context, note_id: int):
-        """Restores a deleted warning."""
-        try:
-            await self.config.restore_note(ctx, note_id, is_warning=True)
+            await self.config.restore_note(ctx, note_id, is_warning=invoked_warning_cmd(ctx))
             await ctx.send("Note restored.")
         except NoteException as error_message:
             await ctx.send(str(error_message))
@@ -125,7 +94,8 @@ class NotesCog(commands.Cog):
             await ctx.send(embed=embeds[0])
         else:
             ctx.bot.loop.create_task(
-                menu(ctx=ctx, pages=embeds, controls={"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}, timeout=180.0)
+                menu(ctx=ctx, pages=embeds, controls={"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page},
+                     timeout=180.0)
             )
 
     @checks.bot_has_permissions(embed_links=True)
@@ -140,7 +110,7 @@ class NotesCog(commands.Cog):
         await ctx.send(
             embed=(
                 discord.Embed(title="Notes Status", colour=await ctx.embed_colour())
-                .add_field(name="Notes", value=str(len([n for n in all_notes if not n.is_warning])))
-                .add_field(name="Warnings", value=str(len([n for n in all_notes if n.is_warning])))
+                    .add_field(name="Notes", value=str(len([n for n in all_notes if not n.is_warning])))
+                    .add_field(name="Warnings", value=str(len([n for n in all_notes if n.is_warning])))
             )
         )
