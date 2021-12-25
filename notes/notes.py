@@ -74,7 +74,7 @@ class NotesCog(commands.Cog):
             await ctx.send(str(error_message))
 
     @_notes.command("restore")
-    async def notes_delete(self, ctx: commands.Context, note_id: int):
+    async def notes_restore(self, ctx: commands.Context, note_id: int):
         """Restores a deleted note."""
         try:
             await self.config.restore_note(ctx, note_id)
@@ -83,7 +83,7 @@ class NotesCog(commands.Cog):
             await ctx.send(str(error_message))
 
     @_warnings.command("restore")
-    async def warnings_delete(self, ctx: commands.Context, note_id: int):
+    async def warnings_restore(self, ctx: commands.Context, note_id: int):
         """Restores a deleted warning."""
         try:
             await self.config.restore_note(ctx, note_id, is_warning=True)
