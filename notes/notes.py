@@ -27,8 +27,7 @@ class NotesCog(commands.Cog):
 
     @commands.guild_only()
     @checks.mod()
-    @commands.group(name="warnings")
-    @commands.group(name="notes")  # , aliases=["note", "warnings", "warning"])
+    @commands.group(name="notes", aliases=["note", "warnings", "warning"])
     async def _notes(self, ctx: commands.Context):
         pass
 
