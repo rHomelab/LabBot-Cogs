@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Callable, Iterable, Union, List
+from typing import Callable, Iterable, List, Union
 
 import discord
 from redbot.core import Config, commands
@@ -25,7 +25,7 @@ class Note(NoteABC):
             created_at=datetime.utcnow().timestamp(),
             deleted=False,
             is_warning=is_warning,
-            _guild=ctx.guild
+            _guild=ctx.guild,
         )
 
     @classmethod
@@ -39,7 +39,7 @@ class Note(NoteABC):
             created_at=data["date"],
             deleted=data["deleted"],
             is_warning=is_warning,
-            _guild=ctx.guild
+            _guild=ctx.guild,
         )
 
     def __str__(self) -> str:
@@ -67,18 +67,18 @@ class Note(NoteABC):
             "reporter": self.reporter_id,
             "reporterstr": self.reporter_name,
             "date": self.created_at,
-            "deleted": self.deleted
+            "deleted": self.deleted,
         }
 
 
 class ConfigHelper(ConfigHelperABC):
-
     def __init__(self):
         self.config = Config.get_conf(None, identifier=127318281, cog_name="NotesCog")
         self.config.register_guild(notes=[], warnings=[])
 
     @staticmethod
-    def filter_not_deleted(note: Note) -> bool: return not note.deleted
+    def filter_not_deleted(note: Note) -> bool:
+        return not note.deleted
 
     @staticmethod
     def filter_match_user_id(user_id: int) -> Callable[[Note], bool]:
@@ -92,20 +92,11 @@ class ConfigHelper(ConfigHelperABC):
         return note.created_at * (int(note.is_warning) + 1)
 
     def sorted_notes(self, notes: Iterable[Note]) -> List[Note]:
-        return sorted(
-            filter(self.filter_not_deleted, notes),
-            key=self.sort_by_date_and_warning
-        )
+        return sorted(filter(self.filter_not_deleted, notes), key=self.sort_by_date_and_warning)
 
     async def add_note(self, ctx: commands.Context, user: MAYBE_MEMBER, message: str, *, is_warning: bool = False):
         async with getattr(self.config.guild(ctx.guild), "warnings" if is_warning else "notes")() as notes:
-            notes.append(Note.new(
-                ctx,
-                len(notes) + 1,
-                user.id,
-                message,
-                is_warning=is_warning
-            ).to_dict())
+            notes.append(Note.new(ctx, len(notes) + 1, user.id, message, is_warning=is_warning).to_dict())
 
     async def get_all_notes(self, ctx: commands.Context) -> List[Note]:
         config_group = self.config.guild(ctx.guild)

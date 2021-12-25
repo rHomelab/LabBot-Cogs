@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Union, Iterable, List
+from typing import Callable, Iterable, List, Union
 
 import discord
 from redbot.core import Config, commands
@@ -9,6 +9,7 @@ MAYBE_MEMBER = Union[discord.Member, discord.Object]
 
 class NoteABC(ABC):
     """Represents a note record"""
+
     note_id: int
     member_id: int
     message: str

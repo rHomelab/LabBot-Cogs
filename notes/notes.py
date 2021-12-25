@@ -13,6 +13,7 @@ from .utils import MAYBE_MEMBER, ConfigHelper, NoteException
 
 class NotesCog(commands.Cog):
     """Notes Cog"""
+
     config: ConfigHelper
 
     def __init__(self):
@@ -113,25 +114,19 @@ class NotesCog(commands.Cog):
                 (f"Notes for {notes_target}" if notes_target else "All notes")
                 + f" - ({num_warnings} warnings, {num_notes} notes)"
             ),
-            "colour": await ctx.embed_colour()
+            "colour": await ctx.embed_colour(),
         }
         embeds = [
-            (
-                discord.Embed(**base_embed_options, description=page)
-                .set_footer(text=f"Page {index} of {len(pages)}")
-            )
+            discord.Embed(**base_embed_options, description=page).set_footer(text=f"Page {index} of {len(pages)}")
             for index, page in enumerate(pages, start=1)
         ]
 
         if len(embeds) == 1:
             await ctx.send(embed=embeds[0])
         else:
-            ctx.bot.loop.create_task(menu(
-                ctx=ctx,
-                pages=embeds,
-                controls={"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page},
-                timeout=180.0
-            ))
+            ctx.bot.loop.create_task(
+                menu(ctx=ctx, pages=embeds, controls={"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}, timeout=180.0)
+            )
 
     @checks.bot_has_permissions(embed_links=True)
     @_notes.command("status")
@@ -142,8 +137,10 @@ class NotesCog(commands.Cog):
         since it's inception.
         """
         all_notes = await self.config.get_all_notes(ctx)
-        await ctx.send(embed=(
-            discord.Embed(title="Notes Status", colour=await ctx.embed_colour())
-            .add_field(name="Notes", value=str(len([n for n in all_notes if not n.is_warning])))
-            .add_field(name="Warnings", value=str(len([n for n in all_notes if n.is_warning])))
-        ))
+        await ctx.send(
+            embed=(
+                discord.Embed(title="Notes Status", colour=await ctx.embed_colour())
+                .add_field(name="Notes", value=str(len([n for n in all_notes if not n.is_warning])))
+                .add_field(name="Warnings", value=str(len([n for n in all_notes if n.is_warning])))
+            )
+        )
