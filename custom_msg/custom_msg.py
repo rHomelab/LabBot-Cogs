@@ -1,10 +1,10 @@
 import asyncio
-from typing import Any, Awaitable, Callable, Optional
+from typing import Optional, Set
 
 import discord
 from redbot.core import checks, commands
 
-from .interactive_session import SessionCancelled, make_session, InteractiveSession
+from .interactive_session import SessionCancelled, make_session, InteractiveSession, Payload
 
 
 class CustomMsgCog(commands.Cog):
@@ -19,30 +19,41 @@ class CustomMsgCog(commands.Cog):
         if channel is None:
             channel = ctx.channel
 
-        async def callback(**kwargs):
-            message = await channel.send(**kwargs)
-            await ctx.send(f"Message sent.\nFor future reference, the message ID is {message.channel.id}-{message.id}")
+        try:
+            payload = await make_session(ctx)
+        except asyncio.TimeoutError:
+            return await ctx.send("Took too long to respond - exiting...")
+        except SessionCancelled:
+            return await ctx.send("Exiting...")
 
-        await self.handle_session(ctx, callback)
+        message = await channel.send(**payload)
+        await ctx.send(f"Message sent.\nFor future reference, the message ID is {message.channel.id}-{message.id}")
 
     @msg_cmd.command(name="edit")
     async def msg_edit(self, ctx: commands.Context, message: discord.Message):
         if message.author != ctx.me:
             return await ctx.send("You must specify a message that was sent by the bot.")
 
-        if message.content and message.embeds:
-            session = InteractiveSession(ctx)
-            callbacks = {""}
-
-        await self.handle_session(ctx, message.edit)
-        await ctx.send("Message edited.")
-
-    @staticmethod
-    async def handle_session(ctx: commands.Context, callback: Callable[[Any], Awaitable[None]]):
         try:
             payload = await make_session(ctx)
-            await callback(**payload)
         except asyncio.TimeoutError:
-            await ctx.send("Took too long to respond, exiting...")
+            return await ctx.send("Took too long to respond - exiting...")
         except SessionCancelled:
-            await ctx.send("Exiting...")
+            return await ctx.send("Exiting...")
+
+        payload = {key: val for key, val in payload.items() if val is not None}
+
+        if not payload["content"] and message.content:
+            if not await InteractiveSession(ctx).get_boolean_answer(
+                "The original message has message content, but you have not specified any. Would you like to keep the original content?"
+            ):
+                payload.update({"content": ""})
+
+        if not payload["embed"] and message.embeds:
+            if not await InteractiveSession(ctx).get_boolean_answer(
+                "The original message has an embed, but you have not specified one. Would you like to keep the original embed?"
+            ):
+                payload.update({"embed": None})
+
+        await message.edit(**payload)
+        await ctx.send("Message edited.")

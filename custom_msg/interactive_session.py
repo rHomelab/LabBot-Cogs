@@ -1,18 +1,23 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Union
+from typing import List, Union, TypedDict, Optional
 
 import discord
 from redbot.core import commands
 
 
 class SessionCancelled(Exception):
-    "Raised when an interactive session is closed by the user"
+    """Raised when an interactive session is closed by the user"""
+
+
+class Payload(TypedDict):
+    content: Optional[str]
+    embed: Optional[discord.Embed]
 
 
 class InteractiveSession:
     ctx: commands.Context
-    payload: Dict[str, Any]
+    payload: Payload
 
     def __init__(self, ctx: commands.Context):
         self.ctx = ctx
@@ -58,9 +63,9 @@ class InteractiveSession:
 
 
 class MessageBuilder(InteractiveSession):
-    payload: Dict[str, str]
+    payload: Payload
 
-    async def run(self) -> Dict[str, str]:
+    async def run(self) -> Payload:
         content = await self.get_response("Please enter the message you want to send.")
         self.payload.update({"content": content})
         if await self.confirm_sample():
@@ -70,7 +75,7 @@ class MessageBuilder(InteractiveSession):
 
 
 class EmbedBuilder(InteractiveSession):
-    payload: Dict[str, discord.Embed]
+    payload: Payload
 
     async def get_title(self) -> str:
         title = await self.get_response("What should the title be?")
@@ -98,7 +103,7 @@ class EmbedBuilder(InteractiveSession):
             elif response == "finish()":
                 break
 
-            if len("\n".join(["\n".join(description), response])) > max_length:
+            if sum(map(len, description + [response])) > max_length:
                 remaining_chars = max_length - len("\n".join(description)) - 1
                 if remaining_chars == 0:
                     if not await self.get_boolean_answer("Max char limit reached. Do you want to submit this description?"):
@@ -116,7 +121,7 @@ class EmbedBuilder(InteractiveSession):
 
         return "\n".join(description)
 
-    async def run(self) -> Dict[str, discord.Embed]:
+    async def run(self) -> Payload:
         embed = discord.Embed(colour=await self.ctx.embed_colour())
         if await self.get_boolean_answer("Do you want a title on this embed?"):
             embed.title = await self.get_title()
@@ -128,7 +133,7 @@ class EmbedBuilder(InteractiveSession):
 
         self.payload.update({"embed": embed})
         if not embed:
-            await self.ctx.send("You can't use an empty embed.\n Please go through the options again.")
+            await self.ctx.send("You can't use an empty embed.\nPlease go through the options again.")
             return await self.run()
 
         if await self.confirm_sample():
@@ -146,50 +151,28 @@ class EmbedBuilder(InteractiveSession):
 
 
 class MixedBuilder(InteractiveSession):
-    payload: Dict[str, Union[str, discord.Embed]]
+    payload: Payload
 
-    async def run(self) -> Dict[str, Union[str, discord.Embed]]:
+    async def run(self) -> Payload:
         message_payload = await MessageBuilder.from_session(self).run()
         await self.ctx.send("Message added.")
         embed_payload = await EmbedBuilder.from_session(self).run()
         await self.ctx.send("Embed added.")
 
-        self.payload.update(message_payload)
-        self.payload.update(embed_payload)
+        self.payload.update({
+            "content": message_payload["content"],
+            "embed": embed_payload["embed"]
+        })
         return self.payload
 
 
-class QuestionSession(InteractiveSession):
-    ctx: commands.Context
-    question: str
-    answers: Dict[str, Any]
-
-    def __init__(self, ctx: commands.Context):
-        self.ctx = ctx
-        self.answers = {}
-
-    async def __call__(self):
-        pass
-
-    def set_question(self, question: str) -> QuestionSession:
-        self.question = str(question)
-        return self
-
-    def add_answer(self, key: str, value: Any) -> QuestionSession:
-        if key in self.answers:
-            raise KeyError("Key already exists")
-
-        self.answers.update({key: value})
-        return self
-
-
-async def make_session(ctx: commands.Context) -> Union[MessageBuilder, EmbedBuilder]:
+async def make_session(ctx: commands.Context) -> Payload:
     await ctx.send(
         "Entering the interactive message builder. You can send `exit()` at any point to cancel the current builder."
     )
     session = InteractiveSession(ctx)
     builders = {"embed": EmbedBuilder, "message": MessageBuilder, "both": MixedBuilder}
     builder: Union[MessageBuilder, EmbedBuilder] = builders[
-        await session.get_literal_answer("Do you want this to be an embed or regular message?", builders.keys())
+        await session.get_literal_answer("Do you want this to be an embed or regular message?", list(builders.keys()))
     ].from_session(session)
     return await builder.run()
