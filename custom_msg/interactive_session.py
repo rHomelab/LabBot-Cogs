@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import List, Union, TypedDict, Optional
+from typing import List, Optional, TypedDict, Union
 
 import discord
 from redbot.core import commands
