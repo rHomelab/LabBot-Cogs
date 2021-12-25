@@ -7,10 +7,8 @@ from discord.channel import TextChannel
 from discord.ext.commands.errors import CommandInvokeError
 from redbot.core import checks, commands
 from redbot.core.bot import Config, Red
-from sentry_sdk import capture_exception
-from sentry_sdk import init as sentry_init
-from sentry_sdk import start_transaction
-from sentry_sdk.api import set_tag, set_user
+from sentry_sdk.client import Client
+from sentry_sdk.hub import Hub
 from sentry_sdk.tracing import Transaction
 from sentry_sdk.utils import BadDsn
 
@@ -21,13 +19,14 @@ class SentryCog(commands.Cog):
     logger: Logger
     bot: Red
     _is_initialized: bool
+    client: Optional[Client]
 
     def __init__(self, bot: Red):
         super().__init__()
         self.logger = getLogger("sentry")
 
         self.bot = bot
-        self._is_initialized = False
+        self.client = None
 
         self.config = Config.get_conf(self, identifier=34848138412384)
         default_global = {
@@ -40,9 +39,10 @@ class SentryCog(commands.Cog):
         bot.after_invoke(self.after_invoke)
         self.logger.debug("Registered before/after hooks")
 
+    # pylint: disable=unused-argument
     async def ensure_client_init(self, context: commands.context.Context):
         """Ensure client is initialised"""
-        if self._is_initialized:
+        if self.client:
             return
         log_level = await self.config.log_level()
         try:
@@ -55,19 +55,18 @@ class SentryCog(commands.Cog):
         keys = await self.bot.get_shared_api_tokens("sentry")
         dsn = keys.get("dsn", None)
         try:
-            # pylint: disable=abstract-class-instantiated
-            sentry_init(
+            self.client = Client(
                 dsn=dsn,
                 environment=environment,
                 traces_sample_rate=1,
                 integrations=[],
                 default_integrations=False,
             )
+            self.client.options["debug"] = log_level.upper() == "DEBUG"
         except BadDsn:
             self.logger.error("Failed to initialise sentry client with DSN '%s'", dsn)
         else:
-            self.logger.debug("Initialised sentry client with %s env=%s", dsn, environment)
-            self._is_initialized = True
+            self.logger.debug("Initialised sentry client with %s env=%s", dsn, environment)
 
     def cog_unload(self):
         self.bot.remove_before_invoke_hook(self.before_invoke)
@@ -96,6 +95,7 @@ class SentryCog(commands.Cog):
         await self.config.log_level.set(new_value.upper())
         await context.send(f"Sentry log_level has been changed to '{new_value.upper()}'!")
         self.logger.setLevel(new_value.upper())
+        self.client.options["debug"] = new_value.upper() == "DEBUG"
 
     @_sentry.command(name="get_log_level")
     async def sentry_get_log_level(self, context: commands.context.Context):
@@ -113,22 +113,23 @@ class SentryCog(commands.Cog):
         """Method invoked before any red command. Start a transaction."""
         await self.ensure_client_init(context)
         msg: Message = context.message
-        # set_user applies to the current scope, so it also applies to the transaction
-        set_user(
-            {
-                "id": msg.author.id,
-                "username": msg.author.display_name,
-            }
-        )
-        transaction = start_transaction(op="command", name="Command %s" % context.command.name)
-        transaction.set_tag("discord_message", msg.content)
-        if context.command:
-            transaction.set_tag("discord_command", context.command.name)
-        if msg.guild:
-            transaction.set_tag("discord_guild", msg.guild.name)
-        if isinstance(msg.channel, TextChannel):
-            transaction.set_tag("discord_channel", msg.channel.name)
-            transaction.set_tag("discord_channel_id", msg.channel.id)
+        with Hub(self.client) as hub:
+            # set_user applies to the current scope, so it also applies to the transaction
+            hub.scope.set_user(
+                {
+                    "id": msg.author.id,
+                    "username": msg.author.display_name,
+                }
+            )
+            transaction: Transaction = hub.start_transaction(op="command", name="Command %s" % context.command.name)
+            transaction.set_tag("discord_message", msg.content)
+            if context.command:
+                transaction.set_tag("discord_command", context.command.name)
+            if msg.guild:
+                transaction.set_tag("discord_guild", msg.guild.name)
+            if isinstance(msg.channel, TextChannel):
+                transaction.set_tag("discord_channel", msg.channel.name)
+                transaction.set_tag("discord_channel_id", msg.channel.id)
         setattr(context, "__sentry_transaction", transaction)
 
     async def after_invoke(self, context: commands.context.Context):
@@ -139,36 +140,37 @@ class SentryCog(commands.Cog):
         if not transaction:
             self.logger.debug("post-command: no transaction, discarding")
             return
-        transaction.set_status("ok")
-        msg: Message = context.message
-        set_user(
-            {
-                "id": msg.author.id,
-                "username": msg.author.display_name,
-            }
-        )
-        set_tag("discord_message", msg.content)
-        if context.command:
-            set_tag("discord_command", context.command.name)
-        if msg.guild:
-            set_tag("discord_guild", msg.guild.name)
-        if isinstance(msg.channel, TextChannel):
-            set_tag("discord_channel", msg.channel.name)
-            set_tag("discord_channel_id", msg.channel.id)
+        with Hub(self.client) as hub:
+            transaction.set_status("ok")
+            msg: Message = context.message
+            hub.scope.set_user(
+                {
+                    "id": msg.author.id,
+                    "username": msg.author.display_name,
+                }
+            )
+            hub.scope.set_tag("discord_message", msg.content)
+            if context.command:
+                hub.scope.set_tag("discord_command", context.command.name)
+            if msg.guild:
+                hub.scope.set_tag("discord_guild", msg.guild.name)
+            if isinstance(msg.channel, TextChannel):
+                hub.scope.set_tag("discord_channel", msg.channel.name)
+                hub.scope.set_tag("discord_channel_id", msg.channel.id)
 
-        if not context.command_failed:
-            self.logger.debug("post-command: sending successful transaction")
-            transaction.finish()
-            return
-        exc_type, value, _ = sys.exc_info()
-        if not exc_type:
-            transaction.finish()
-            return
-        if isinstance(value, CommandInvokeError):
-            value = value.original
+            if not context.command_failed:
+                self.logger.debug("post-command: sending successful transaction")
+                transaction.finish(hub)
+                return
+            exc_type, value, _ = sys.exc_info()
+            if not exc_type:
+                transaction.finish(hub)
+                return
+            if isinstance(value, CommandInvokeError):
+                value = value.original
 
-        transaction.set_status("unknown_error")
-        self.logger.debug("post-command: capturing error")
-        capture_exception(value)
+            transaction.set_status("unknown_error")
+            self.logger.debug("post-command: capturing error")
+            hub.capture_exception(value)
 
-        transaction.finish()
+            transaction.finish(hub)
