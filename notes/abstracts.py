@@ -27,8 +27,8 @@ class NoteABC(ABC):
 
         for key, val in kwargs.items():
             expected_type: type = self.__annotations__[key]
-            if not isinstance(expected_type, type):
-                raise TypeError(f"Expected type variable for key {key!r} is not a type. Instead, {type(expected_type)} of value {expected_type!r}\nAnnotations: {self.__annotations__!r}")
+            if isinstance(expected_type, str):
+                raise TypeError("For some reason all the values of the annotations dictionary have been turned into fucking strings. Everything's fucked, we should've never tricked sand into thinking")
             if not isinstance(val, expected_type):
                 raise TypeError(f"Expected type {expected_type} for kwarg {key!r}, got type {type(val)} instead")
 
