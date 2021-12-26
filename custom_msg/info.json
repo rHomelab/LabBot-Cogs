@@ -2,8 +2,8 @@
     "author": [
         "Issy"
     ],
-    "short": "",
-    "description": "",
+    "short": "Send messages as the bot",
+    "description": "Allows moderators to send messages as the bot, also allowing modification of existing messages sent from the cog",
     "disabled": false,
     "name": "custom_msg",
     "tags": [
