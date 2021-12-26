@@ -17,7 +17,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
   - [AutoReact](#autoreact)
   - [AutoReply](#autoreply)
   - [Convert](#convert)
-  - [Custom msg](#custom-msg)
+  - [Custom-msg](#custom-msg)
   - [Enforcer](#enforcer)
   - [Feed](#feed)
   - [Google](#google)
