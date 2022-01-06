@@ -17,6 +17,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
   - [AutoReact](#autoreact)
   - [AutoReply](#autoreply)
   - [Convert](#convert)
+  - [Custom-msg](#custom-msg)
   - [Enforcer](#enforcer)
   - [Feed](#feed)
   - [Google](#google)
@@ -61,6 +62,7 @@ A massive thank you to all who've helped out with this project ❤️
 - **[AutoReact](#autoreact):** React to specific phrases with one or more emotes.
 - **[AutoReply](#autoreply):** Automatically replies to messages that match a trigger phrase.
 - **[Convert](#convert):** Converts any unit to any another unit.
+- **[Custom-msg](#custom-msg):** Allows moderators to send/edit messages from the bot.
 - **[Enforcer](#enforcer):** Allows you to enforce certain characteristics on a channel.
 - **[Feed](#feed):** This allows users to feed each other.
 - **[Google](#google):** Send a google link to someone.
@@ -96,6 +98,15 @@ This cog automatically responds to messages that match specific trigger phrases,
 Converts any unit to any another unit.
 
 `[p]convert`
+
+### Custom-msg
+
+Allows moderators to send/edit messages from the bot.
+
+```
+[p]msg create
+[p]msg edit
+```
 
 ### Enforcer
 
