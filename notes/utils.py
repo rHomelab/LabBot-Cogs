@@ -32,7 +32,7 @@ class Note(NoteABC):
     def from_storage(cls, ctx: commands.Context, data: dict, *, is_warning: bool = False):
         return cls(
             note_id=data["id"],
-            member_id=data["member"],
+            member_id=int(data["member"]),
             message=data["message"],
             reporter_id=data["reporter"],
             reporter_name=data["reporterstr"],
