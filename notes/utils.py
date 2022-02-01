@@ -22,7 +22,7 @@ class Note(NoteABC):
             message=message,
             reporter_id=ctx.author.id,
             reporter_name=ctx.author.name,
-            created_at=datetime.utcnow().timestamp(),
+            created_at=int(datetime.utcnow().timestamp()),
             deleted=False,
             is_warning=is_warning,
             _guild=ctx.guild,
@@ -36,7 +36,7 @@ class Note(NoteABC):
             message=data["message"],
             reporter_id=data["reporter"],
             reporter_name=data["reporterstr"],
-            created_at=data["date"],
+            created_at=int(data["date"]),  # FIXME: Migrate all stored values to int
             deleted=data["deleted"],
             is_warning=is_warning,
             _guild=ctx.guild,

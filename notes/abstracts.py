@@ -15,7 +15,7 @@ class NoteABC(ABC):
     message: str
     reporter_id: int
     reporter_name: str
-    created_at: float
+    created_at: int
     deleted: bool
     is_warning: bool
     _guild: discord.Guild
