@@ -1,6 +1,6 @@
 """discord red-bot phishing link detection"""
 import re
-from typing import List, Optional, Callable, TypedDict, Literal, Set
+from typing import Callable, List, Literal, Optional, Set, TypedDict
 
 import aiohttp
 import discord
