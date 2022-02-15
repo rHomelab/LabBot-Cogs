@@ -29,7 +29,9 @@ class PhishingDetectionCog(commands.Cog):
 
     def __init__(self):
         self.update_regex.start()
-        self.session = aiohttp.ClientSession()
+        self.session = aiohttp.ClientSession(headers={
+            "X-Identity": "A Red-DiscordBot instance using the phishingdetection cog from https://github.com/rhomelab/labbot-cogs"
+        })
 
     def cog_unload(self):
         self.session.close()
