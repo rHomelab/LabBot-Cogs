@@ -28,10 +28,10 @@ class PhishingDetectionCog(commands.Cog):
     session: aiohttp.ClientSession
 
     def __init__(self):
-        self.update_regex.start()
         self.session = aiohttp.ClientSession(headers={
             "X-Identity": "A Red-DiscordBot instance using the phishingdetection cog from https://github.com/rhomelab/labbot-cogs"
         })
+        self.update_regex.start()
 
     def cog_unload(self):
         self.session.close()
@@ -44,6 +44,8 @@ class PhishingDetectionCog(commands.Cog):
             if not isinstance(data, list):
                 # Could be an error message
                 return
+
+            self.urls = set(data)
             self.update_predicate()
 
         self.update_regex.start()
