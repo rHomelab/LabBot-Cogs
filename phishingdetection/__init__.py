@@ -1,5 +1,6 @@
-from .phishingdetection import PhishingDetectionCog
 from redbot.core.bot import Red
+
+from .phishingdetection import PhishingDetectionCog
 
 
 def setup(bot: Red):
