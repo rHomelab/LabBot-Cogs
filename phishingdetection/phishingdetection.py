@@ -6,6 +6,7 @@ import aiohttp
 import discord
 from discord.ext import tasks
 from redbot.core import commands
+from redbot.core.bot import Red
 
 
 def api_endpoint(endpoint: str) -> str:
@@ -23,20 +24,22 @@ class DomainUpdate(TypedDict):
 
 class PhishingDetectionCog(commands.Cog):
     """Phishing link detection cog"""
+    bot: Red
     predicate: Optional[Callable[[str], bool]] = None
     urls: Set[str]
     session: aiohttp.ClientSession
 
-    def __init__(self):
+    def __init__(self, bot: Red):
+        self.bot = bot
         self.session = aiohttp.ClientSession(headers={
             "X-Identity": "A Red-DiscordBot instance using the phishingdetection cog from https://github.com/rhomelab/labbot-cogs"
         })
         self.initialise_url_set.start()
 
     def cog_unload(self):
-        self.session.close()
         self.initialise_url_set.cancel()
         self.update_regex.cancel()
+        self.bot.loop.run_until_complete(self.session.close())
 
     @tasks.loop(hours=1.0)
     async def initialise_url_set(self):
