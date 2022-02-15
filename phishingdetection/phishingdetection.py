@@ -31,10 +31,12 @@ class PhishingDetectionCog(commands.Cog):
         self.session = aiohttp.ClientSession(headers={
             "X-Identity": "A Red-DiscordBot instance using the phishingdetection cog from https://github.com/rhomelab/labbot-cogs"
         })
-        self.update_regex.start()
+        self.initialise_url_set.start()
 
     def cog_unload(self):
         self.session.close()
+        self.initialise_url_set.cancel()
+        self.update_regex.cancel()
 
     @tasks.loop(hours=1.0)
     async def initialise_url_set(self):
@@ -51,7 +53,7 @@ class PhishingDetectionCog(commands.Cog):
         self.update_regex.start()
         self.initialise_url_set.cancel()
 
-    @tasks.loop()
+    @tasks.loop(hours=1.0)
     async def update_regex(self):
         """Fetch the list of phishing URLs and update the regex pattern"""
         async with self.session.get(api_endpoint("/recent/3660")) as response:  # TODO: Use the websocket API to get live updates
