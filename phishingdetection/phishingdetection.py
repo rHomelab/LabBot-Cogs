@@ -14,7 +14,7 @@ def api_endpoint(endpoint: str) -> str:
 
 
 def escape_url(url: str) -> str:
-    return url.replace(".", "\.")
+    return url.replace(".", "\\.")
 
 
 class DomainUpdate(TypedDict):
