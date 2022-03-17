@@ -25,6 +25,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
   - [Letters](#letters)
   - [Notes](#notes)
   - [Penis](#penis)
+  - [Phishingdetection](#Phishingdetection)
   - [Purge](#purge)
   - [Quotes](#quotes)
   - [Reactrole](#reactrole)
@@ -196,6 +197,10 @@ Notes and warnings can be edited using the `edit` subcommand.
 This cog allows users to check the size of their penis.
 
 `[p]penis <user>`
+
+### Phishingdetection
+
+This cog automatically deletes any messages containing suspected phishing/scam links. This information is sourced from [phish.sinking.yachts](https://phish.sinking.yachts/)
 
 ### Purge
 
