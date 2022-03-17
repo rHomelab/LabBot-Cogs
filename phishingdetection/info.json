@@ -1,0 +1,16 @@
+{
+    "author": [
+        "Issy"
+    ],
+    "short": "Remove messages containing phishing links",
+    "description": "Remove messages containing phishing links (data sourced from https://phish.sinking.yachts/)",
+    "disabled": false,
+    "name": "phishingdetection",
+    "tags": [
+        "moderation",
+        "utility",
+        "scam",
+        "prevention"
+    ],
+    "install_msg": "Thanks for installing"
+}

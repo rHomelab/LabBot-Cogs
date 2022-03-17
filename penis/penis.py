@@ -33,7 +33,10 @@ class Penis(commands.Cog):
         dongs = sorted(dongs.items(), key=lambda x: x[1])
 
         for user, dong in dongs:
-            msg += "**{}'s size:**\n{}\n".format(user.display_name, dong)
+            if len(dong) <= 6:
+                msg += "**{}'s size:**\n{}\nlol small\n".format(user.display_name, dong)
+            else:
+                msg += "**{}'s size:**\n{}\n".format(user.display_name, dong)
 
         for page in pagify(msg):
             await ctx.send(page)
