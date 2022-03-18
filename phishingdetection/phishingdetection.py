@@ -90,7 +90,8 @@ class PhishingDetectionCog(commands.Cog):
         # TODO: Maybe log this somewhere?
 
     def update_predicate(self):
-        pattern = re.compile("|".join(escape_url(url) for url in self.urls))
+        urls_section = "|".join(escape_url(url) for url in self.urls)
+        pattern = re.compile(f"(http[s]?://| |^)(www\\.)?({urls_section})")
 
         def predicate(content: str) -> bool:
             return bool(pattern.search(content))
