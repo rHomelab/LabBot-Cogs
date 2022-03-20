@@ -1,19 +1,27 @@
 """Pipeline script for extracting imports from cogs"""
+import json
 from glob import glob
-from json import loads
-
-with open("requirements.txt", "r") as f:
-    requirements = [i for i in f.read().split("\n") if i]
+from typing import Set
 
 
-for filename in glob("*/info.json"):
-    with open(filename, "r") as f:
-        info = loads(f.read())
-    if "REQUIREMENTS" in info:
-        requirements.extend(info["REQUIREMENTS"])
+def fetch_requirements() -> Set[str]:
+    requirements = set()
+
+    for filename in glob("*/info.json"):
+        with open(filename, "r") as fp:
+            info = json.load(fp)
+        if "requirements" in info:
+            requirements.update(info["requirements"])
+
+    return requirements
 
 
-with open("requirements.txt", "w") as f:
-    f.writelines("\n".join(requirements))
+def write_requirements(requirements: Set[str]):
+    with open("requirements.txt", "a") as fp:
+        fp.write("\n".join(requirements))
 
-print("Compiled requirements")
+
+if __name__ == "__main__":
+    all_requirements = fetch_requirements()
+    write_requirements(all_requirements)
+    print("Compiled requirements")
