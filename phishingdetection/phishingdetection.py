@@ -19,7 +19,7 @@ def escape_url(url: str) -> str:
 
 def generate_predicate_from_urls(urls: Set[str]) -> Callable[[str], bool]:
     urls_section = "|".join(escape_url(url) for url in urls)
-    pattern = re.compile(f"(http[s]?://| |^)(www\\.)?({urls_section})")
+    pattern = re.compile(f"(^| )(http[s]?://)?(www\\.)?({urls_section})(/|/[^ \n]+)?($| )")
 
     def predicate(content: str) -> bool:
         return bool(pattern.search(content))
@@ -32,12 +32,12 @@ class DomainUpdate(TypedDict):
     domains: List[str]
 
 
-async def get_all_urls(session: aiohttp.ClientSession) -> List[str]:
+async def get_all_urls(session: aiohttp.ClientSession) -> Set[str]:
     async with session.get(api_endpoint("/all")) as response:
         urls: List[str] = await response.json()
         if not isinstance(urls, list) or not all([isinstance(i, str) for i in urls]):
             raise TypeError
-        return urls
+        return set(urls)
 
 
 async def get_updates_from_timeframe(session: aiohttp.ClientSession, num_seconds: int) -> List[DomainUpdate]:
@@ -75,7 +75,7 @@ class PhishingDetectionCog(commands.Cog):
         except TypeError:
             return
 
-        self.urls = set(urls)
+        self.urls = urls
         self.predicate = generate_predicate_from_urls(self.urls)
 
         self.update_urls.start()
@@ -111,5 +111,5 @@ class PhishingDetectionCog(commands.Cog):
             # No phishing links detected
             return
 
-        await message.delete()
         # TODO: Maybe log this somewhere?
+        await message.delete()
