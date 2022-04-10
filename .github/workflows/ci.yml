@@ -48,7 +48,11 @@ jobs:
         run: python3 .github/scripts/json_checker.py
 
   unit-tests:
-    uses: ./.github/workflows/setup
+    runs-on: ubuntu-latest
     steps:
+      - name: Checkout the repository at the current branch
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        uses: ./.github/actions/setup
       - name: Run unit tests
         run: python3 -m pytest .
