@@ -17,7 +17,7 @@ def fetch_requirements() -> Set[str]:
 
 
 def write_requirements(requirements: Set[str]):
-    with open("requirements.txt", "a") as fp:
+    with open("requirements-cogs.txt", "a") as fp:
         fp.write("\n".join(requirements))
 
 

@@ -1,4 +1,4 @@
-name: Setup
+name: Install dependencies
 description: Installs project dependencies
 runs:
   using: composite
