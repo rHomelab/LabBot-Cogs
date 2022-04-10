@@ -1,0 +1,8 @@
+name: Check JSON
+description: Checks the repo and cog info.json files against the relevant schemas
+runs:
+  using: composite
+  steps:
+    - name: Run JSON checker script
+      shell: bash
+      run:
