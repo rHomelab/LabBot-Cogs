@@ -6,8 +6,10 @@ jobs:
   lint-flake8:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup
-        uses: ./.github/workflows/setup
+      - name: Checkout the repository at the current branch
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        uses: ./.github/actions/setup
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
@@ -18,32 +20,40 @@ jobs:
   lint-black:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup
-        uses: ./.github/workflows/setup
+      - name: Checkout the repository at the current branch
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        uses: ./.github/actions/setup
       - name: Lint with black
         run: black --diff .
 
   lint-pylint:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup
-        uses: ./.github/workflows/setup
+      - name: Checkout the repository at the current branch
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        uses: ./.github/actions/setup
       - name: Lint with pylint
         run: pylint --msg-template='::warning file={path},line={line},col={column}::{msg}' */ || exit 0
 
   lint-isort:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup
-        uses: ./.github/workflows/setup
+      - name: Checkout the repository at the current branch
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        uses: ./.github/actions/setup
       - name: Lint with isort
         run: isort --check --diff .
 
   check-json:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup
-        uses: ./.github/workflows/setup.yml
+      - name: Checkout the repository at the current branch
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        uses: ./.github/actions/setup
       - name: Check cog and repo JSON files against schema
         run: python3 .github/scripts/json_checker.py
 
