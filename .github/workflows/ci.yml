@@ -55,7 +55,7 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/setup
       - name: Check cog and repo JSON files against schema
-        run: python3 .github/scripts/json_checker.py
+        uses: ./.github/actions/check-json
 
   unit-tests:
     runs-on: ubuntu-latest
