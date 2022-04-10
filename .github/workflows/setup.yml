@@ -6,8 +6,6 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout the repository at the current branch
-        uses: actions/checkout@v2
       - name: Set up Python 3.8
         uses: actions/setup-python@v2
         with:
