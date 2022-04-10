@@ -72,7 +72,7 @@ def list_from_str(set_str: str) -> Tuple[List[str], Tuple[int, int]]:
 def main() -> int:
     validation_success: List[bool] = []
     for file_pattern, schema_path in {
-            "info.json": ".github/actions/check_json/repo.json",
+            "info.json": ".github/actions/check-json/repo.json",
             "*/info.json": ".github/actions/check-json/cog.json"
     }.items():
         for filename in glob(file_pattern):
