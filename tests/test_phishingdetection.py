@@ -41,23 +41,20 @@ def legitimate_urls() -> Set[str]:
     }
 
 
-class Tests:
+async def test_fetch_urls(session: aiohttp.ClientSession):
+    urls = await phishingdetection.get_all_urls(session)
+    assert len(urls) > 0
 
-    async def test_fetch_urls(self, session: aiohttp.ClientSession):
-        urls = await phishingdetection.get_all_urls(session)
-        assert len(urls) > 0
 
-    async def test_can_match(self, urls: Set[str]):
-        predicate = phishingdetection.generate_predicate_from_urls(urls)
-        for url in urls:
-            for mutation in mutate_url(url):
-                assert predicate(mutation) is True
+async def test_can_match(urls: Set[str]):
+    predicate = phishingdetection.generate_predicate_from_urls(urls)
+    for url in urls:
+        for mutation in mutate_url(url):
+            assert predicate(mutation) is True
 
-    async def test_no_false_match(self, urls: Set[str], legitimate_urls: Set[str]):
-        predicate = phishingdetection.generate_predicate_from_urls(urls)
-        for url in legitimate_urls:
-            for mutation in mutate_url(url):
-                assert predicate(mutation) is False
 
-    def test_failure(self):
-        assert False
+async def test_no_false_match(urls: Set[str], legitimate_urls: Set[str]):
+    predicate = phishingdetection.generate_predicate_from_urls(urls)
+    for url in legitimate_urls:
+        for mutation in mutate_url(url):
+            assert predicate(mutation) is False
