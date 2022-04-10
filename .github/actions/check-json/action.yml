@@ -5,4 +5,4 @@ runs:
   steps:
     - name: Run JSON checker script
       shell: bash
-      run:
+      run: python3 ./.github/actions/check-json/json_checker.py
