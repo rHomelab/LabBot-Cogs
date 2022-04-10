@@ -58,3 +58,6 @@ class Tests:
         for url in legitimate_urls:
             for mutation in mutate_url(url):
                 assert predicate(mutation) is False
+
+    def test_failure(self):
+        assert False
