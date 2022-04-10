@@ -16,5 +16,5 @@ runs:
     - name: Install cog dependencies
       shell: bash
       run: |
-        python3 .github/scripts/compile_requirements.py
+        python3 .github/actions/setup/compile_requirements.py
         pip install --quiet --upgrade --requirement requirements-cogs.txt
