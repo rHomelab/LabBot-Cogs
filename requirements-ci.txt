@@ -3,3 +3,6 @@ flake8
 pylint
 isort
 fastjsonschema
+pytest
+pytest-asyncio
+pytest-aiohttp

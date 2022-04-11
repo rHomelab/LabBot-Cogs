@@ -37,3 +37,6 @@
 
 [tool.pylint.messages_control]
 	disable = "C0330, C0326"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

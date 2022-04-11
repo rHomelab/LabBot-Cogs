@@ -6,18 +6,10 @@ jobs:
   lint-flake8:
     runs-on: ubuntu-latest
     steps:
-      # Checkout the repository at the current branch
-      - uses: actions/checkout@v2
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.8"
+      - name: Checkout the repository at the current branch
+        uses: actions/checkout@v2
       - name: Install dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 .github/scripts/compile_requirements.py
-          pip install -r requirements.txt
-          pip install -r requirements-ci.txt
+        uses: ./.github/actions/setup
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
@@ -28,74 +20,49 @@ jobs:
   lint-black:
     runs-on: ubuntu-latest
     steps:
-      # Checkout the repository at the current branch
-      - uses: actions/checkout@v2
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.8"
+      - name: Checkout the repository at the current branch
+        uses: actions/checkout@v2
       - name: Install dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 .github/scripts/compile_requirements.py
-          pip install -r requirements.txt
-          pip install -r requirements-ci.txt
+        uses: ./.github/actions/setup
       - name: Lint with black
-        run: |
-          black --diff .
+        run: black --diff .
 
   lint-pylint:
     runs-on: ubuntu-latest
     steps:
-      # Checkout the repository at the current branch
-      - uses: actions/checkout@v2
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.8"
+      - name: Checkout the repository at the current branch
+        uses: actions/checkout@v2
       - name: Install dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 .github/scripts/compile_requirements.py
-          pip install -r requirements.txt
-          pip install -r requirements-ci.txt
+        uses: ./.github/actions/setup
       - name: Lint with pylint
-        run: |
-          pylint --msg-template='::warning file={path},line={line},col={column}::{msg}' */ || exit 0
+        run: pylint --msg-template='::warning file={path},line={line},col={column}::{msg}' */ || exit 0
 
   lint-isort:
     runs-on: ubuntu-latest
     steps:
-      # Checkout the repository at the current branch
-      - uses: actions/checkout@v2
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.8"
+      - name: Checkout the repository at the current branch
+        uses: actions/checkout@v2
       - name: Install dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 .github/scripts/compile_requirements.py
-          pip install -r requirements.txt
-          pip install -r requirements-ci.txt
+        uses: ./.github/actions/setup
       - name: Lint with isort
-        run: |
-          isort --check --diff .
+        run: isort --check --diff .
 
   check-json:
     runs-on: ubuntu-latest
     steps:
-      # Checkout the repository at the current branch
-      - uses: actions/checkout@v2
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.8"
+      - name: Checkout the repository at the current branch
+        uses: actions/checkout@v2
       - name: Install dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 .github/scripts/compile_requirements.py
-          pip install -r requirements.txt
-          pip install -r requirements-ci.txt
+        uses: ./.github/actions/setup
       - name: Check cog and repo JSON files against schema
-        run: python3 .github/scripts/json_checker.py
+        uses: ./.github/actions/check-json
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository at the current branch
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        uses: ./.github/actions/setup
+      - name: Run unit tests
+        run: python3 -m pytest .
