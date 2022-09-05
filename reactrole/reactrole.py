@@ -89,7 +89,7 @@ class ReactRoleCog(commands.Cog):
         self,
         ctx: commands.Context,
         message: discord.Message,
-        reaction: discord.Emoji,
+        reaction: str,
         role: discord.Role,
     ):
         """Creates a new react role
@@ -97,7 +97,7 @@ class ReactRoleCog(commands.Cog):
         Example:
         - `[p]reactrole add <message id> <reaction> <role>`
         """
-        data = {"message": message.id, "reaction": str(reaction), "role": role.id, "channel": message.channel.id}
+        data = {"message": message.id, "reaction": reaction, "role": role.id, "channel": message.channel.id}
         async with self.config.guild(ctx.guild).roles() as roles:
             # This should only return 1 item at max because items are checked for uniqueness before adding them
             exists = [item for item in roles if item == data]
@@ -105,7 +105,7 @@ class ReactRoleCog(commands.Cog):
                 return await ctx.send("React role already exists.")
 
             try:
-                await message.add_reaction(str(reaction))
+                await message.add_reaction(reaction)
             except Exception:
                 return await ctx.send("Unable to add emoji message to message")
 
@@ -117,7 +117,7 @@ class ReactRoleCog(commands.Cog):
         self,
         ctx: commands.Context,
         message: discord.Message,
-        reaction: discord.Emoji,
+        reaction: str,
         role: discord.Role,
     ):
         """Removes a configured react role
@@ -125,7 +125,7 @@ class ReactRoleCog(commands.Cog):
         Example:
         - `[p]reactrole remove 360678601227763712-893601663435276318 :kek: @moderator`
         """
-        data = {"message": message.id, "reaction": str(reaction), "role": role.id, "channel": message.channel.id}
+        data = {"message": message.id, "reaction": reaction, "role": role.id, "channel": message.channel.id}
         async with self.config.guild(ctx.guild).roles() as roles:
             # This should only return 1 item at max because items are checked for uniqueness before adding them
             exists = [item for item in roles if item == data]
