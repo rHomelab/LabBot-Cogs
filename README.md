@@ -77,6 +77,7 @@ A massive thank you to all who've helped out with this project ❤️
 - **[Report](#report):** Allows users to report issues.
 - **[Roleinfo](#roleinfo):** Displays info on a role
 - **[Sentry](#sentry):** Send unhandled errors to sentry.
+- **[Timeout](#timeout):** Send unhandled errors to sentry.
 - **[Verify](#verify):** Allows users to verify themselves.
 - **[xkcd](#xkcd):** Allows users to look at xkcd comics.
 
@@ -263,6 +264,16 @@ Configure Sentry DSN using `[p]set api sentry dsn,https://fooo@bar.baz/9`, then 
 - `[p]sentry get_env` - Returns the currently configured Sentry environment.
 - `[p]sentry set_env` - Set the currently configured Sentry environment. Requires a reload of the cog.
 - `[p]sentry test` - Raise a test exception to test the Sentry connection.
+
+### Timeout
+
+Manage the timeout status of users. Run the command to add a user to timeout, run it again to remove them.
+
+- `[p]timeout <user>` - Add/remove a user from timeout.
+- `[p]timeoutset list` - Print the current configuration.
+- `[p]timeoutset role <role name>` - Set the timeout role.
+- `[p]timeoutset report <bool>` - Set whether timeout reports should be logged or not.
+- `[p]timeoutset logchannel <channel>` - Set the log channel.
 
 ### Verify
 

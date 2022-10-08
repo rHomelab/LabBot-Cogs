@@ -1,0 +1,14 @@
+{
+  "author" : ["coffeebank", "tigattack"],
+  "install_msg" : "Usage: `[p]timeout <user>`. Configure with `[p]timeoutset`.",
+  "name" : "timeout",
+  "short" : "Manage timeout state of users.",
+  "requirements" : [],
+  "description" : "Manage the timeout state of a user easily. Set a timeout role and mod log channel, and any users specified will have their roles removed and replaced with the timeout role. Roles will be restored when removed from timeout.",
+  "permissions" : [],
+  "end_user_data_statement" : "This cog does not store any End User Data.",
+  "tags": [
+    "utility",
+    "admin"
+  ]
+}
