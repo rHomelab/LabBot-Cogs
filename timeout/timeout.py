@@ -97,6 +97,7 @@ class Timeout(commands.Cog):
         - `[p]timeout @user`
         """
         author = ctx.author
+        everyone_role = ctx.guild.default_role
 
         # Notify and stop if command author tries to timeout themselves,
         # or if the bot can't do that.
@@ -118,7 +119,7 @@ class Timeout(commands.Cog):
 
         # Check if user already in timeout.
         # Remove & restore if so, else timeout.
-        if user.roles == [timeout_role]:
+        if user.roles == [everyone_role, timeout_role]:
             try:
                 user.edit(roles=self.config.member(user).roles())
             except discord.HTTPException as error:
