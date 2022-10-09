@@ -145,13 +145,48 @@ class Timeout(commands.Cog):
         """List current settings."""
 
         log_channel = await self.config.guild(ctx.guild).logchannel()
+        report = await self.config.guild(ctx.guild).report()
         timeout_role = ctx.guild.get_role(await self.config.guild(ctx.guild).timeoutrole())
 
-        await ctx.send(
-            "Log channel: " + str(f"<#{log_channel}>") + "\n" +
-            "Send reports: " + str(await self.config.guild(ctx.guild).report()) + "\n" +
-            "Timeout role: " + str(timeout_role.name)
+        if log_channel:
+            log_channel = f"<#{log_channel}>"
+        else:
+            log_channel = "Unconfigured"
+
+        if timeout_role is not None:
+            timeout_role = timeout_role.name
+        else:
+            timeout_role = "Unconfigured"
+
+        if not report:
+            report = "Unconfigured"
+
+        # Build embed
+        embed = discord.Embed(
+            color=(await ctx.embed_colour())
         )
+        embed.set_author(
+            name="Timeout Cog Settings",
+            icon_url=ctx.guild.me.avatar_url
+        )
+        embed.add_field(
+            name="Log Channel",
+            value=log_channel,
+            inline=True
+        )
+        embed.add_field(
+            name="Send Reports",
+            value=report,
+            inline=True
+        )
+        embed.add_field(
+            name="Timeout Role",
+            value=timeout_role,
+            inline=True
+        )
+
+        # Send embed
+        await ctx.send(embed=embed)
 
     @commands.command()
     @checks.mod()
