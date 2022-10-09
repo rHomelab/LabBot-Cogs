@@ -56,7 +56,7 @@ class Timeout(commands.Cog):
 
     async def timeout_add(self, ctx, user: discord.Member, reason, timeout_role):
         """Retrieve and save user's roles, then add user to timeout"""
-        # Store the user's roles
+        # Store the user's current roles
         user_roles = []
         for role in user.roles:
             user_roles.append(role.id)
@@ -66,10 +66,15 @@ class Timeout(commands.Cog):
         # Replace all of a user's roles with timeout role
         try:
             await user.edit(roles=[timeout_role])
-        except discord.HTTPException:
-            await ctx.send("Be sure to set the timeout role first using `[p]timeoutset role`")
+        except AttributeError:
+            await ctx.send("Please set the timeout role using `[p]timeoutset role`.")
+            return
         except discord.Forbidden:
             await ctx.send("Whoops, looks like I don't have permission to do that.")
+            return
+        except discord.HTTPException as error:
+            await ctx.send("Something went wrong!")
+            raise Exception(error) from error
         else:
             await ctx.message.add_reaction("✅")
 
