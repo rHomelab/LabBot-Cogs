@@ -129,11 +129,11 @@ class Timeout(commands.Cog):
             # Replace user's roles with their previous roles.
             try:
                 await user.edit(roles=user_roles)
+            except discord.Forbidden:
+                await ctx.send("Whoops, looks like I don't have permission to do that.")
             except discord.HTTPException as error:
                 await ctx.send("Something went wrong!")
                 raise Exception(error) from error
-            except discord.Forbidden:
-                await ctx.send("Whoops, looks like I don't have permission to do that.")
             else:
                 await ctx.message.add_reaction("✅")
 
