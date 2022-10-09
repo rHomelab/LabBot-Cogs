@@ -77,7 +77,7 @@ class Timeout(commands.Cog):
         """List current settings."""
 
         log_channel = await self.config.guild(ctx.guild).logchannel()
-        timeout_role = await ctx.guild.get_role(await self.config.guild(ctx.guild).timeoutrole())
+        timeout_role = ctx.guild.get_role(await self.config.guild(ctx.guild).timeoutrole())
 
         await ctx.send(
             "Log channel: " + str(f"<#{log_channel}>") +"\n"+
@@ -111,7 +111,7 @@ class Timeout(commands.Cog):
 
         # Find the timeout role in server
         timeout_role_data = await self.config.guild(ctx.guild).timeoutrole()
-        timeout_role = await ctx.guild.get_role(timeout_role_data)
+        timeout_role = ctx.guild.get_role(timeout_role_data)
 
         # Retrieve log channel
         log_channel_config = await self.config.guild(ctx.guild).logchannel()
@@ -124,7 +124,7 @@ class Timeout(commands.Cog):
             # Fetch and define user's previous roles.
             user_roles = []
             for role in await self.config.member(user).roles():
-                user_roles.append(await ctx.guild.get_role(role))
+                user_roles.append(ctx.guild.get_role(role))
 
             # Replace user's roles with their previous roles.
             try:
