@@ -17,8 +17,10 @@ class Timeout(commands.Cog):
             roles=[]
         )
 
+    # Helper functions
+
     async def timeout_add(self, ctx, user: discord.Member, reason, timeout_role, log_channel):
-        """Retrieve and store user's current roles, then add user to timeout"""
+        """Retrieve and save user's roles, then add user to timeout"""
         # Store the user's roles
         user_roles = []
         for role in user.roles:
@@ -49,7 +51,7 @@ class Timeout(commands.Cog):
             await log_channel.send(embed=embed)
 
     async def timeout_remove(self, ctx, user: discord.Member, reason, log_channel):
-        """Remove user from timeout and restore previous roles"""
+        """Remove user from timeout"""
         # Fetch and define user's previous roles.
         user_roles = []
         for role in await self.config.member(user).roles():
@@ -80,6 +82,8 @@ class Timeout(commands.Cog):
                     embed.set_author(name=user.display_name)
 
                 await log_channel.send(embed=embed)
+
+    # Commands
 
     @commands.guild_only()
     @commands.group()
@@ -151,7 +155,7 @@ class Timeout(commands.Cog):
 
     @commands.command()
     @checks.mod()
-    async def timeout(self, ctx, user: discord.Member, *, reason=""):
+    async def timeout(self, ctx, user: discord.Member, *, reason="Unspecified"):
         """Timeouts a user or returns them from timeout if they are currently in timeout.
 
         See and edit current configuration with `[p]timeoutset`.
