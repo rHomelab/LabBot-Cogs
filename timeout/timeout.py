@@ -142,7 +142,7 @@ class Timeout(commands.Cog):
                     else:
                         embed.set_author(name=user.display_name)
 
-                    await log_channel.send(user.mention, embed=embed)
+                    await log_channel.send(embed=embed)
 
         else:
             # Store the user's roles
@@ -172,4 +172,4 @@ class Timeout(commands.Cog):
                 else:
                     embed.set_author(name=user.display_name)
 
-                await log_channel.send(user.mention, embed=embed)
+                await log_channel.send(embed=embed)
