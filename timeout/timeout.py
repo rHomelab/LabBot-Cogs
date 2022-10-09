@@ -120,8 +120,15 @@ class Timeout(commands.Cog):
         # Check if user already in timeout.
         # Remove & restore if so, else timeout.
         if user.roles == [everyone_role, timeout_role]:
+
+            # Fetch and define user's previous roles.
+            user_roles = []
+            for role in await self.config.member(user).roles():
+                user_roles.append(await ctx.guild.get_role(role))
+
+            # Replace user's roles with their previous roles.
             try:
-                user.edit(roles=self.config.member(user).roles())
+                await user.edit(roles=user_roles)
             except discord.HTTPException as error:
                 await ctx.send("Something went wrong!")
                 raise Exception(error) from error
@@ -147,7 +154,11 @@ class Timeout(commands.Cog):
 
         else:
             # Store the user's roles
-            self.config.member(user).roles.set(user.roles)
+            user_roles = []
+            for role in user.roles:
+                user_roles.append(role.id)
+
+            await self.config.member(user).roles.set(user_roles)
 
             # TODO: REMOVE WHEN DONE TESTING
             print('User roles: ' + user.roles)
