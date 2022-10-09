@@ -1,13 +1,5 @@
-import asyncio
-import re
-import time
-
-import aiohttp
 import discord
-from redbot.cogs.admin import admin
 from redbot.core import Config, checks, commands
-from redbot.core.utils.menus import start_adding_reactions
-from redbot.core.utils.predicates import ReactionPredicate
 
 
 class Timeout(commands.Cog):
