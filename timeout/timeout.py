@@ -26,7 +26,7 @@ class Timeout(commands.Cog):
 
     @timeoutset.command(name="logchannel")
     @checks.mod()
-    async def timeoutsetlogchannel(self, ctx, channel: discord.TextChannel=""):
+    async def timeoutsetlogchannel(self, ctx, channel: discord.TextChannel):
         """Set the log channel for any reports etc.
 
         Example:
@@ -61,7 +61,7 @@ class Timeout(commands.Cog):
 
     @timeoutset.command(name="role")
     @checks.mod()
-    async def timeoutsetrole(self, ctx, role: discord.Role=None):
+    async def timeoutsetrole(self, ctx, role: discord.Role):
         """Set the timeout role.
 
         Example:
