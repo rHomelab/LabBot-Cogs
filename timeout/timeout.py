@@ -17,6 +17,70 @@ class Timeout(commands.Cog):
             roles=[]
         )
 
+    async def timeout_add(self, ctx, user: discord.Member, reason, timeout_role, log_channel):
+        """Retrieve and store user's current roles, then add user to timeout"""
+        # Store the user's roles
+        user_roles = []
+        for role in user.roles:
+            user_roles.append(role.id)
+
+        await self.config.member(user).roles.set(user_roles)
+
+        # Replace all of a user's roles with timeout role
+        try:
+            await user.edit(roles=[timeout_role])
+        except discord.HTTPException:
+            await ctx.send("Be sure to set the timeout role first using `[p]timeoutset role`")
+        except discord.Forbidden:
+            await ctx.send("Whoops, looks like I don't have permission to do that.")
+        else:
+            await ctx.message.add_reaction("✅")
+
+        # Send report to channel
+        if await self.config.guild(ctx.guild).report():
+            embed = discord.Embed(color=(await ctx.embed_colour()), description=reason)
+            embed.set_footer(text=f"Sent in #{ctx.channel}")
+
+            if user.avatar_url:
+                embed.set_author(name=f"User added to timeout: {user.display_name}", icon_url=user.avatar_url)
+            else:
+                embed.set_author(name=user.display_name)
+
+            await log_channel.send(embed=embed)
+
+    async def timeout_remove(self, ctx, user: discord.Member, reason, log_channel):
+        """Remove user from timeout and restore previous roles"""
+        # Fetch and define user's previous roles.
+        user_roles = []
+        for role in await self.config.member(user).roles():
+            user_roles.append(ctx.guild.get_role(role))
+
+        # Replace user's roles with their previous roles.
+        try:
+            await user.edit(roles=user_roles)
+        except discord.Forbidden:
+            await ctx.send("Whoops, looks like I don't have permission to do that.")
+        except discord.HTTPException as error:
+            await ctx.send("Something went wrong!")
+            raise Exception(error) from error
+        else:
+            await ctx.message.add_reaction("✅")
+
+            # Clear user's roles from config
+            await self.config.member(user).clear()
+
+            # Send report to channel
+            if await self.config.guild(ctx.guild).report():
+                embed = discord.Embed(color=(await ctx.embed_colour()), description=reason)
+                embed.set_footer(text=f"Sent in #{ctx.channel}")
+
+                if user.avatar_url:
+                    embed.set_author(name=f"User removed from timeout: {user.display_name}", icon_url=user.avatar_url)
+                else:
+                    embed.set_author(name=user.display_name)
+
+                await log_channel.send(embed=embed)
+
     @commands.guild_only()
     @commands.group()
     async def timeoutset(self, ctx: commands.Context):
@@ -119,64 +183,7 @@ class Timeout(commands.Cog):
         # Check if user already in timeout.
         # Remove & restore if so, else timeout.
         if user.roles == [everyone_role, timeout_role]:
-
-            # Fetch and define user's previous roles.
-            user_roles = []
-            for role in await self.config.member(user).roles():
-                user_roles.append(ctx.guild.get_role(role))
-
-            # Replace user's roles with their previous roles.
-            try:
-                await user.edit(roles=user_roles)
-            except discord.Forbidden:
-                await ctx.send("Whoops, looks like I don't have permission to do that.")
-            except discord.HTTPException as error:
-                await ctx.send("Something went wrong!")
-                raise Exception(error) from error
-            else:
-                await ctx.message.add_reaction("✅")
-
-                # Clear user's roles from config
-                await self.config.member(user).clear()
-
-                # Send report to channel
-                if await self.config.guild(ctx.guild).report():
-                    embed = discord.Embed(color=(await ctx.embed_colour()), description=reason)
-                    embed.set_footer(text=f"Sent in #{ctx.channel}")
-
-                    if user.avatar_url:
-                        embed.set_author(name=f"User removed from timeout: {user.display_name}", icon_url=user.avatar_url)
-                    else:
-                        embed.set_author(name=user.display_name)
-
-                    await log_channel.send(embed=embed)
+            await self.timeout_remove(ctx, user, reason, log_channel)
 
         else:
-            # Store the user's roles
-            user_roles = []
-            for role in user.roles:
-                user_roles.append(role.id)
-
-            await self.config.member(user).roles.set(user_roles)
-
-            # Replace all of a user's roles with timeout role
-            try:
-                await user.edit(roles=[timeout_role])
-            except discord.HTTPException:
-                await ctx.send("Be sure to set the timeout role first using `[p]timeoutset role`")
-            except discord.Forbidden:
-                await ctx.send("Whoops, looks like I don't have permission to do that.")
-            else:
-                await ctx.message.add_reaction("✅")
-
-            # Send report to channel
-            if await self.config.guild(ctx.guild).report():
-                embed = discord.Embed(color=(await ctx.embed_colour()), description=reason)
-                embed.set_footer(text=f"Sent in #{ctx.channel}")
-
-                if user.avatar_url:
-                    embed.set_author(name=f"User added to timeout: {user.display_name}", icon_url=user.avatar_url)
-                else:
-                    embed.set_author(name=user.display_name)
-
-                await log_channel.send(embed=embed)
+            await self.timeout_add(ctx, user, reason, timeout_role, log_channel)
