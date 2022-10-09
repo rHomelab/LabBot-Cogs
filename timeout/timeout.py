@@ -77,7 +77,7 @@ class Timeout(commands.Cog):
         """List current settings."""
 
         log_channel = await self.config.guild(ctx.guild).logchannel()
-        timeout_role = ctx.guild.get_role(await self.config.guild(ctx.guild).timeoutrole())
+        timeout_role = await ctx.guild.get_role(await self.config.guild(ctx.guild).timeoutrole())
 
         await ctx.send(
             "Log channel: " + str(f"<#{log_channel}>") +"\n"+
@@ -110,7 +110,7 @@ class Timeout(commands.Cog):
 
         # Find the timeout role in server
         timeout_role_data = await self.config.guild(ctx.guild).timeoutrole()
-        timeout_role = ctx.guild.get_role(timeout_role_data)
+        timeout_role = await ctx.guild.get_role(timeout_role_data)
 
         # Retrieve log channel
         log_channel_config = await self.config.guild(ctx.guild).logchannel()
