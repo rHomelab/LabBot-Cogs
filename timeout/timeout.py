@@ -90,6 +90,17 @@ class Timeout(commands.Cog):
         Example:
         - `[p]timeout @user`
         """
+        author = ctx.author
+
+        # Notify and stop if command author tries to timeout themselves,
+        # or if the bot can't do that.
+        if author == user:
+            await ctx.send("I cannot let you do that. Self-harm is bad \N{PENSIVE FACE}")
+            return
+
+        if ctx.guild.me.top_role <= user.top_role or user == ctx.guild.owner:
+            await ctx.send("I cannot do that due to Discord hierarchy rules.")
+            return
 
         # Find the timeout role in server
         timeout_role_data = await self.config.guild(ctx.guild).timeoutrole()
