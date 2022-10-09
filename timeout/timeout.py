@@ -201,6 +201,14 @@ class Timeout(commands.Cog):
         author = ctx.author
         everyone_role = ctx.guild.default_role
 
+        # Find the timeout role in server
+        timeout_role_data = await self.config.guild(ctx.guild).timeoutrole()
+        timeout_role = ctx.guild.get_role(timeout_role_data)
+
+        if await self.config.guild(ctx.guild).report() and not await self.config.guild(ctx.guild).logchannel():
+            await ctx.send("Please set the log channel using `[p]timeoutset logchannel`, or disable reporting.")
+            return
+
         # Notify and stop if command author tries to timeout themselves,
         # or if the bot can't do that.
         if author == user:
@@ -210,10 +218,6 @@ class Timeout(commands.Cog):
         if ctx.guild.me.top_role <= user.top_role or user == ctx.guild.owner:
             await ctx.send("I cannot do that due to Discord hierarchy rules.")
             return
-
-        # Find the timeout role in server
-        timeout_role_data = await self.config.guild(ctx.guild).timeoutrole()
-        timeout_role = ctx.guild.get_role(timeout_role_data)
 
         # Retrieve log channel
         log_channel_config = await self.config.guild(ctx.guild).logchannel()
