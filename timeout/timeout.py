@@ -39,13 +39,14 @@ class Timeout(commands.Cog):
     @checks.mod()
     async def timeoutsetreport(self, ctx, choice):
         """Whether to send a report when a user is added or removed from timeout.
+
         These reports will be sent in the form of an embed with timeout reason to the configured log channel.
         Set log channel with `[p]timeoutset logchannel`.
 
         Example:
-        - `[p]timeoutset report [value]`
+        - `[p]timeoutset report [choice]`
 
-        Possible values are:
+        Possible choices are:
         - `true` or `yes`: Reports will be sent.
         - `false` or `no`: Reports will not be sent.
         """
@@ -85,6 +86,7 @@ class Timeout(commands.Cog):
     @checks.mod()
     async def timeout(self, ctx, user: discord.Member, *, reason=""):
         """Timeouts a user or returns them from timeout if they are currently in timeout.
+
         See and edit current configuration with `[p]timeoutset`.
 
         Example:
