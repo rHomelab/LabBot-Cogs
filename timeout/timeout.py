@@ -19,7 +19,25 @@ class Timeout(commands.Cog):
 
     # Helper functions
 
-    async def timeout_add(self, ctx, user: discord.Member, reason, timeout_role, log_channel):
+    async def report_handler(self, ctx, user: discord.Member, action_info):
+        """Build and send embed reports"""
+
+        # Retrieve log channel
+        log_channel_config = await self.config.guild(ctx.guild).logchannel()
+        log_channel = ctx.guild.get_channel(log_channel_config)
+
+        # Build embed
+        embed = discord.Embed(color=(await ctx.embed_colour()), description=action_info["reason"])
+        embed.set_footer(text=f"Sent in #{ctx.channel}")
+
+        if user.avatar_url:
+            embed.set_author(name=f"User {action_info['action']} timeout: {user.display_name}", icon_url=user.avatar_url)
+        else:
+            embed.set_author(name=user.display_name)
+
+        await log_channel.send(embed=embed)
+
+    async def timeout_add(self, ctx, user: discord.Member, reason, timeout_role):
         """Retrieve and save user's roles, then add user to timeout"""
         # Store the user's roles
         user_roles = []
@@ -38,19 +56,15 @@ class Timeout(commands.Cog):
         else:
             await ctx.message.add_reaction("✅")
 
-        # Send report to channel
-        if await self.config.guild(ctx.guild).report():
-            embed = discord.Embed(color=(await ctx.embed_colour()), description=reason)
-            embed.set_footer(text=f"Sent in #{ctx.channel}")
+            # Send report to channel
+            if await self.config.guild(ctx.guild).report():
+                action_info = {
+                    "reason": reason,
+                    "action": "added to"
+                }
+                await self.report_handler(ctx, user, action_info)
 
-            if user.avatar_url:
-                embed.set_author(name=f"User added to timeout: {user.display_name}", icon_url=user.avatar_url)
-            else:
-                embed.set_author(name=user.display_name)
-
-            await log_channel.send(embed=embed)
-
-    async def timeout_remove(self, ctx, user: discord.Member, reason, log_channel):
+    async def timeout_remove(self, ctx, user: discord.Member, reason):
         """Remove user from timeout"""
         # Fetch and define user's previous roles.
         user_roles = []
@@ -73,15 +87,11 @@ class Timeout(commands.Cog):
 
             # Send report to channel
             if await self.config.guild(ctx.guild).report():
-                embed = discord.Embed(color=(await ctx.embed_colour()), description=reason)
-                embed.set_footer(text=f"Sent in #{ctx.channel}")
-
-                if user.avatar_url:
-                    embed.set_author(name=f"User removed from timeout: {user.display_name}", icon_url=user.avatar_url)
-                else:
-                    embed.set_author(name=user.display_name)
-
-                await log_channel.send(embed=embed)
+                action_info = {
+                    "reason": reason,
+                    "action": "removed from"
+                }
+                await self.report_handler(ctx, user, action_info)
 
     # Commands
 
@@ -219,14 +229,10 @@ class Timeout(commands.Cog):
             await ctx.send("I cannot do that due to Discord hierarchy rules.")
             return
 
-        # Retrieve log channel
-        log_channel_config = await self.config.guild(ctx.guild).logchannel()
-        log_channel = ctx.guild.get_channel(log_channel_config)
-
         # Check if user already in timeout.
         # Remove & restore if so, else timeout.
         if user.roles == [everyone_role, timeout_role]:
-            await self.timeout_remove(ctx, user, reason, log_channel)
+            await self.timeout_remove(ctx, user, reason)
 
         else:
-            await self.timeout_add(ctx, user, reason, timeout_role, log_channel)
+            await self.timeout_add(ctx, user, reason, timeout_role)
