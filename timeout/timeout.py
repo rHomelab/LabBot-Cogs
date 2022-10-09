@@ -27,14 +27,31 @@ class Timeout(commands.Cog):
         log_channel = ctx.guild.get_channel(log_channel_config)
 
         # Build embed
-        embed = discord.Embed(color=(await ctx.embed_colour()), description=action_info["reason"])
-        embed.set_footer(text=f"Sent in #{ctx.channel}")
+        embed = discord.Embed(
+            description=f"{user.mention} ({user.id})",
+            color=(await ctx.embed_colour())
+        )
+        embed.add_field(
+            name="Moderator",
+            value=ctx.author.mention,
+            inline=False
+        )
+        embed.add_field(
+            name="Reason",
+            value=action_info["reason"],
+            inline=False
+        )
 
         if user.avatar_url:
-            embed.set_author(name=f"User {action_info['action']} timeout: {user.display_name}", icon_url=user.avatar_url)
+            embed.set_author(
+                name=f"{user} {action_info['action']} timeout",
+                icon_url=user.avatar_url)
         else:
-            embed.set_author(name=user.display_name)
+            embed.set_author(
+                name=f"{user} {action_info['action']} timeout"
+            )
 
+        # Send embed
         await log_channel.send(embed=embed)
 
     async def timeout_add(self, ctx, user: discord.Member, reason, timeout_role):
