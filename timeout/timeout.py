@@ -160,10 +160,6 @@ class Timeout(commands.Cog):
 
             await self.config.member(user).roles.set(user_roles)
 
-            # TODO: REMOVE WHEN DONE TESTING
-            print('User roles: ' + user.roles)
-            print('Stored roles: ' + self.config.member(user).roles())
-
             # Replace all of a user's roles with timeout role
             try:
                 await user.edit(roles=[timeout_role])
