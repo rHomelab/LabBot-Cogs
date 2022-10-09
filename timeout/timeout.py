@@ -51,14 +51,14 @@ class Timeout(commands.Cog):
         - `false` or `no`: Reports will not be sent.
         """
 
-        if str.lower(choice) in ['true', 'yes']:
+        if str.lower(choice) in ["true", "yes"]:
             await self.config.guild(ctx.guild).report.set(True)
             await ctx.message.add_reaction("✅")
-        elif str.lower(choice) in ['false', 'no']:
+        elif str.lower(choice) in ["false", "no"]:
             await self.config.guild(ctx.guild).report.set(False)
             await ctx.message.add_reaction("✅")
         else:
-            await ctx.send('Choices: true/yes or false/no')
+            await ctx.send("Choices: true/yes or false/no")
 
     @timeoutset.command(name="role")
     @checks.mod()
@@ -80,11 +80,10 @@ class Timeout(commands.Cog):
         timeout_role = ctx.guild.get_role(await self.config.guild(ctx.guild).timeoutrole())
 
         await ctx.send(
-            "Log channel: " + str(f"<#{log_channel}>") +"\n"+
-            "Send reports: " + str(await self.config.guild(ctx.guild).report()) +"\n"+
+            "Log channel: " + str(f"<#{log_channel}>") + "\n" +
+            "Send reports: " + str(await self.config.guild(ctx.guild).report()) + "\n" +
             "Timeout role: " + str(timeout_role.name)
         )
-
 
     @commands.command()
     @checks.mod()
