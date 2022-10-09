@@ -75,10 +75,14 @@ class Timeout(commands.Cog):
     @checks.mod()
     async def timeoutsetlist(self, ctx):
         """List current settings."""
+
+        log_channel = await self.config.guild(ctx.guild).logchannel()
+        timeout_role = ctx.guild.get_role(await self.config.guild(ctx.guild).timeoutrole())
+
         await ctx.send(
-            "Log channel: " + str(await self.config.guild(ctx.guild).logchannel()) +"\n"+
+            "Log channel: " + str(f"<#{log_channel}>") +"\n"+
             "Send reports: " + str(await self.config.guild(ctx.guild).report()) +"\n"+
-            "Timeout role: " + str(await self.config.guild(ctx.guild).timeoutrole())
+            "Timeout role: " + str(timeout_role.name)
         )
 
 
