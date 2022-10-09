@@ -1,3 +1,5 @@
+import datetime
+
 import discord
 from redbot.core import Config, checks, commands
 
@@ -29,7 +31,8 @@ class Timeout(commands.Cog):
         # Build embed
         embed = discord.Embed(
             description=f"{user.mention} ({user.id})",
-            color=(await ctx.embed_colour())
+            color=(await ctx.embed_colour()),
+            timestamp=datetime.datetime.utcnow()
         )
         embed.add_field(
             name="Moderator",
