@@ -8,3 +8,4 @@ Changes made
 * Removed unwanted functions.
 * Add functionality to save and restore the user's roles before and after timeout respectively.
 * Appended tigattack to authors.
+* General refactoring to fit preferences and requirements.
