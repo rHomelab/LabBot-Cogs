@@ -130,10 +130,10 @@ class Timeout(commands.Cog):
                 await ctx.message.add_reaction("✅")
 
                 # Clear user's roles from config
-                self.config.member(user).clear()
+                await self.config.member(user).clear()
 
                 # Send report to channel
-                if self.config.guild(ctx.guild).report():
+                if await self.config.guild(ctx.guild).report():
                     embed = discord.Embed(color=(await ctx.embed_colour()), description=reason)
                     embed.set_footer(text=f"Sent in #{ctx.channel}")
 
@@ -163,7 +163,7 @@ class Timeout(commands.Cog):
                 await ctx.message.add_reaction("✅")
 
             # Send report to channel
-            if self.config.guild(ctx.guild).report():
+            if await self.config.guild(ctx.guild).report():
                 embed = discord.Embed(color=(await ctx.embed_colour()), description=reason)
                 embed.set_footer(text=f"Sent in #{ctx.channel}")
 
