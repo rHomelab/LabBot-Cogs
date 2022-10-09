@@ -193,7 +193,7 @@ class Timeout(commands.Cog):
         else:
             timeout_role = "Unconfigured"
 
-        if not report:
+        if report == "":
             report = "Unconfigured"
 
         # Build embed
