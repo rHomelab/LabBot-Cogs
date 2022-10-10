@@ -1,4 +1,4 @@
-This cog is bsed on https://github.com/coffeebank/coffee-cogs
+This cog is based on https://github.com/coffeebank/coffee-cogs
 
 Copyright coffeebank - GNU General Public License v3.0
 
