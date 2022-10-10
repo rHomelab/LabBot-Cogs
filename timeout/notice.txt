@@ -1,0 +1,11 @@
+This cog is based on https://github.com/coffeebank/coffee-cogs
+
+Copyright coffeebank - GNU General Public License v3.0
+
+Changes made
+* Cog and command names, description, and install message.
+* General formatting/styling/terminology.
+* Removed unwanted functions.
+* Add functionality to save and restore the user's roles before and after timeout respectively.
+* Appended tigattack to authors.
+* General refactoring to fit preferences and requirements.
