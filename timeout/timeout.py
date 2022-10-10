@@ -21,7 +21,7 @@ class Timeout(commands.Cog):
 
     # Helper functions
 
-    async def report_handler(self, ctx, user: discord.Member, action_info):
+    async def report_handler(self, ctx: commands.Context, user: discord.Member, action_info: dict):
         """Build and send embed reports"""
 
         # Retrieve log channel
@@ -57,7 +57,7 @@ class Timeout(commands.Cog):
         # Send embed
         await log_channel.send(embed=embed)
 
-    async def timeout_add(self, ctx, user: discord.Member, reason, timeout_role):
+    async def timeout_add(self, ctx: commands.Context, user: discord.Member, reason: str, timeout_role: discord.Role):
         """Retrieve and save user's roles, then add user to timeout"""
         # Store the user's current roles
         user_roles = []
@@ -89,7 +89,7 @@ class Timeout(commands.Cog):
                 }
                 await self.report_handler(ctx, user, action_info)
 
-    async def timeout_remove(self, ctx, user: discord.Member, reason):
+    async def timeout_remove(self, ctx: commands.Context, user: discord.Member, reason: str):
         """Remove user from timeout"""
         # Fetch and define user's previous roles.
         user_roles = []
@@ -129,7 +129,7 @@ class Timeout(commands.Cog):
 
     @timeoutset.command(name="logchannel")
     @checks.mod()
-    async def timeoutsetlogchannel(self, ctx, channel: discord.TextChannel):
+    async def timeoutsetlogchannel(self, ctx: commands.Context, channel: discord.TextChannel):
         """Set the log channel for any reports etc.
 
         Example:
@@ -140,7 +140,7 @@ class Timeout(commands.Cog):
 
     @timeoutset.command(name="report")
     @checks.mod()
-    async def timeoutsetreport(self, ctx, choice):
+    async def timeoutsetreport(self, ctx: commands.Context, choice: str):
         """Whether to send a report when a user is added or removed from timeout.
 
         These reports will be sent in the form of an embed with timeout reason to the configured log channel.
@@ -165,7 +165,7 @@ class Timeout(commands.Cog):
 
     @timeoutset.command(name="role")
     @checks.mod()
-    async def timeoutsetrole(self, ctx, role: discord.Role):
+    async def timeoutsetrole(self, ctx: commands.Context, role: discord.Role):
         """Set the timeout role.
 
         Example:
@@ -176,7 +176,7 @@ class Timeout(commands.Cog):
 
     @timeoutset.command(name="list")
     @checks.mod()
-    async def timeoutsetlist(self, ctx):
+    async def timeoutsetlist(self, ctx: commands.Context):
         """List current settings."""
 
         log_channel = await self.config.guild(ctx.guild).logchannel()
@@ -225,7 +225,7 @@ class Timeout(commands.Cog):
 
     @commands.command()
     @checks.mod()
-    async def timeout(self, ctx, user: discord.Member, *, reason="Unspecified"):
+    async def timeout(self, ctx: commands.Context, user: discord.Member, *, reason="Unspecified"):
         """Timeouts a user or returns them from timeout if they are currently in timeout.
 
         See and edit current configuration with `[p]timeoutset`.
