@@ -317,4 +317,5 @@ If you use [VSCode](https://code.visualstudio.com/) you can use the tasks integr
 ### Making changes
 
 When suggesting changes, please [open an issue](https://github.com/rHomelab/LabBot-Cogs/issues/new/choose) so it can be reviewed by the team who can then suggest how and if the idea is to be implemented.
-When submitting changes, please [create a pull request](https://github.com/rHomelab/LabBot-Cogs/compare) targeting the develop branch.
+
+When submitting changes, please [create a pull request](https://github.com/rHomelab/LabBot-Cogs/compare) targeting the master branch.
