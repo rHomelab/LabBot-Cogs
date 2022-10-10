@@ -103,7 +103,10 @@ class PurgeCog(commands.Cog):
                 break
             users_kicked = new_list
 
-        data = discord.Embed(colour=discord.Colour.orange())
+        data = discord.Embed(
+            colour=discord.Colour.orange(),
+            timestamp=datetime.utcnow()
+        )
         data.title = f"{title} Purge - Purged {len(users)}"
         data.description = users_kicked
 
@@ -111,7 +114,7 @@ class PurgeCog(commands.Cog):
 
     async def _get_safe_username(self, user: discord.Member):
         replaced_name = user.name.replace("`", "")
-        return f"{replaced_name}#{user.discriminator}"
+        return f"{replaced_name}#{user.discriminator} ({user.id})"
 
     async def _purge_user(self, user: discord.Member):
         try:
