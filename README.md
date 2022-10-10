@@ -77,7 +77,7 @@ A massive thank you to all who've helped out with this project ❤️
 - **[Report](#report):** Allows users to report issues.
 - **[Roleinfo](#roleinfo):** Displays info on a role
 - **[Sentry](#sentry):** Send unhandled errors to sentry.
-- **[Timeout](#timeout):** Send unhandled errors to sentry.
+- **[Timeout](#timeout):** Manage users' timeout status.
 - **[Verify](#verify):** Allows users to verify themselves.
 - **[xkcd](#xkcd):** Allows users to look at xkcd comics.
 
