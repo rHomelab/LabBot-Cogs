@@ -5,7 +5,7 @@
   "short" : "Manage timeout state of users.",
   "requirements" : [],
   "description" : "Manage the timeout state of a user easily. Set a timeout role and mod log channel, and any users specified will have their roles removed and replaced with the timeout role. Roles will be restored when removed from timeout.",
-  "end_user_data_statement" : "This cog does not store any End User Data.",
+  "end_user_data_statement" : "This cog temporarily stores a list the roles of the given user's roles they are in timeout. No other data is stored.",
   "tags": [
     "utility",
     "admin"
