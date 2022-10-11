@@ -267,7 +267,7 @@ class Timeout(commands.Cog):
 
     @commands.command()
     @checks.mod()
-    async def timeout(self, ctx: commands.Context, user: discord.Member, *, reason="Unspecified"):
+    async def timeout(self, ctx: commands.Context, user: discord.Member, *, reason: str = None):
         """Timeouts a user or returns them from timeout if they are currently in timeout.
 
         See and edit current configuration with `[p]timeoutset`.
@@ -308,6 +308,10 @@ class Timeout(commands.Cog):
         timeout_roleset = {timeout_role}
         if booster_role in user.roles:
             timeout_roleset.add(booster_role)
+
+        # Assign reason string if not specified by user
+        if reason is None:
+            reason = "Unspecified"
 
         # Check if user already in timeout.
         # Remove & restore if so, else add to timeout.
