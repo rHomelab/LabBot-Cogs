@@ -284,6 +284,7 @@ This cog will allow users to prove they're not a bot by having to read rules and
 - `[p]verify logchannel <channel>` - Set the channel in which the cog logs verification attemps.
 - `[p]verify message <message>` - Set the verification string (e.g. `I agree to the rules`.
 - `[p]verify role <role>` - Set the role to which users are added upon successful verification.
+- `[p]verify timeoutrole <role>` - Users who transition from holding this role to holding the verified role will not be welcomed. Allows for easy usage with the [timeout cog](#timeout).
 
 Further configuration options can be seen with `[p]verify help`
 

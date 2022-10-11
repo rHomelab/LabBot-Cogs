@@ -27,6 +27,7 @@ class VerifyCog(commands.Cog):
             "welcomechannel": None,
             "welcomemsg": "",
             "wrongmsg": "",
+            "timeout_role": None
         }
 
         self.config.register_guild(**default_guild_settings, force_registration=True)
@@ -103,6 +104,7 @@ class VerifyCog(commands.Cog):
 
         guild = before.guild
         verify_role = await self.config.guild(guild).role()
+        timeout_role = await self.config.guild(guild).timeout_role()
 
         if not verify_role:
             # Verify role is not set for this guild
@@ -114,6 +116,10 @@ class VerifyCog(commands.Cog):
 
         if verify_role in [role.id for role in before.roles] or verify_role not in [role.id for role in after.roles]:
             # Member already verified or not verified yet
+            return
+
+        if timeout_role in [role.id for role in before.roles]:
+            # Member was in timeout previously; not newly verified.
             return
 
         count = await self.config.guild(guild).count()
@@ -205,6 +211,20 @@ class VerifyCog(commands.Cog):
         """
         await self.config.guild(ctx.guild).role.set(role.id)
         await ctx.send(f"Verify role set to `{role.name}`")
+
+    @_verify.command("timeoutrole")
+    async def verify_timeout_role(self, ctx: commands.Context, role: discord.Role):
+        """Sets the timeout role
+
+        Users who transition from holding this role to holding the verified role will not be welcomed.
+
+        This allows for easy usage with Homelab's [timeout cog](https://github.com/rHomelab/LabBot-Cogs#timeout).
+
+        Example:
+        - `[p]verify timeoutrole <role id>`
+        """
+        await self.config.guild(ctx.guild).timeout_role.set(role.id)
+        await ctx.send(f"Timeout role set to `{role.name}`")
 
     @_verify.command("mintime")
     async def verify_mintime(self, ctx: commands.Context, mintime: int):
@@ -314,6 +334,7 @@ class VerifyCog(commands.Cog):
 
         mintime = await self.config.guild(ctx.guild).mintime()
         role_id = await self.config.guild(ctx.guild).role()
+        timeout_role_id = await self.config.guild(ctx.guild).timeout_role()
 
         tooquick = await self.config.guild(ctx.guild).tooquick()
         tooquick = tooquick.replace("`", "") if tooquick else tooquick
@@ -357,6 +378,10 @@ class VerifyCog(commands.Cog):
 
         embed.add_field(name="# Users Blocked", value=f"`{len(blocked_users)}`")
         embed.add_field(name="Fuzzy Matching Threshold", value=f"`{fuzziness}%`")
+
+        if timeout_role_id:
+            timeout_role = ctx.guild.get_role(timeout_role_id)
+            embed.add_field(name="Timeout Role", value=timeout_role.mention)
 
         try:
             await ctx.send(embed=embed)
