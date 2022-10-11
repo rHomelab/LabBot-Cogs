@@ -3,6 +3,7 @@ import logging
 
 import discord
 from redbot.core import Config, checks, commands
+from redbot.core.utils.mod import is_mod_or_superior as is_mod
 
 log = logging.getLogger("red.rhomelab.timeout")
 
@@ -297,12 +298,14 @@ class Timeout(commands.Cog):
             return
 
         # Notify and stop if command author tries to timeout themselves,
-        # or if the bot can't do that.
+        # another mod, or if the bot can't do that due to Discord role heirarchy.
         if author == user:
+            await ctx.message.add_reaction("🚫")
             await ctx.send("I cannot let you do that. Self-harm is bad \N{PENSIVE FACE}")
             return
 
         if ctx.guild.me.top_role <= user.top_role or user == ctx.guild.owner:
+            await ctx.message.add_reaction("🚫")
             await ctx.send("I cannot do that due to Discord hierarchy rules.")
             return
 
@@ -314,6 +317,11 @@ class Timeout(commands.Cog):
         timeout_roleset = {timeout_role}
         if booster_role in user.roles:
             timeout_roleset.add(booster_role)
+
+        if await is_mod(ctx.bot, user):
+            await ctx.message.add_reaction("🚫")
+            await ctx.send("Nice try. I can't timeout other moderators or admins.")
+            return
 
         # Assign reason string if not specified by user
         if reason is None:
