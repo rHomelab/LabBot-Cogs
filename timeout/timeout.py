@@ -108,7 +108,7 @@ class Timeout(commands.Cog):
             await user.edit(roles=timeout_roleset)
             log.info("User %s added to timeout by %s.", self.target, self.actor)
         except AttributeError:
-            await ctx.send("Please set the timeout role using `[p]timeoutset role`.")
+            await ctx.send(f"Please set the timeout role with `{ctx.clean_prefix}timeoutset role`.")
             return
         except discord.Forbidden as error:
             await ctx.send("Whoops, looks like I don't have permission to do that.")
