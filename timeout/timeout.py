@@ -194,30 +194,31 @@ class Timeout(commands.Cog):
         await self.config.guild(ctx.guild).logchannel.set(channel.id)
         await ctx.message.add_reaction("✅")
 
-    @timeoutset.command(name="report")
+    @timeoutset.command(name="report", usage="<enable|disable>")
     @checks.mod()
     async def timeoutset_report(self, ctx: commands.Context, choice: str):
-        """Whether to send a report when a user is added or removed from timeout.
+        """Whether to send a report when a user's timeout status is updated.
 
-        These reports will be sent in the form of an embed with timeout reason to the configured log channel.
+        These reports will be sent to the configured log channel as an embed.
+        The embed will specify the user's details and the moderator who executed the command.
+
         Set log channel with `[p]timeoutset logchannel`.
 
         Example:
-        - `[p]timeoutset report [choice]`
-
-        Possible choices are:
-        - `true` or `yes`: Reports will be sent.
-        - `false` or `no`: Reports will not be sent.
+        - `[p]timeoutset report enable`
+        - `[p]timeoutset report disable`
         """
 
-        if str.lower(choice) in ["true", "yes"]:
+        if str.lower(choice) == "enable":
             await self.config.guild(ctx.guild).report.set(True)
             await ctx.message.add_reaction("✅")
-        elif str.lower(choice) in ["false", "no"]:
+
+        elif str.lower(choice) == "disable":
             await self.config.guild(ctx.guild).report.set(False)
             await ctx.message.add_reaction("✅")
+
         else:
-            await ctx.send("Choices: true/yes or false/no")
+            await ctx.send("Setting must be `enable` or `disable`.")
 
     @timeoutset.command(name="role")
     @checks.mod()
@@ -249,8 +250,10 @@ class Timeout(commands.Cog):
         else:
             timeout_role = "Unconfigured"
 
-        if not report:
-            report = "Unconfigured"
+        if report:
+            report = "Enabled"
+        else:
+            report = "Disabled"
 
         # Build embed
         embed = discord.Embed(
