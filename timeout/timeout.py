@@ -1,5 +1,5 @@
-import datetime
 import logging
+from datetime import datetime as dt
 
 import discord
 from redbot.core import Config, checks, commands
@@ -52,7 +52,7 @@ class Timeout(commands.Cog):
         embed = discord.Embed(
             description=f"{user.mention} ({user.id})",
             color=(await ctx.embed_colour()),
-            timestamp=datetime.datetime.utcnow()
+            timestamp=dt.utcnow()
         )
         embed.add_field(
             name="Moderator",
