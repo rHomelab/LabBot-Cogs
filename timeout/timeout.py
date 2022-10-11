@@ -436,6 +436,9 @@ class Timeout(commands.Cog):
         timeout_roleset = {timeout_role}
         if booster_role in user.roles:
             timeout_roleset.add(booster_role)
+        # Assign reason string if not specified by user
+        if reason is None:
+            reason = "Unspecified"
 
         if await is_mod(ctx.bot, user):
             await ctx.message.add_reaction("🚫")
