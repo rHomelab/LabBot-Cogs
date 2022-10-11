@@ -272,8 +272,14 @@ class Timeout(commands.Cog):
 
         See and edit current configuration with `[p]timeoutset`.
 
-        Example:
+        Examples:
         - `[p]timeout @user`
+        - `[p]timeout @user Spamming chat`
+
+        If the user is not already in timeout, their roles will be stored, stripped, and replaced with the timeout role.
+        If the user is already in timeout, they will be removed from the timeout role and have their former roles restored.
+
+        The cog determines that user is currently in timeout if the user's only role is the configured timeout role.
         """
         author = ctx.author
         everyone_role = ctx.guild.default_role
