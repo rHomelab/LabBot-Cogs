@@ -28,6 +28,19 @@ class Timeout(commands.Cog):
 
     # Helper functions
 
+    async def member_data_cleanup(self, ctx: commands.Context):
+        """Remove data stored for members who are no longer in the guild
+        This helps avoid permanently storing role lists for members who left whilst in timeout.
+        """
+
+        member_data = await self.config.all_members(ctx.guild)
+
+        for member in member_data:
+            # If member not found in guild...
+            if ctx.guild.get_member(member) is None:
+                # Clear member data
+                await self.config.member_from_ids(ctx.guild.id, member).clear()
+
     async def report_handler(self, ctx: commands.Context, user: discord.Member, action_info: dict):
         """Build and send embed reports"""
 
@@ -334,3 +347,6 @@ class Timeout(commands.Cog):
 
         else:
             await self.timeout_add(ctx, user, reason, timeout_role, list(timeout_roleset))
+
+        # Run member data cleanup
+        await self.member_data_cleanup(ctx)
