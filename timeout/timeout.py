@@ -209,9 +209,18 @@ class Timeout(commands.Cog):
         - `[p]timeoutset report disable`
         """
 
+        # Ensure log channel has been defined
+        log_channel = await self.config.guild(ctx.guild).logchannel()
+
         if str.lower(choice) == "enable":
-            await self.config.guild(ctx.guild).report.set(True)
-            await ctx.message.add_reaction("✅")
+            if log_channel:
+                await self.config.guild(ctx.guild).report.set(True)
+                await ctx.message.add_reaction("✅")
+            else:
+                await ctx.send(
+                    "You must set the log channel before enabling reports.\n" +
+                    f"Set the log channel with `{ctx.clean_prefix}timeoutset logchannel`."
+                )
 
         elif str.lower(choice) == "disable":
             await self.config.guild(ctx.guild).report.set(False)
@@ -308,10 +317,6 @@ class Timeout(commands.Cog):
         # Find the timeout role in server
         timeout_role_data = await self.config.guild(ctx.guild).timeoutrole()
         timeout_role = ctx.guild.get_role(timeout_role_data)
-
-        if await self.config.guild(ctx.guild).report() and not await self.config.guild(ctx.guild).logchannel():
-            await ctx.send("Please set the log channel using `[p]timeoutset logchannel`, or disable reporting.")
-            return
 
         # Notify and stop if command author tries to timeout themselves,
         # another mod, or if the bot can't do that due to Discord role heirarchy.
