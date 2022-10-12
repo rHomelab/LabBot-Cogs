@@ -1,14 +1,20 @@
 import logging
 from datetime import datetime as dt
+from io import BytesIO
+from os import path, remove
 from typing import Literal
 
+import chat_exporter  # ==1.7.3
 import discord
-from redbot.core import Config, checks, commands
+from redbot.core import Config, checks, commands, data_manager
 from redbot.core.utils.menus import start_adding_reactions
 from redbot.core.utils.mod import is_mod_or_superior as is_mod
 from redbot.core.utils.predicates import ReactionPredicate
 
 log = logging.getLogger("red.rhomelab.timeout")
+
+# TODO:
+# Stretch: make archives available without file download
 
 
 class Timeout(commands.Cog):
@@ -20,7 +26,10 @@ class Timeout(commands.Cog):
             "logchannel": None,
             "report": False,
             "timeoutrole": None,
-            "timeout_channel": None
+            "timeout_channel": None,
+            "archive_on_remove": False,
+            # { userid: str [ { transcript_path: str, timestamp: float } ] }
+            "archives": {}
         }
         self.config.register_guild(**default_guild)
         self.config.register_member(
@@ -209,6 +218,10 @@ class Timeout(commands.Cog):
                 }
                 await self.report_handler(ctx, user, action_info)
 
+            # Archive channel if configured to do so
+            if await self.config.guild(ctx.guild).archive_on_remove():
+                await self.archive_timeout_channel(ctx, user, timeout_channel)
+
             # Ask if user wishes to clear the timeout channel if they've defined one
             if timeout_channel:
                 archive_query = await ctx.send(f"Do you wish to clear the contents of {timeout_channel.mention}?")
@@ -219,6 +232,47 @@ class Timeout(commands.Cog):
                 if pred.result is True:
                     purge = await timeout_channel.purge(bulk=True)
                     await ctx.send(f"Cleared {len(purge)} messages from {timeout_channel.mention}.")
+
+    async def archive_timeout_channel(self, ctx: commands.Context, user: discord.Member, timeout_channel: discord.TextChannel):
+        """Archive specified channel as HTML"""
+        # Snippet below will archive to text file instead of HTML.
+        # Could be useful at some point?
+        # with open(transcript_path, "w", encoding="utf-8") as file:
+        #     async for msg in ctx.channel.history(limit=None, oldest_first=True):
+        #         msg_created = msg.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        #         file.write(f"{msg_created} - {msg.author.display_name}:\n{msg.clean_content}\n\n")
+        # with open(transcript_path, "rb") as file:
+        #     transcript_discord_file = discord.File(fp=file, filename=file.name)
+
+        # Assign path and filename
+        time = dt.utcnow()
+        time_formatted = time.strftime("%Y-%m-%d_%H.%M.%S")
+        data_path = data_manager.cog_data_path(self)
+        transcript_file_name = f"transcript_{timeout_channel}_{time_formatted}.html"
+        transcript_path = path.join(data_path, transcript_file_name)
+
+        # "{bot} is typing..." while archiving.
+        async with ctx.typing():
+            # Archive the channel
+            transcript = await chat_exporter.export(
+                channel=timeout_channel,
+                set_timezone="UTC"
+            )
+
+            if transcript is None:
+                # TODO: Do something? Send a message? React? idk.
+                return
+
+            # Encode transcript to bytes object
+            transcript_object = BytesIO(transcript.encode())
+
+            # Write transcript to storage
+            with open(transcript_path, "wb") as file:
+                file.write(transcript_object.getbuffer())
+
+        # Add archive to config
+        async with self.config.guild(ctx.guild).archives() as archives:
+            archives[str(user.id)] += {"transcript_path": transcript_file_name, "timestamp": time.timestamp}
 
     # Commands
 
@@ -305,6 +359,9 @@ class Timeout(commands.Cog):
 
         This is required if you wish to optionaly purge the channel upon removing a user from timeout.
 
+        It's also used when archiving is enabled.
+        Configure archiving with `[p]timeoutset archive`.
+
         Example:
         - `[p]timeoutset timeoutchannel #timeout`
         """
@@ -314,6 +371,39 @@ class Timeout(commands.Cog):
 
         await self.config.guild(ctx.guild).timeout_channel.set(channel.id)
         await ctx.tick()
+
+    @timeoutset.command(name="archive", usage="<enable|disable>")
+    @checks.mod()
+    async def timeoutset_archive(self, ctx: commands.Context, choice: str):
+        """Archive the timeout channel after a user is removed from timeout.
+
+        Set the timeout channel with `[p]timeoutset timeoutchannel` before enabling archiving.
+
+        Example:
+        - `[p]timeoutset archive enable`
+        - `[p]timeoutset archive disable`
+        """
+
+        # Ensure timeout channel has been defined
+        timeout_channel = await self.config.guild(ctx.guild).timeout_channel()
+
+        if str.lower(choice) == "enable":
+            if timeout_channel:
+                await self.config.guild(ctx.guild).archive_on_remove.set(True)
+                await ctx.tick()
+
+            else:
+                await ctx.send(
+                    "You must set the timeout channel before enabling reports.\n" +
+                    f"Set the log channel with `{ctx.clean_prefix}timeoutset timeoutchannel`."
+                )
+
+        elif str.lower(choice) == "disable":
+            await self.config.guild(ctx.guild).archive_on_remove.set(False)
+            await ctx.tick()
+
+        else:
+            await ctx.send("Setting must be `enable` or `disable`.")
 
     @timeoutset.command(name="list", aliases=["show", "view", "settings"])
     @checks.mod()
@@ -327,6 +417,7 @@ class Timeout(commands.Cog):
         report = await self.config.guild(ctx.guild).report()
         timeout_role = ctx.guild.get_role(await self.config.guild(ctx.guild).timeoutrole())
         timeout_channel = await self.config.guild(ctx.guild).timeout_channel()
+        archive_on_remove = await self.config.guild(ctx.guild).archive_on_remove()
 
         if log_channel:
             log_channel = f"<#{log_channel}>"
@@ -347,6 +438,11 @@ class Timeout(commands.Cog):
             timeout_channel = f"<#{timeout_channel}>"
         else:
             timeout_channel = "Unconfigured"
+
+        if archive_on_remove:
+            archive_on_remove = "Enabled"
+        else:
+            archive_on_remove = "Disabled"
 
         # Build embed
         embed = discord.Embed(
@@ -374,6 +470,11 @@ class Timeout(commands.Cog):
         embed.add_field(
             name="Timeout Channel",
             value=timeout_channel,
+            inline=True
+        )
+        embed.add_field(
+            name="Archive",
+            value=archive_on_remove,
             inline=True
         )
 
@@ -460,3 +561,106 @@ class Timeout(commands.Cog):
 
         # Run member data cleanup
         await self.member_data_cleanup(ctx)
+
+    @commands.guild_only()
+    @commands.group(name="timeoutarchive")
+    @checks.mod()
+    async def timeout_archive(self, ctx: commands.Context):
+        """List, get, and remove timeout archives"""
+        if not ctx.invoked_subcommand:
+            pass
+
+    @timeout_archive.command(name="list", usage="[user]")
+    @checks.mod()
+    async def timeout_archive_list(self, ctx: commands.Context, user: discord.Member = None):
+        """List all archives
+
+        Once you've found the archive you want, you can retrieve it with:
+        `[p]timeoutarchive get <user> <id>`
+
+        Examples:
+        List all archives:
+        - `[p]timeoutarchive list`
+        List archives for a specific user:
+        - `[p]timeoutarchive list @user`
+        """
+
+        # how to handle large embeds? pagify? :harold:
+        # archive ID can just be the array index, but +1 to make it more user friendly
+        # i.e. user_archives[0] would have an ID of 1
+
+        if user:
+            # Probably a better way to do this, could take some time as the dataset grows?
+            archives = await self.config.guild(ctx.guild).archives()
+            user_archives = archives[user.id]
+
+            # Build embed
+            embed = discord.Embed(
+                description=f"{user.mention}'s Timeout Archives",
+                color=(await ctx.embed_colour())
+            )
+
+            for idx, archive in enumerate(user_archives):
+                archive_id = idx + 1
+                archive_time = dt.strptime(archive.timestamp, "%Y-%m-%d %H:%M")
+                embed.add_field(
+                    name="ID",
+                    value=archive_id,
+                    inline=True
+                )
+                embed.add_field(
+                    name="Date",
+                    value=archive_time,
+                    inline=True
+                )
+
+            # send 'em
+
+        # TODO
+        else:
+            pass
+
+    @timeout_archive.command(name="get")
+    @checks.mod()
+    async def timeout_archive_get(self, ctx: commands.Context, user: discord.Member, id: int):
+        """Get an archive
+
+        Use `[p]timeoutarchive list` to list archives per user.
+
+        Examples:
+        - `[p]timeoutarchive get @user 1`
+        This will get the archive with ID `1` for the specified user.
+        """
+
+        async with ctx.typing():
+            archive_id = id + 1
+            archives = await self.config.guild(ctx.guild).archives()
+            requested_archive = archives[user.id][archive_id]
+
+            with open(requested_archive.transcript_path, "rb") as file:
+                archive_file = discord.File(fp=file, filename=file.name)
+
+            await ctx.send(file=archive_file)
+
+    @timeout_archive.command(name="remove")
+    @checks.mod()
+    async def timeout_archive_remove(self, ctx: commands.Context, user: discord.Member, id: int):
+        """Remove an archive
+
+        Use `[p]timeoutarchive list` to list archives per user.
+
+        Examples:
+        - `[p]timeoutarchive remove @user 1`
+        This will remove the archive with ID `1` for the specified user.
+        """
+
+        archive_id = id + 1
+        archives = await self.config.guild(ctx.guild).archives()
+        requested_archive = archives[user.id][archive_id]
+
+        # TODO: how to remove from config?
+
+        if path.exists(requested_archive.transcript_path):
+            remove(requested_archive.transcript_path)
+        else:
+            await ctx.send("It looks like that transcript file has already been deleted.")
