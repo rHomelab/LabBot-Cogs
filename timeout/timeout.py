@@ -125,7 +125,7 @@ class Timeout(commands.Cog):
                 f"Attempted new roles: {timeout_roleset}", exc_info=error
             )
         else:
-            await ctx.message.add_reaction("✅")
+            await ctx.tick()
 
             # Send report to channel
             if await self.config.guild(ctx.guild).report():
@@ -161,7 +161,7 @@ class Timeout(commands.Cog):
                 f"Attempted new roles: {user_roles}", exc_info=error
             )
         else:
-            await ctx.message.add_reaction("✅")
+            await ctx.tick()
 
             # Clear user's roles from config
             await self.config.member(user).clear()
@@ -192,7 +192,7 @@ class Timeout(commands.Cog):
         - `[p]timeoutset logchannel #mod-log`
         """
         await self.config.guild(ctx.guild).logchannel.set(channel.id)
-        await ctx.message.add_reaction("✅")
+        await ctx.tick()
 
     @timeoutset.command(name="report", usage="<enable|disable>")
     @checks.mod()
@@ -215,7 +215,7 @@ class Timeout(commands.Cog):
         if str.lower(choice) == "enable":
             if log_channel:
                 await self.config.guild(ctx.guild).report.set(True)
-                await ctx.message.add_reaction("✅")
+                await ctx.tick()
             else:
                 await ctx.send(
                     "You must set the log channel before enabling reports.\n" +
@@ -224,7 +224,7 @@ class Timeout(commands.Cog):
 
         elif str.lower(choice) == "disable":
             await self.config.guild(ctx.guild).report.set(False)
-            await ctx.message.add_reaction("✅")
+            await ctx.tick()
 
         else:
             await ctx.send("Setting must be `enable` or `disable`.")
@@ -238,7 +238,7 @@ class Timeout(commands.Cog):
         - `[p]timeoutset role MyRole`
         """
         await self.config.guild(ctx.guild).timeoutrole.set(role.id)
-        await ctx.message.add_reaction("✅")
+        await ctx.tick()
 
     @timeoutset.command(name="list", aliases=["show", "view", "settings"])
     @checks.mod()
