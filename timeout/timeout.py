@@ -3,7 +3,9 @@ from datetime import datetime as dt
 
 import discord
 from redbot.core import Config, checks, commands
+from redbot.core.utils.menus import start_adding_reactions
 from redbot.core.utils.mod import is_mod_or_superior as is_mod
+from redbot.core.utils.predicates import ReactionPredicate
 
 log = logging.getLogger("red.rhomelab.timeout")
 
@@ -16,7 +18,8 @@ class Timeout(commands.Cog):
         default_guild = {
             "logchannel": None,
             "report": False,
-            "timeoutrole": None
+            "timeoutrole": None,
+            "timeout_channel": None
         }
         self.config.register_guild(**default_guild)
         self.config.register_member(
@@ -137,6 +140,11 @@ class Timeout(commands.Cog):
 
     async def timeout_remove(self, ctx: commands.Context, user: discord.Member, reason: str):
         """Remove user from timeout"""
+
+        # Retrieve timeout channel
+        timeout_channel_config = await self.config.guild(ctx.guild).timeout_channel()
+        timeout_channel = ctx.guild.get_channel(timeout_channel_config)
+
         # Fetch and define user's previous roles.
         user_roles = []
         for role in await self.config.member(user).roles():
@@ -174,6 +182,17 @@ class Timeout(commands.Cog):
                 }
                 await self.report_handler(ctx, user, action_info)
 
+            # Ask if user wishes to clear the timeout channel if they've defined one
+            if timeout_channel:
+                archive_query = await ctx.send(f"Do you wish to clear the contents of {timeout_channel.mention}?")
+                start_adding_reactions(archive_query, ReactionPredicate.YES_OR_NO_EMOJIS)
+
+                pred = ReactionPredicate.yes_or_no(archive_query, ctx.author)
+                await ctx.bot.wait_for("reaction_add", check=pred)
+                if pred.result is True:
+                    purge = await timeout_channel.purge(bulk=True)
+                    await ctx.send(f"Cleared {len(purge)} messages from {timeout_channel.mention}.")
+
     # Commands
 
     @commands.guild_only()
@@ -202,7 +221,7 @@ class Timeout(commands.Cog):
         These reports will be sent to the configured log channel as an embed.
         The embed will specify the user's details and the moderator who executed the command.
 
-        Set log channel with `[p]timeoutset logchannel`.
+        Set log channel with `[p]timeoutset logchannel` before enabling reporting.
 
         Example:
         - `[p]timeoutset report enable`
@@ -240,6 +259,19 @@ class Timeout(commands.Cog):
         await self.config.guild(ctx.guild).timeoutrole.set(role.id)
         await ctx.tick()
 
+    @timeoutset.command(name="timeoutchannel")
+    @checks.mod()
+    async def timeoutset_timeout_channel(self, ctx: commands.Context, channel: discord.TextChannel):
+        """Set the timeout channel.
+
+        This is required if you wish to optionaly purge the channel upon removing a user from timeout.
+
+        Example:
+        - `[p]timeoutset timeoutchannel #timeout`
+        """
+        await self.config.guild(ctx.guild).timeout_channel.set(channel.id)
+        await ctx.tick()
+
     @timeoutset.command(name="list", aliases=["show", "view", "settings"])
     @checks.mod()
     async def timeoutset_list(self, ctx: commands.Context):
@@ -248,6 +280,7 @@ class Timeout(commands.Cog):
         log_channel = await self.config.guild(ctx.guild).logchannel()
         report = await self.config.guild(ctx.guild).report()
         timeout_role = ctx.guild.get_role(await self.config.guild(ctx.guild).timeoutrole())
+        timeout_channel = await self.config.guild(ctx.guild).timeout_channel()
 
         if log_channel:
             log_channel = f"<#{log_channel}>"
@@ -263,6 +296,11 @@ class Timeout(commands.Cog):
             report = "Enabled"
         else:
             report = "Disabled"
+
+        if timeout_channel:
+            timeout_channel = f"<#{timeout_channel}>"
+        else:
+            timeout_channel = "Unconfigured"
 
         # Build embed
         embed = discord.Embed(
@@ -285,6 +323,11 @@ class Timeout(commands.Cog):
         embed.add_field(
             name="Timeout Role",
             value=timeout_role,
+            inline=True
+        )
+        embed.add_field(
+            name="Timeout Channel",
+            value=timeout_channel,
             inline=True
         )
 
