@@ -27,7 +27,7 @@ class VerifyCog(commands.Cog):
             "welcomechannel": None,
             "welcomemsg": "",
             "wrongmsg": "",
-            "timeout_role": None
+            "welcome_ignore_roles": []
         }
 
         self.config.register_guild(**default_guild_settings, force_registration=True)
@@ -104,7 +104,7 @@ class VerifyCog(commands.Cog):
 
         guild = before.guild
         verify_role = await self.config.guild(guild).role()
-        timeout_role = await self.config.guild(guild).timeout_role()
+        welcome_ignore_roles = await self.config.guild(guild).welcome_ignore_roles()
 
         if not verify_role:
             # Verify role is not set for this guild
@@ -118,9 +118,10 @@ class VerifyCog(commands.Cog):
             # Member already verified or not verified yet
             return
 
-        if timeout_role in [role.id for role in before.roles]:
-            # Member was in timeout previously; not newly verified.
-            return
+        for role in welcome_ignore_roles:
+            if role in [role.id for role in before.roles]:
+                # Member was in timeout previously; not newly verified.
+                return
 
         count = await self.config.guild(guild).count()
         count += 1
@@ -211,20 +212,6 @@ class VerifyCog(commands.Cog):
         """
         await self.config.guild(ctx.guild).role.set(role.id)
         await ctx.send(f"Verify role set to `{role.name}`")
-
-    @_verify.command("timeoutrole")
-    async def verify_timeout_role(self, ctx: commands.Context, role: discord.Role):
-        """Sets the timeout role
-
-        Users who transition from holding this role to holding the verified role will not be welcomed.
-
-        This allows for easy usage with Homelab's [timeout cog](https://github.com/rHomelab/LabBot-Cogs#timeout).
-
-        Example:
-        - `[p]verify timeoutrole <role id>`
-        """
-        await self.config.guild(ctx.guild).timeout_role.set(role.id)
-        await ctx.send(f"Timeout role set to `{role.name}`")
 
     @_verify.command("mintime")
     async def verify_mintime(self, ctx: commands.Context, mintime: int):
@@ -334,7 +321,7 @@ class VerifyCog(commands.Cog):
 
         mintime = await self.config.guild(ctx.guild).mintime()
         role_id = await self.config.guild(ctx.guild).role()
-        timeout_role_id = await self.config.guild(ctx.guild).timeout_role()
+        welcome_ignore_roles = await self.config.guild(ctx.guild).welcome_ignore_roles()
 
         tooquick = await self.config.guild(ctx.guild).tooquick()
         tooquick = tooquick.replace("`", "") if tooquick else tooquick
@@ -376,12 +363,15 @@ class VerifyCog(commands.Cog):
         if welcomemsg:
             embed.add_field(name="Welcome Msg", value=f"`{welcomemsg}`")
 
+        if welcome_ignore_roles:
+            welcome_ignore = ""
+            for role in welcome_ignore_roles:
+                discord_role = ctx.guild.get_role(role)
+                welcome_ignore += f"{discord_role.name}, "
+            embed.add_field(name="Welcome Ignore Roles", value=welcome_ignore.rstrip(", "))
+
         embed.add_field(name="# Users Blocked", value=f"`{len(blocked_users)}`")
         embed.add_field(name="Fuzzy Matching Threshold", value=f"`{fuzziness}%`")
-
-        if timeout_role_id:
-            timeout_role = ctx.guild.get_role(timeout_role_id)
-            embed.add_field(name="Timeout Role", value=timeout_role.mention)
 
         try:
             await ctx.send(embed=embed)
@@ -456,3 +446,68 @@ class VerifyCog(commands.Cog):
         role = guild.get_role(role_id)
         await member.add_roles(role)
         return True
+
+    @_verify.group(name="welcomeignore")
+    async def welcome_ignore(self, ctx: commands.Context):
+        """Add, remove, or list roles from the welcomeignore roles list
+
+        Users who transition from holding any one or more of these roles to holding the verified role will not be welcomed.
+
+        For example:
+        - Role `foo` is a role in the welcomeignore roles list.
+        - Role `bar` is the verified role.
+
+        Scenario A: User `abc` has role `foo`, then removes it and adds role `bar`. They will _not_ be welcomed.
+        Scenario B: User `def` has role `baz`, then removes it and adds role `bar`. They _will_ be welcomed.
+
+        This allows for easy usage with Homelab's [timeout cog](https://github.com/rHomelab/LabBot-Cogs#timeout).
+        """
+        if not ctx.invoked_subcommand:
+            pass
+
+    @welcome_ignore.command(name="add")
+    async def welcome_ignore_add(self, ctx: commands.Context, role: discord.Role):
+        """Add a role to the welcomeignore roles list
+
+        Example:
+        - `[p]verify welcomeignore add myrole`
+        """
+
+        async with self.config.guild(ctx.guild).welcome_ignore_roles() as roles:
+            roles.append(role.id)
+        await ctx.tick()
+
+    @welcome_ignore.command(name="remove")
+    async def welcome_ignore_remove(self, ctx: commands.Context, role: discord.Role):
+        """Remove a role to the welcomeignore roles list
+
+        Example:
+        - `[p]verify welcomeignore remove myrole`
+        """
+
+        async with self.config.guild(ctx.guild).welcome_ignore_roles() as roles:
+            roles.remove(role.id)
+        await ctx.tick()
+
+    @welcome_ignore.command(name="list")
+    async def welcome_ignore_list(self, ctx: commands.Context):
+        """List roles in the welcomeignore roles list
+
+        Example:
+        - `[p]verify welcomeignore list`
+        """
+
+        roles_config = await self.config.guild(ctx.guild).welcome_ignore_roles()
+
+        if roles_config:
+            embed = discord.Embed(color=(await ctx.embed_colour()))
+
+            for role in roles_config:
+                discord_role = ctx.guild.get_role(role)
+                embed.add_field(name="Role Name", value=discord_role.name, inline=True)
+                embed.add_field(name="Role ID", value=discord_role.id, inline=True)
+                embed.add_field(name="​", value="​", inline=True)  # ZWJ field
+            await ctx.send(embed=embed)
+
+        else:
+            await ctx.send("No roles have been added to welcomeignore.")
