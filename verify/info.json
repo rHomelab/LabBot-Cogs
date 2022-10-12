@@ -1,7 +1,8 @@
 {
 	"author": [
 		"Issy",
-		"Sneezey"
+		"Sneezey",
+		"tigattack"
 	],
 	"short": "Give a role to verified users",
 	"description": "Verify that a user is less-of-a-bot that what could be",
