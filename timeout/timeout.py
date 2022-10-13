@@ -233,8 +233,13 @@ class Timeout(commands.Cog):
                     purge = await timeout_channel.purge(bulk=True)
                     await ctx.send(f"Cleared {len(purge)} messages from {timeout_channel.mention}.")
 
-    async def archive_timeout_channel(self, ctx: commands.Context, user: discord.Member, timeout_channel: discord.TextChannel):
-        """Archive specified channel as HTML"""
+    async def archive_timeout_channel(
+        self,
+        ctx: commands.Context,
+        user: discord.Member,
+        timeout_channel: discord.TextChannel
+    ):
+        """Archive specified channel to HTML file"""
         # Snippet below will archive to text file instead of HTML.
         # Could be useful at some point?
         # with open(transcript_path, "w", encoding="utf-8") as file:
