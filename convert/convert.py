@@ -20,9 +20,10 @@ class Convert(commands.Cog):
         - `[p]convert 5in + 5ft to cm`
         """
 
-        if " to " not in conversion:
-            await ctx.send_help()
-            return
+        #if " to " not in conversion:
+            #await ctx.send(f"`{conversion}` is not a valid conversion")
+            #await ctx.send_help()
+            #return
 
         arg1, end_unit = conversion.split(" to ")
 
