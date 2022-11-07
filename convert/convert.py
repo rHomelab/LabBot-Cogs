@@ -49,6 +49,6 @@ class Convert(commands.Cog):
                 # remove the first character
                 result = result[1:]
             # create embed
-            embed = discord.Embed(title="Convert", description=f"`{conversion}`\n`{result.strip()}{arg2}`", color=0x00ff00)
+            embed = discord.Embed(title="Convert", description=f"`{conversion}`\n`{result.strip()}{end_unit}`", color=0x00ff00)
 
         await ctx.send(embed=embed)
