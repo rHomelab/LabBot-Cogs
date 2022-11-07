@@ -21,7 +21,7 @@ class Convert(commands.Cog):
         """
 
         if " to " not in conversion:
-            await ctx.send(f"`{conversion}` is not a valid conversion")
+            await ctx.send(f"`{conversion}` is not a valid conversion. Please make sure it is in the format `[p]convert <from> to <to>`")
             await ctx.send_help()
             return
 
