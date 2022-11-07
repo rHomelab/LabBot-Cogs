@@ -7,8 +7,7 @@ import re
 class Convert(commands.Cog):
     """Convert related commands."""
 
-    def __init__(self, bot):
-        self.bot = bot
+    def __init__(self):
         self.decimal = re.compile(r'\d+')
 
 
