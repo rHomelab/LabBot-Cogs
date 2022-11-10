@@ -4,12 +4,11 @@ import subprocess
 import discord
 from redbot.core import commands
 
+decimal = re.compile(r"\d+")
+
 
 class Convert(commands.Cog):
     """Convert related commands."""
-
-    def __init__(self):
-        self.decimal = re.compile(r"\d+")
 
     @commands.command()
     async def convert(self, ctx, *, conversion: str):
@@ -29,7 +28,7 @@ class Convert(commands.Cog):
 
         arg1, end_unit = conversion.split(" to ")
 
-        amount = re.search(self.decimal, arg1).group()
+        amount = decimal.search(arg1).group()
         unit = arg1.replace(amount, "").strip()
 
         arg1 = f"{amount} {unit}"
@@ -45,7 +44,7 @@ class Convert(commands.Cog):
             embed = discord.Embed(
                 title="Error",
                 description=f"Error when converting `{conversion}`\n{error_type}",
-                color=0xFF0000,
+                color=discord.Color.red(),
             )
         else:
             # the result is line 1
@@ -60,7 +59,7 @@ class Convert(commands.Cog):
             embed = discord.Embed(
                 title="Convert",
                 description=f"`{conversion}`\n`{result.strip()}{end_unit}`",
-                color=0x00FF00,
+                color=discord.Color.green(),
             )
 
         await ctx.send(embed=embed)
