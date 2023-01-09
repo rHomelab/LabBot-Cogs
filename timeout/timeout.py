@@ -1,8 +1,8 @@
 import logging
 from datetime import datetime as dt
 from io import BytesIO
-from os import path, remove
-from typing import Literal
+from os import path
+from os import remove as delete_file
 
 import chat_exporter  # ==1.7.3
 import discord
@@ -15,6 +15,8 @@ log = logging.getLogger("red.rhomelab.timeout")
 
 # TODO:
 # Stretch: make archives available without file download
+# ARCHIVE_RENDER_URL = "https://tiga.tech/archive?url="
+ARCHIVE_RENDER_URL = "http://localhost/?url="
 
 
 class Timeout(commands.Cog):
@@ -28,7 +30,8 @@ class Timeout(commands.Cog):
             "timeoutrole": None,
             "timeout_channel": None,
             "archive_on_remove": False,
-            # { userid: str [ { transcript_path: str, timestamp: float } ] }
+            # Old: { userid: str [ { transcript_path: str, timestamp: float } ] }
+            # New(??): [ { user_id: int, transcript_path: str, timestamp: int } ]
             "archives": {}
         }
         self.config.register_guild(**default_guild)
@@ -276,8 +279,21 @@ class Timeout(commands.Cog):
                 file.write(transcript_object.getbuffer())
 
         # Add archive to config
-        async with self.config.guild(ctx.guild).archives() as archives:
-            archives[str(user.id)] += {"transcript_path": transcript_file_name, "timestamp": time.timestamp}
+        await self.config.guild(ctx.guild).archives.set({
+            user.id: {"transcript_path": transcript_file_name, "timestamp": time.timestamp}
+        })
+        # if not await self.config.guild(ctx.guild).archives():
+        #     await self.config.guild(ctx.guild).archives.set_raw(
+        #         user.id, value=[{"transcript_path": transcript_file_name, "timestamp": time.timestamp}]
+        #     )
+
+        # else:
+        #     async with await self.config.guild(ctx.guild).archives() as archives:
+        #         if archives[user.id]:
+        #             archives[user.id] += {"transcript_path": transcript_file_name, "timestamp": time.timestamp}
+        #         else:
+        #             archive_dict = {user.id: {"transcript_path": transcript_file_name, "timestamp": time.timestamp}}
+        #             archives.update(archive_dict)
 
     # Commands
 
@@ -451,11 +467,8 @@ class Timeout(commands.Cog):
 
         # Build embed
         embed = discord.Embed(
+            title="Timeout Cog Settings",
             color=(await ctx.embed_colour())
-        )
-        embed.set_author(
-            name="Timeout Cog Settings",
-            icon_url=ctx.guild.me.display_avatar.url
         )
         embed.add_field(
             name="Log Channel",
@@ -594,40 +607,77 @@ class Timeout(commands.Cog):
         # archive ID can just be the array index, but +1 to make it more user friendly
         # i.e. user_archives[0] would have an ID of 1
 
-        if user:
-            # Probably a better way to do this, could take some time as the dataset grows?
-            archives = await self.config.guild(ctx.guild).archives()
-            user_archives = archives[user.id]
-
-            # Build embed
-            embed = discord.Embed(
-                description=f"{user.mention}'s Timeout Archives",
-                color=(await ctx.embed_colour())
-            )
-
-            for idx, archive in enumerate(user_archives):
-                archive_id = idx + 1
-                archive_time = dt.strptime(archive.timestamp, "%Y-%m-%d %H:%M")
-                embed.add_field(
-                    name="ID",
-                    value=archive_id,
-                    inline=True
-                )
-                embed.add_field(
-                    name="Date",
-                    value=archive_time,
-                    inline=True
-                )
-
-            # send 'em
+        if not await self.config.guild(ctx.guild).archives():
+            await ctx.send("I couldn't find any stored archives.")
 
         # TODO
         else:
-            pass
+            async with await self.config.guild(ctx.guild).archives() as archives:
+                if user:
+                    user_archives = archives[user.id]
+
+                    # Build embed
+                    embed = discord.Embed(
+                        description=f"{user.mention}'s Timeout Archives",
+                        color=(await ctx.embed_colour())
+                    )
+
+                    for idx, archive in enumerate(user_archives):
+                        archive_id = idx + 1
+                        archive_time = dt.strptime(archive.timestamp, "%Y-%m-%d %H:%M")
+                        embed.add_field(
+                            name="ID",
+                            value=archive_id,
+                            inline=True
+                        )
+                        embed.add_field(
+                            name="Timestamp",
+                            value=archive_time,
+                            inline=True
+                        )
+                        embed.add_field(name="​", value="​", inline=True)  # ZWJ field
+
+                else:
+                    # Create list of archives
+                    archives_list = []
+                    for key in dict.keys():
+                        user_archive_id = 0
+                        for archive in dict[key]:
+                            user_archive_id += 1
+                            archives_list.append({
+                                    "user": key,
+                                    "user_archive_id": user_archive_id,
+                                    "transcript": archive["transcript"],
+                                    "timestamp": archive["timestamp"]
+                                })
+
+                    # Sort by timestamp, newest first
+                    archives_list.sort(key=lambda x: x.get("timestamp"), reverse=True)
+
+                    for archive in enumerate(archives_list):
+                        archive_time = dt.strptime(archive.timestamp, "%Y-%m-%d %H:%M")
+                        embed.add_field(
+                            name="User",
+                            value=archive.user,
+                            inline=True
+                        )
+                        embed.add_field(
+                            name="User Archive ID",
+                            value=archive.user_archive_id,
+                            inline=True
+                        )
+                        embed.add_field(
+                            name="Timestamp",
+                            value=archive_time,
+                            inline=True
+                        )
+                        embed.add_field(name="​", value="​", inline=True)  # ZWJ field
+
+                await ctx.send(embed=embed)
 
     @timeout_archive.command(name="get")
     @checks.mod()
-    async def timeout_archive_get(self, ctx: commands.Context, user: discord.Member, id: int):
+    async def timeout_archive_get(self, ctx: commands.Context, user: discord.Member, archive_id: int):
         """Get an archive
 
         Use `[p]timeoutarchive list` to list archives per user.
@@ -638,18 +688,27 @@ class Timeout(commands.Cog):
         """
 
         async with ctx.typing():
-            archive_id = id + 1
+            archive_id = archive_id + 1
             archives = await self.config.guild(ctx.guild).archives()
             requested_archive = archives[user.id][archive_id]
 
             with open(requested_archive.transcript_path, "rb") as file:
                 archive_file = discord.File(fp=file, filename=file.name)
 
-            await ctx.send(file=archive_file)
+            message = await ctx.send(file=archive_file)
+            embed = discord.Embed(
+                title="Archive Link",
+                description=(
+                    f"[Click here to view the archive.]({ARCHIVE_RENDER_URL}{message.attachments[0].url})"
+                ),
+                colour=ctx.embed_colour(),
+            )
+
+            await ctx.send(embed=embed)
 
     @timeout_archive.command(name="remove")
     @checks.mod()
-    async def timeout_archive_remove(self, ctx: commands.Context, user: discord.Member, id: int):
+    async def timeout_archive_remove(self, ctx: commands.Context, user: discord.Member, archive_id: int):
         """Remove an archive
 
         Use `[p]timeoutarchive list` to list archives per user.
@@ -659,13 +718,43 @@ class Timeout(commands.Cog):
         This will remove the archive with ID `1` for the specified user.
         """
 
-        archive_id = id + 1
-        archives = await self.config.guild(ctx.guild).archives()
-        requested_archive = archives[user.id][archive_id]
+        archive_id = archive_id + 1
 
-        # TODO: how to remove from config?
+        async with await self.config.guild(ctx.guild).archives() as archives:
+            if archives[user.id][archive_id]:
+                # Remove file
+                if path.exists(archives[user.id][archive_id].transcript_path):
+                    delete_file(archives[user.id][archive_id].transcript_path)
+                else:
+                    archive_path = archives[user.id][archive_id].transcript_path
+                    path_no_exist = True
 
-        if path.exists(requested_archive.transcript_path):
-            remove(requested_archive.transcript_path)
-        else:
-            await ctx.send("It looks like that transcript file has already been deleted.")
+                # Remove dict element
+                del archives[user.id][archive_id]
+
+            else:
+                await ctx.send("Sorry, I can't find that archive.")
+
+        # Contact owner about missing file, or fall back to sending a
+        # message to the channel in which the command was executed.
+        if path_no_exist:
+            owner_contact_dests = await ctx.bot.get_owner_notification_destinations()
+            msg_text = (
+                "A timeout archive was removed from config, but I couldn't find the file to remove.\n" +
+                f"The file is: `{archive_path}`."
+            )
+            msg_text_fallback = msg_text + "\nI tried to contact my owner about this but was unable to do so."
+
+            if not owner_contact_dests:
+                await ctx.send(msg_text_fallback)
+                return
+
+            for destination in owner_contact_dests:
+                is_dm = isinstance(destination, discord.User)
+                if not is_dm and not destination.permissions_for(destination.guild.me).send_messages:
+                    continue
+
+                try:
+                    await destination.send(msg_text)
+                except (discord.Forbidden, discord.HTTPException):
+                    await ctx.send(msg_text_fallback)
