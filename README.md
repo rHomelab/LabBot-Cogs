@@ -305,7 +305,7 @@ This cog allows users to look at xkcd comics
 
 ## License
 
-All code in this repository is licensed under the [GNU General Public License version 3](https://github.com/tigattack/LabBot/blob/master/LICENSE).
+All code in this repository is licensed under the [GNU General Public License version 3](https://github.com/tigattack/LabBot/blob/main/LICENSE).
 
 Copyright (c) 2018-2020 tigattack, contributors and original authors.
 
@@ -328,4 +328,4 @@ If you use [VSCode](https://code.visualstudio.com/) you can use the tasks integr
 
 When suggesting changes, please [open an issue](https://github.com/rHomelab/LabBot-Cogs/issues/new/choose) so it can be reviewed by the team who can then suggest how and if the idea is to be implemented.
 
-When submitting changes, please [create a pull request](https://github.com/rHomelab/LabBot-Cogs/compare) targeting the master branch.
+When submitting changes, please [create a pull request](https://github.com/rHomelab/LabBot-Cogs/compare) targeting the main branch.
