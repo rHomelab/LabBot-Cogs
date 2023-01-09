@@ -4,7 +4,7 @@
   <img src=LabBot.png width="256" height="256">
 </p>
 <p align="center">
-  <img src="https://img.shields.io/github/workflow/status/rhomelab/labbot-cogs/CI?style=for-the-badge">
+  <img src="https://img.shields.io/github/actions/workflow/status/rhomelab/labbot-cogs/ci.yml?style=for-the-badge">
 <p>
 
 Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homelab](https://reddit.com/r/Homelab) Discord server bot.
