@@ -57,8 +57,15 @@ class Timeout(commands.Cog):
         # Send embed
         await log_channel.send(embed=embed)
 
-    async def timeout_add(self, ctx: commands.Context, user: discord.Member, reason: str, timeout_roleset: list[discord.Role]):
+    async def timeout_add(self, ctx: commands.Context, user: discord.Member, reason: str, timeout_role: discord.Role, timeout_roleset: list[discord.Role]):
         """Retrieve and save user's roles, then add user to timeout"""
+        # Catch users already holding timeout role.
+        # This could be caused by an error in this cog's logic or,
+        # more likely, someone manually adding the user to the role.
+        if timeout_role in user.roles:
+            await ctx.send("Something went wrong! Is the user already in timeout? Please check the console for more information.")
+            return
+
         # Store the user's current roles
         user_roles = []
         for role in user.roles:
@@ -270,4 +277,4 @@ class Timeout(commands.Cog):
             await self.timeout_remove(ctx, user, reason)
 
         else:
-            await self.timeout_add(ctx, user, reason, timeout_roleset)
+            await self.timeout_add(ctx, user, reason, timeout_role, timeout_roleset)
