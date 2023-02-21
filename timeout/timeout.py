@@ -57,7 +57,7 @@ class Timeout(commands.Cog):
         # Send embed
         await log_channel.send(embed=embed)
 
-    async def timeout_add(self, ctx: commands.Context, user: discord.Member, reason: str, timeout_role: discord.Role):
+    async def timeout_add(self, ctx: commands.Context, user: discord.Member, reason: str, timeout_roleset: list[discord.Role]):
         """Retrieve and save user's roles, then add user to timeout"""
         # Store the user's current roles
         user_roles = []
@@ -66,9 +66,9 @@ class Timeout(commands.Cog):
 
         await self.config.member(user).roles.set(user_roles)
 
-        # Replace all of a user's roles with timeout role
+        # Replace all of a user's roles with timeout roleset
         try:
-            await user.edit(roles=[timeout_role])
+            await user.edit(roles=timeout_roleset)
         except AttributeError:
             await ctx.send("Please set the timeout role using `[p]timeoutset role`.")
             return
@@ -254,10 +254,20 @@ class Timeout(commands.Cog):
             await ctx.send("I cannot do that due to Discord hierarchy rules.")
             return
 
+        # Create a list containing the timeout role so we can
+        # add the boost role to it if the user is a booster.
+        # This is necessary since you cannot remove the boost
+        # role, so we must ensure we avoid attempting to do so.
+        booster_role = ctx.guild.premium_subscriber_role
+        if user in ctx.guild.premium_subscribers:
+            timeout_roleset = [timeout_role, booster_role]
+        else:
+            timeout_roleset = [timeout_role]
+
         # Check if user already in timeout.
-        # Remove & restore if so, else timeout.
-        if user.roles == [everyone_role, timeout_role]:
+        # Remove & restore if so, else add to timeout.
+        if sorted(user.roles) == sorted([everyone_role] + timeout_roleset):
             await self.timeout_remove(ctx, user, reason)
 
         else:
-            await self.timeout_add(ctx, user, reason, timeout_role)
+            await self.timeout_add(ctx, user, reason, timeout_roleset)
