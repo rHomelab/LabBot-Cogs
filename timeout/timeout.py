@@ -1,8 +1,10 @@
 import datetime
+import logging
 
 import discord
 from redbot.core import Config, checks, commands
 
+log = logging.getLogger("red.rhomelab.timeout")
 
 class Timeout(commands.Cog):
     """Timeout a user"""
@@ -64,6 +66,11 @@ class Timeout(commands.Cog):
         # more likely, someone manually adding the user to the role.
         if timeout_role in user.roles:
             await ctx.send("Something went wrong! Is the user already in timeout? Please check the console for more information.")
+            log.error(
+                f"Something went wrong while trying to add user '{user.display_name}' ({user.id}) to timeout.\n" +
+                f"Current roles: {user.roles}\n" +
+                f"Attempted new roles: {timeout_roleset}"
+            )
             return
 
         # Store the user's current roles
@@ -76,15 +83,25 @@ class Timeout(commands.Cog):
         # Replace all of a user's roles with timeout roleset
         try:
             await user.edit(roles=timeout_roleset)
+            log.info(f"User '{user.display_name}' ({user.id}) added to timeout by '{ctx.author.display_name}' ({ctx.author.id}).")
         except AttributeError:
             await ctx.send("Please set the timeout role using `[p]timeoutset role`.")
             return
-        except discord.Forbidden:
+        except discord.Forbidden as error:
             await ctx.send("Whoops, looks like I don't have permission to do that.")
+            log.exception(
+                f"Something went wrong while trying to add user '{user.display_name}' ({user.id}) to timeout.\n" +
+                f"Current roles: {user.roles}\n" +
+                f"Attempted new roles: {timeout_roleset}", exc_info=error
+            )
             return
         except discord.HTTPException as error:
-            await ctx.send("Something went wrong!")
-            raise Exception(error) from error
+            await ctx.send("Something went wrong! Please check the console for more information.")
+            log.exception(
+                f"Something went wrong while trying to add user '{user.display_name}' ({user.id}) to timeout.\n" +
+                f"Current roles: {user.roles}\n" +
+                f"Attempted new roles: {timeout_roleset}", exc_info=error
+            )
         else:
             await ctx.message.add_reaction("✅")
 
@@ -106,11 +123,23 @@ class Timeout(commands.Cog):
         # Replace user's roles with their previous roles.
         try:
             await user.edit(roles=user_roles)
-        except discord.Forbidden:
+            log.info(f"User '{user.display_name}' ({user.id}) removed from timeout by '{ctx.author.display_name}' ({ctx.author.id}).")
+        except discord.Forbidden as error:
             await ctx.send("Whoops, looks like I don't have permission to do that.")
+            log.exception(
+                f"Something went wrong while trying to remove user '{user.display_name}' ({user.id}) from timeout.\n" +
+                f"Current roles: {user.roles}\n" +
+                f"Attempted new roles: {user_roles}", exc_info=error
+            )
+            return
         except discord.HTTPException as error:
-            await ctx.send("Something went wrong!")
-            raise Exception(error) from error
+            await ctx.send("Something went wrong! Please check the console for more information.")
+            log.exception(
+                f"Something went wrong while trying to remove user '{user.display_name}' ({user.id}) from timeout.\n" +
+                f"Current roles: {user.roles}\n" +
+                f"Attempted new roles: {user_roles}", exc_info=error
+            )
+            return
         else:
             await ctx.message.add_reaction("✅")
 
