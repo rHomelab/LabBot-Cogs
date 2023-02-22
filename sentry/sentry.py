@@ -103,7 +103,7 @@ class SentryCog(commands.Cog):
             await self.config.log_level.set(new_value)
             await context.send(f"Sentry log_level has been changed to: {new_value}")
         except ValueError as error:
-            self.logger.exception(f"Could not change log level to '{new_value}': ", exc_info=error)
+            self.logger.warning(f"Could not change log level to '{new_value}': ", exc_info=error)
             await context.send(
                 f"Sentry log_level could not be changed.\n" +
                 f"{new_value} is not a valid logging level."
