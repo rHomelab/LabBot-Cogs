@@ -81,33 +81,39 @@ class SentryCog(commands.Cog):
     async def sentry_set_env(self, context: commands.context.Context, new_value: str):
         """Set sentry environment"""
         await self.config.environment.set(new_value)
-        await context.send(f"Sentry environment has been changed to '{new_value}'!")
+        await context.send(f"Sentry environment has been changed to: {new_value}")
 
     @_sentry.command(name="get_env")
     async def sentry_get_env(self, context: commands.context.Context):
         """Get sentry environment"""
         environment_val = await self.config.environment()
-        await context.send(f"The Sentry environment is '{environment_val}'")
+        if environment_val:
+            message = f"The Sentry environment is: {environment_val}"
+        else:
+            message = f"The Sentry environment is unset. See `{context.prefix}sentry set_env`."
+        await context.send(message)
 
     @_sentry.command(name="set_log_level")
     async def sentry_set_log_level(self, context: commands.context.Context, new_value: str):
         """Set sentry log_level"""
+        new_value = new_value.upper()
         try:
-            self.logger.setLevel(new_value.upper())
-            self.client.options["debug"] = new_value.upper() == "DEBUG"
-            await self.config.log_level.set(new_value.upper())
-            await context.send(f"Sentry log_level has been changed to: {new_value.upper()}")
+            self.logger.setLevel(new_value)
+            self.client.options["debug"] = new_value == "DEBUG"
+            await self.config.log_level.set(new_value)
+            await context.send(f"Sentry log_level has been changed to: {new_value}")
         except ValueError as error:
+            self.logger.exception(f"Could not change log level to '{new_value}': ", exc_info=error)
             await context.send(
                 f"Sentry log_level could not be changed.\n" +
-                f"{new_value.upper()} is not a valid logging level."
+                f"{new_value} is not a valid logging level."
             )
 
     @_sentry.command(name="get_log_level")
     async def sentry_get_log_level(self, context: commands.context.Context):
         """Get sentry log_level"""
         log_level_val = await self.config.log_level()
-        await context.send(f"The Sentry log_level is '{log_level_val}'")
+        await context.send(f"The Sentry log_level is: {log_level_val}")
 
     @_sentry.command(name="test")
     async def sentry_test(self, context: commands.context.Context):
