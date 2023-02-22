@@ -23,7 +23,7 @@ class SentryCog(commands.Cog):
 
     def __init__(self, bot: Red):
         super().__init__()
-        self.logger = getLogger("sentry")
+        self.logger = getLogger("red.rhomelab.sentry")
 
         self.bot = bot
         self.client = None
