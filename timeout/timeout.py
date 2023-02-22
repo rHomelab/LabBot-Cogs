@@ -67,7 +67,7 @@ class Timeout(commands.Cog):
         if timeout_role in user.roles:
             await ctx.send("Something went wrong! Is the user already in timeout? Please check the console for more information.")
             log.error(
-                f"Something went wrong while trying to add user '{user.display_name}' ({user.id}) to timeout.\n" +
+                f"Something went wrong while trying to add user {self.target} to timeout.\n" +
                 f"Current roles: {user.roles}\n" +
                 f"Attempted new roles: {timeout_roleset}"
             )
@@ -83,14 +83,14 @@ class Timeout(commands.Cog):
         # Replace all of a user's roles with timeout roleset
         try:
             await user.edit(roles=timeout_roleset)
-            log.info(f"User '{user.display_name}' ({user.id}) added to timeout by '{ctx.author.display_name}' ({ctx.author.id}).")
+            log.info(f"User {self.target} added to timeout by {self.actor}.")
         except AttributeError:
             await ctx.send("Please set the timeout role using `[p]timeoutset role`.")
             return
         except discord.Forbidden as error:
             await ctx.send("Whoops, looks like I don't have permission to do that.")
             log.exception(
-                f"Something went wrong while trying to add user '{user.display_name}' ({user.id}) to timeout.\n" +
+                f"Something went wrong while trying to add user {self.target} to timeout.\n" +
                 f"Current roles: {user.roles}\n" +
                 f"Attempted new roles: {timeout_roleset}", exc_info=error
             )
@@ -98,7 +98,7 @@ class Timeout(commands.Cog):
         except discord.HTTPException as error:
             await ctx.send("Something went wrong! Please check the console for more information.")
             log.exception(
-                f"Something went wrong while trying to add user '{user.display_name}' ({user.id}) to timeout.\n" +
+                f"Something went wrong while trying to add user {self.target} to timeout.\n" +
                 f"Current roles: {user.roles}\n" +
                 f"Attempted new roles: {timeout_roleset}", exc_info=error
             )
@@ -123,11 +123,11 @@ class Timeout(commands.Cog):
         # Replace user's roles with their previous roles.
         try:
             await user.edit(roles=user_roles)
-            log.info(f"User '{user.display_name}' ({user.id}) removed from timeout by '{ctx.author.display_name}' ({ctx.author.id}).")
+            log.info(f"User {self.target} removed from timeout by {self.actor}.")
         except discord.Forbidden as error:
             await ctx.send("Whoops, looks like I don't have permission to do that.")
             log.exception(
-                f"Something went wrong while trying to remove user '{user.display_name}' ({user.id}) from timeout.\n" +
+                f"Something went wrong while trying to remove user {self.target} from timeout.\n" +
                 f"Current roles: {user.roles}\n" +
                 f"Attempted new roles: {user_roles}", exc_info=error
             )
@@ -135,7 +135,7 @@ class Timeout(commands.Cog):
         except discord.HTTPException as error:
             await ctx.send("Something went wrong! Please check the console for more information.")
             log.exception(
-                f"Something went wrong while trying to remove user '{user.display_name}' ({user.id}) from timeout.\n" +
+                f"Something went wrong while trying to remove user {self.target} from timeout.\n" +
                 f"Current roles: {user.roles}\n" +
                 f"Attempted new roles: {user_roles}", exc_info=error
             )
@@ -271,6 +271,10 @@ class Timeout(commands.Cog):
         """
         author = ctx.author
         everyone_role = ctx.guild.default_role
+
+        # Set actor & target strings for logging
+        self.actor = f"{ctx.author.name}({ctx.author.id})"
+        self.target = f"{user.name}({user.id})"
 
         # Find the timeout role in server
         timeout_role_data = await self.config.guild(ctx.guild).timeoutrole()
