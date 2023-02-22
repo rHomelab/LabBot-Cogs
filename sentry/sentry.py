@@ -23,7 +23,7 @@ class SentryCog(commands.Cog):
 
     def __init__(self, bot: Red):
         super().__init__()
-        self.logger = getLogger("sentry")
+        self.logger = getLogger("red.rhomelab.sentry")
 
         self.bot = bot
         self.client = None
@@ -81,21 +81,33 @@ class SentryCog(commands.Cog):
     async def sentry_set_env(self, context: commands.context.Context, new_value: str):
         """Set sentry environment"""
         await self.config.environment.set(new_value)
-        await context.send(f"Sentry environment has been changed to '{new_value}'!")
+        await context.send(f"Sentry environment has been changed to '{new_value}'")
 
     @_sentry.command(name="get_env")
     async def sentry_get_env(self, context: commands.context.Context):
         """Get sentry environment"""
         environment_val = await self.config.environment()
-        await context.send(f"The Sentry environment is '{environment_val}'")
+        if environment_val:
+            message = f"The Sentry environment is '{environment_val}'"
+        else:
+            message = f"The Sentry environment is unset. See `{context.prefix}sentry set_env`."
+        await context.send(message)
 
     @_sentry.command(name="set_log_level")
     async def sentry_set_log_level(self, context: commands.context.Context, new_value: str):
         """Set sentry log_level"""
-        await self.config.log_level.set(new_value.upper())
-        await context.send(f"Sentry log_level has been changed to '{new_value.upper()}'!")
-        self.logger.setLevel(new_value.upper())
-        self.client.options["debug"] = new_value.upper() == "DEBUG"
+        new_value = new_value.upper()
+        try:
+            self.logger.setLevel(new_value)
+            self.client.options["debug"] = new_value == "DEBUG"
+            await self.config.log_level.set(new_value)
+            await context.send(f"Sentry log_level has been changed to '{new_value}'")
+        except ValueError as error:
+            self.logger.warning(f"Could not change log level to '{new_value}': ", exc_info=error)
+            await context.send(
+                f"Sentry log_level could not be changed.\n" +
+                f"{new_value} is not a valid logging level."
+            )
 
     @_sentry.command(name="get_log_level")
     async def sentry_get_log_level(self, context: commands.context.Context):
