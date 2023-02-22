@@ -92,10 +92,16 @@ class SentryCog(commands.Cog):
     @_sentry.command(name="set_log_level")
     async def sentry_set_log_level(self, context: commands.context.Context, new_value: str):
         """Set sentry log_level"""
-        await self.config.log_level.set(new_value.upper())
-        await context.send(f"Sentry log_level has been changed to '{new_value.upper()}'!")
-        self.logger.setLevel(new_value.upper())
-        self.client.options["debug"] = new_value.upper() == "DEBUG"
+        try:
+            self.logger.setLevel(new_value.upper())
+            self.client.options["debug"] = new_value.upper() == "DEBUG"
+            await self.config.log_level.set(new_value.upper())
+            await context.send(f"Sentry log_level has been changed to: {new_value.upper()}")
+        except ValueError as error:
+            await context.send(
+                f"Sentry log_level could not be changed.\n" +
+                f"{new_value.upper()} is not a valid logging level."
+            )
 
     @_sentry.command(name="get_log_level")
     async def sentry_get_log_level(self, context: commands.context.Context):
