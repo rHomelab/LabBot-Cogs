@@ -210,10 +210,10 @@ class Timeout(commands.Cog):
         await self.config.guild(ctx.guild).timeoutrole.set(role.id)
         await ctx.message.add_reaction("✅")
 
-    @timeoutset.command(name="list")
+    @timeoutset.command(name="list", aliases=["show", "view", "settings"])
     @checks.mod()
     async def timeoutset_list(self, ctx: commands.Context):
-        """List current settings."""
+        """Show current settings."""
 
         log_channel = await self.config.guild(ctx.guild).logchannel()
         report = await self.config.guild(ctx.guild).report()
