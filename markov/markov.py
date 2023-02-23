@@ -1,3 +1,4 @@
+from io import BytesIO
 import logging
 import random
 import re
@@ -26,6 +27,25 @@ class Markov(commands.Cog):
             mode="word",
             enabled=False)
         self.conf.register_guild(channels=[])
+
+    async def red_get_data_for_user(self, *, user_id: int) -> dict[str, BytesIO]:
+        """Get a user's personal data."""
+        user_data = self.conf.user(await self.bot.fetch_user(user_id))
+        if user_data.chains:
+            data = (
+                f"Stored data for user with ID {user_id}:\n"
+                f"User modelling enabled: {await user_data.enabled()}\n" +
+                f"User chain depth: {await user_data.chain_depth()}\n" +
+                f"User mode: {await user_data.mode()}\n" +
+                f"User chains: {await user_data.chains()}"
+            )
+        else:
+            data = f"No data is stored for user with ID {user_id}.\n"
+        return {"user_data.txt": BytesIO(data.encode())}
+
+    async def red_delete_data_for_user(self, *, requester, user_id):
+        """Delete a user's personal data."""
+        await self.config.member(await self.bot.fetch_user(user_id)).clear()
 
     @commands.Cog.listener()
     async def on_message(self, message):
