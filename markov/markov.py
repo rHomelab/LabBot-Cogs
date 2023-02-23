@@ -50,29 +50,12 @@ class Markov(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         """Process messages from enabled channels for enabled users"""
-        # Attempt to load guild channel restrictions
-        try:
-            channels = await self.conf.guild(message.guild).channels()
-            if message.channel.id not in channels:
-                log.debug("Ignoring message from disabled channel")
-                return
-        except AttributeError:  # Not in a guild
-            pass
 
-        # Ignore messages from the bot itself
-        if message.author.id == self.bot.user.id:
-            return
-
-        # Ignore messages that start with non-alphanumeric characters
-        if message.content and not message.content[0].isalnum():
+        if not await self.should_process_message(message):
             return
 
         # Load the user's markov chain and settings
-        enabled, chains, depth, mode = await self.get_user_config(message.author)
-
-        # Check whether the user has enabled markov modelling
-        if enabled is not True:
-            return
+        _, chains, depth, mode = await self.get_user_config(message.author)
 
         # Create a token cleaner
         cleaner = lambda x: x
@@ -290,3 +273,35 @@ class Markov(commands.Cog):
                                 weights=list(model[state].values()),
                                 k=1)  # Caution: basically magic
         return gram
+
+    async def should_process_message(self, message: discord.Message) -> bool:
+        """Return true if a message should be processed"""
+        def no_process(reason: str) -> bool:
+            log.debug(f"Ignoring message: {reason}")
+            return False
+
+        # Ignore messages not sent in a guild
+        if not message.guild:
+            return no_process("Message not sent in guild")
+
+        # Attempt to load guild channel restrictions
+        try:
+            channels = await self.conf.guild(message.guild).channels()
+            if message.channel.id not in channels:
+                return no_process("Message sent in disabled channel")
+        except AttributeError:  # Not in a guild
+            pass
+
+        # Ignore messages from the bot itself
+        if message.author.id == self.bot.user.id:
+            return no_process("Message sent by self")
+
+        # Ignore messages that start with non-alphanumeric characters
+        if message.content and not message.content[0].isalnum():
+            return no_process("Message starts with non-alphanumeric characters")
+
+        # Check whether the user has enabled markov modelling
+        if not await self.conf.user(message.author).enabled():
+            return no_process("User has not opted-in to modelling")
+
+        return True
