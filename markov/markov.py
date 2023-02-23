@@ -146,17 +146,23 @@ class Markov(commands.Cog):
         await self.conf.user(ctx.author).chain_depth.set(depth)
         await ctx.send(f"Ngram modelling depth set to {depth}.")
 
-    @markov.command()
+    @markov.command(aliases=["settings"])
     async def show(self, ctx: commands.Context, user: discord.abc.User = None):
         """Show your current settings and models, or those of another user"""
         if not isinstance(user, discord.abc.User):
             user = ctx.message.author
         enabled, chains, depth, mode = await self.get_user_config(user, lazy=False)
         models = '\n'.join(chains.keys())
-        await ctx.send(f"**Enabled:** {enabled}\n"
-                       f"**Chain Depth:** {depth}\n"
-                       f"**Token Mode:** {mode}\n"
-                       f"**Stored Models:**\n{models}")
+
+        # Build embed
+        embed = discord.Embed(colour=await ctx.embed_colour())
+        embed.add_field(name="Enabled", value=enabled, inline=True)
+        embed.add_field(name="Chain Depth", value=depth, inline=True)
+        embed.add_field(name="Token Mode", value=mode, inline=True)
+        embed.add_field(name="Stored Models", value=models, inline=False)
+
+        # Send embed
+        await ctx.send(embed=embed)
 
     @markov.command()
     async def delete(self, ctx: commands.Context, model: str):
