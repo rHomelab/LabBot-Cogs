@@ -5,7 +5,7 @@ import re
 import discord
 from redbot.core import Config, bot, checks, commands
 
-log = logging.getLogger("red.cbd-cogs.markov")
+log = logging.getLogger("red.rhomelab.markov")
 
 __all__ = ["UNIQUE_ID", "Markov"]
 
