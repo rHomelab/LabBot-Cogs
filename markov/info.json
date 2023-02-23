@@ -1,0 +1,13 @@
+{
+  "author" : ["CrunchBangDev"],
+  "install_msg" : "You've just installed the Markov cog! Please check the readme document on Gitlab to learn how to get started.",
+  "name" : "Markov",
+  "short" : "Generate markov chains for users",
+  "description" : "Analyze user messages, generating markov chains that can be used to synthesize new text to mimick users",
+  "required_cogs": {},
+  "requirements": [],
+  "min_bot_version": "3.1.8",
+  "max_bot_version": "0.0.0",
+  "tags": [],
+  "type": "COG"
+}
