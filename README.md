@@ -277,9 +277,13 @@ Configure Sentry DSN using `[p]set api sentry dsn,https://fooo@bar.baz/9`, then 
 
 ### Timeout
 
-Manage the timeout status of users. Run the command to add a user to timeout, run it again to remove them.
+Manage the timeout status of users.
 
-- `[p]timeout <user>` - Add/remove a user from timeout.
+Run the command to add a user to timeout, run it again to remove them. Append a reason if you wish: `[p]timeout @someUser said a bad thing`  
+If the user is not in timeout, they are added. If they are in timeout, they are removed.  
+All of the member's roles will be stripped when they are added to timeout, and re-added when they are removed.
+
+- `[p]timeout <user> [reason]` - Add/remove a user from timeout, optionally specifying a reason.
 - `[p]timeoutset list` - Print the current configuration.
 - `[p]timeoutset role <role name>` - Set the timeout role.
 - `[p]timeoutset report <bool>` - Set whether timeout reports should be logged or not.
