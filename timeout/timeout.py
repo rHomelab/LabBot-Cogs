@@ -66,7 +66,7 @@ class Timeout(commands.Cog):
         # more likely, someone manually adding the user to the role.
         if timeout_role in user.roles:
             await ctx.send("Something went wrong! Is the user already in timeout? Please check the console for more information.")
-            log.error(
+            log.warning(
                 f"Something went wrong while trying to add user {self.target} to timeout.\n" +
                 f"Current roles: {user.roles}\n" +
                 f"Attempted new roles: {timeout_roleset}"
