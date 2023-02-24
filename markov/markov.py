@@ -186,18 +186,20 @@ class Markov(commands.Cog):
     @checks.admin_or_permissions(manage_guild=True)
     @commands.guild_only()
     @markov.command()
-    async def channelenable(self, ctx: commands.Context, channel: str = None):
+    async def channelenable(self, ctx: commands.Context, channel: discord.TextChannel = None):
         """Enable modelling of messages in a channel for enabled users"""
-        await self.channels_update(channel or ctx.channel.id, ctx.guild, True)
-        await ctx.send(f"Modelling enabled in {ctx.channel.mention} for opted-in users.")
+        await self.channels_update(channel.id or ctx.channel.id, ctx.guild, True)
+        await ctx.send(f"Modelling enabled in {channel.mention} for opted-in users.")
+        log.debug(f"Modelling enabled in {channel.name}({channel.id})")
 
     @checks.admin_or_permissions(manage_guild=True)
     @commands.guild_only()
     @markov.command()
-    async def channeldisable(self, ctx: commands.Context, channel: str = None):
+    async def channeldisable(self, ctx: commands.Context, channel: discord.TextChannel = None):
         """Disable modelling of messages in a channel"""
-        await self.channels_update(channel or ctx.channel.id, ctx.guild, False)
-        await ctx.send(f"Modelling disabled in {ctx.channel.mention}.")
+        await self.channels_update(channel.id or ctx.channel.id, ctx.guild, False)
+        await ctx.send(f"Modelling disabled in {channel.mention}.")
+        log.debug(f"Modelling disabled in {channel.name}({channel.id})")
 
     async def channels_update(self, channel, guild, add: bool = True):
         """Update list of channels in which modelling is allowed"""
