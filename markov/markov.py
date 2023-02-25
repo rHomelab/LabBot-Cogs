@@ -188,27 +188,34 @@ class Markov(commands.Cog):
     @markov.command()
     async def channelenable(self, ctx: commands.Context, channel: discord.TextChannel = None):
         """Enable modelling of messages in a channel for enabled users"""
-        await self.channels_update(channel.id or ctx.channel.id, ctx.guild, True)
-        await ctx.send(f"Modelling enabled in {channel.mention} for opted-in users.")
-        log.debug(f"Modelling enabled in {channel.name}({channel.id})")
+        await self.channels_update(ctx, channel or ctx.channel, True)
 
     @checks.admin_or_permissions(manage_guild=True)
     @commands.guild_only()
     @markov.command()
     async def channeldisable(self, ctx: commands.Context, channel: discord.TextChannel = None):
         """Disable modelling of messages in a channel"""
-        await self.channels_update(channel.id or ctx.channel.id, ctx.guild, False)
-        await ctx.send(f"Modelling disabled in {channel.mention}.")
-        log.debug(f"Modelling disabled in {channel.name}({channel.id})")
+        await self.channels_update(ctx, channel or ctx.channel, False)
 
-    async def channels_update(self, channel, guild, add: bool = True):
+    async def channels_update(self, ctx: commands.Context, channel: discord.TextChannel, enable: bool):
         """Update list of channels in which modelling is allowed"""
-        channels = await self.conf.guild(guild).channels()
-        if add:
-            channels.append(int(channel))
+        phrase = "enable" if enable else "disable"
+        updated = False
+
+        async with self.conf.guild(ctx.guild).channels() as channels:
+            if enable and not channel.id in channels:
+                channels.append(channel.id)
+                updated = True
+            elif not enable and channel.id in channels:
+                channels.remove(channel.id)
+                updated = True
+
+        if updated:
+            await ctx.send(f"Modelling {phrase}d in {channel.mention}.")
+            log.debug(f"Modelling {phrase}d in {channel.name}({channel.id})")
         else:
-            channels.remove(int(channel))
-        await self.conf.guild(guild).channels.set(channels)
+            await ctx.send(f"Modelling already {phrase}d in {channel.mention}.")
+            log.debug(f"{ctx.author.name}({ctx.author.id}) attempted to {phrase} modelling on {phrase}d channel {channel.name}({channel.id})")
 
     async def get_user_config(self, user: discord.abc.User, lazy: bool = True):
         """Get a user config, optionally short circuiting if not enabled"""
