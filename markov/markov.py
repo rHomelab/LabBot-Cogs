@@ -183,14 +183,14 @@ class Markov(commands.Cog):
         """Remove all language models from your profile"""
         await self.conf.user(ctx.author).chains.set({})
 
-    @checks.admin_or_permissions(manage_guild=True)
+    @checks.mod()
     @commands.guild_only()
     @markov.command()
     async def channelenable(self, ctx: commands.Context, channel: discord.TextChannel = None):
         """Enable modelling of messages in a channel for enabled users"""
         await self.channels_update(ctx, channel or ctx.channel, True)
 
-    @checks.admin_or_permissions(manage_guild=True)
+    @checks.mod()
     @commands.guild_only()
     @markov.command()
     async def channeldisable(self, ctx: commands.Context, channel: discord.TextChannel = None):
