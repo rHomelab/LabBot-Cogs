@@ -149,8 +149,8 @@ class Markov(commands.Cog):
         await self.conf.user(ctx.author).chain_depth.set(depth)
         await ctx.send(f"Ngram modelling depth set to {depth}.")
 
-    @markov.command(aliases=["settings"])
-    async def show(self, ctx: commands.Context, user: discord.abc.User = None):
+    @markov.command(aliases=["user_settings"])
+    async def show_user(self, ctx: commands.Context, user: discord.abc.User = None):
         """Show your current settings and models, or those of another user"""
         if not isinstance(user, discord.abc.User):
             user = ctx.message.author
