@@ -5,6 +5,7 @@ import re
 
 import discord
 from redbot.core import Config, bot, checks, commands
+from redbot.core.utils.mod import is_mod_or_superior
 
 log = logging.getLogger("red.rhomelab.markov")
 
@@ -151,20 +152,31 @@ class Markov(commands.Cog):
 
     @markov.command(aliases=["user_settings"])
     async def show_user(self, ctx: commands.Context, user: discord.abc.User = None):
-        """Show your current settings and models, or those of another user"""
-        if not isinstance(user, discord.abc.User):
+        """Show your current settings and models
+        
+        Moderators can also view the settings and models of another member if they specify one.
+
+        `user`: A user mention or ID
+        """
+        embed = discord.Embed(title=f"Markov settings", colour=await ctx.embed_colour())
+        user_specified = isinstance(user, discord.abc.User)
+
+        if user_specified:
+            if not await is_mod_or_superior(self.bot, ctx.message):
+                await ctx.send("Sorry, viewing other member's settings is limited to moderators.")
+                return
+            else:
+                embed.description = f"Settings for user {user.display_name}"
+        else:
             user = ctx.message.author
+
         enabled, chains, depth, mode = await self.get_user_config(user, lazy=False)
         models = '\n'.join(chains.keys())
 
-        # Build embed
-        embed = discord.Embed(title=f"Markov settings", colour=await ctx.embed_colour())
         embed.add_field(name="Enabled", value=enabled, inline=True)
         embed.add_field(name="Chain Depth", value=depth, inline=True)
         embed.add_field(name="Token Mode", value=mode, inline=True)
         embed.add_field(name="Stored Models", value=models, inline=False)
-
-        # Send embed
         await ctx.send(embed=embed)
 
     @checks.mod()
