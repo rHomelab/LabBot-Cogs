@@ -1,3 +1,13 @@
 This cog is based on https://gitlab.com/CrunchBangDev/cbd-cogs/-/tree/master/Markov
 
 Copyright CrunchBangDev - GNU General Public License v3.0
+
+Changes made
+* Cog info.json authors, description, tags.
+* General formatting/styling.
+* Add wanted functionality such as:
+  * config output commands
+  * mod management of enabled/disabled channels
+  * optionally enable/disable channels by ID or mention
+
+See commit history for further detail.
