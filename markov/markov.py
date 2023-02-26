@@ -158,7 +158,7 @@ class Markov(commands.Cog):
         models = '\n'.join(chains.keys())
 
         # Build embed
-        embed = discord.Embed(colour=await ctx.embed_colour())
+        embed = discord.Embed(title=f"Markov settings", colour=await ctx.embed_colour())
         embed.add_field(name="Enabled", value=enabled, inline=True)
         embed.add_field(name="Chain Depth", value=depth, inline=True)
         embed.add_field(name="Token Mode", value=mode, inline=True)
