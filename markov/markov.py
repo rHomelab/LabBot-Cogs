@@ -184,19 +184,7 @@ class Markov(commands.Cog):
     @markov.command(aliases=["guild_settings"])
     async def show_guild(self, ctx: commands.Context):
         """Show current guild settings"""
-        enabled_channels = ""
-        for channel in await self.get_enabled_channels(ctx.guild):
-            enabled_channels += f"{channel.mention}\n"
-        users = await self.get_enabled_users(ctx.guild.id)
-        enabled_users = users['enabled']
-
-        # Build embed
-        embed = discord.Embed(title=f"Markov settings", colour=await ctx.embed_colour())
-        embed.add_field(name="Enabled Channels", value=enabled_channels, inline=True)
-        embed.add_field(name="Enabled Members", value=enabled_users, inline=True)
-
-        # Send embed
-        await ctx.send(embed=embed)
+        await ctx.send(embed=await self.gen_guild_settings_embed(ctx.guild))
 
     @checks.is_owner()
     @markov.command(aliases=["show_config"])
@@ -208,10 +196,10 @@ class Markov(commands.Cog):
         users = await self.conf.all_users()
 
         if guild_id:
-            for channel in await self.get_enabled_channels(self.bot.get_guild(guild_id)):
-                enabled_channels += f"{channel.mention}\n"
-            users = await self.get_enabled_users(guild_id)
-            enabled_users = users['enabled']
+            guild = self.bot.get_guild(guild_id)
+            embed = await self.gen_guild_settings_embed(guild)
+            embed.description = f"Settings for {guild.name} ({guild.id})"
+            await ctx.send(embed=embed)
 
         else:
             guilds = await self.conf.all_guilds()
@@ -225,9 +213,9 @@ class Markov(commands.Cog):
                 enabled_users += f"{guild.name} ({guild.id}): {users['enabled']}\n"
             enabled_users += f"No known guild: {users['no_mutual']}"
 
-        embed.add_field( name="Enabled Channels", value=enabled_channels, inline=False)
-        embed.add_field(name=f"Enabled {'Members' if guild_id else 'Users'}", value=enabled_users, inline=False)
-        await ctx.send(embed=embed)
+            embed.add_field( name="Enabled Channels", value=enabled_channels, inline=False)
+            embed.add_field(name=f"Enabled {'Members' if guild_id else 'Users'}", value=enabled_users, inline=False)
+            await ctx.send(embed=embed)
 
     @markov.command()
     async def delete(self, ctx: commands.Context, model: str):
@@ -407,3 +395,21 @@ class Markov(commands.Cog):
             "enabled": enabled_users,
             "no_mutual": users_no_mutual
         }
+
+    async def gen_guild_settings_embed(self, guild: discord.Guild) -> discord.Embed:
+        """Generate guild settings embed"""
+        enabled_channels = ""
+
+        # Get and iterate over enabled channels, adding an output line for each channel
+        for channel in await self.get_enabled_channels(guild):
+            enabled_channels += f"{channel.mention}\n"
+
+        # Get enabled users in guild and use 'enabled' list
+        users = await self.get_enabled_users(guild.id)
+        enabled_users = users['enabled']
+
+        # Build & return embed
+        embed = discord.Embed(title=f"Markov settings", colour=await self.bot.get_embed_colour(guild))
+        embed.add_field(name="Enabled Channels", value=enabled_channels, inline=True)
+        embed.add_field(name="Enabled Members", value=enabled_users, inline=True)
+        return embed
