@@ -159,9 +159,11 @@ class Markov(commands.Cog):
         `user`: A user mention or ID
         """
         embed = discord.Embed(title=f"Markov settings", colour=await ctx.embed_colour())
+        # Check if user parameter was specified and valid
         user_specified = isinstance(user, discord.abc.User)
 
         if user_specified:
+            # if non-mod user requests another user's data
             if not await is_mod_or_superior(self.bot, ctx.message):
                 await ctx.send("Sorry, viewing other member's settings is limited to moderators.")
                 return
@@ -170,9 +172,11 @@ class Markov(commands.Cog):
         else:
             user = ctx.message.author
 
+        # Get user configs
         enabled, chains, depth, mode = await self.get_user_config(user, lazy=False)
         models = '\n'.join(chains.keys())
 
+        # Build & send embed
         embed.add_field(name="Enabled", value=enabled, inline=True)
         embed.add_field(name="Chain Depth", value=depth, inline=True)
         embed.add_field(name="Token Mode", value=mode, inline=True)
@@ -195,6 +199,7 @@ class Markov(commands.Cog):
         enabled_users = ""
         users = await self.conf.all_users()
 
+        # If guild_id specified, get data for guild
         if guild_id:
             guild = self.bot.get_guild(guild_id)
             embed = await self.gen_guild_settings_embed(guild)
@@ -202,17 +207,25 @@ class Markov(commands.Cog):
             await ctx.send(embed=embed)
 
         else:
+            # Get all guilds where Markov has been installed
             guilds = await self.conf.all_guilds()
+            # Iterate over guild IDs, discard returned guild data
             for guild_id, _ in guilds.items():
+                # Get this guild
                 guild = self.bot.get_guild(guild_id)
 
+                # Get enabled channels and add output line
                 channels = await self.get_enabled_channels(guild)
                 enabled_channels += f"{guild.name} ({guild.id}): {len(channels)}"
 
+                # Get enabled users and format output line
                 users = await self.get_enabled_users(guild_id)
                 enabled_users += f"{guild.name} ({guild.id}): {users['enabled']}\n"
+
+            # Append output line for users with no known guild (i.e. bot has no mutual guilds with user)
             enabled_users += f"No known guild: {users['no_mutual']}"
 
+            # Add fields & send embed
             embed.add_field( name="Enabled Channels", value=enabled_channels, inline=False)
             embed.add_field(name=f"Enabled {'Members' if guild_id else 'Users'}", value=enabled_users, inline=False)
             await ctx.send(embed=embed)
@@ -252,10 +265,13 @@ class Markov(commands.Cog):
         phrase = "enable" if enable else "disable"
         updated = False
 
+        # Iterate over all configured channels for this guild
         async with self.conf.guild(ctx.guild).channels() as channels:
+            # Enable channel if request is channel enable and channel isn't already enabled
             if enable and not channel.id in channels:
                 channels.append(channel.id)
                 updated = True
+            # Disable channel if request is channel disable and channel is currently enabled
             elif not enable and channel.id in channels:
                 channels.remove(channel.id)
                 updated = True
@@ -334,7 +350,9 @@ class Markov(commands.Cog):
         return gram
 
     async def should_process_message(self, message: discord.Message) -> bool:
-        """Return true if a message should be processed"""
+        """Returns true if a message should be processed"""
+        # Define simple function to log ignored message event
+        # and return False (i.e. shouldn't process message)
         def no_process(reason: str) -> bool:
             log.debug(f"Ignoring message: {reason}")
             return False
@@ -363,11 +381,15 @@ class Markov(commands.Cog):
         if not await self.conf.user(message.author).enabled():
             return no_process("User has not opted-in to modelling")
 
+        # Return true (i.e. should process message) if all checks passed
         return True
 
     async def get_enabled_channels(self, guild: discord.Guild) -> list[discord.abc.GuildChannel]:
         """Retrieve a list of enabled channels in a given guild"""
         enabled_channels = []
+
+        # Retrieve and iterate over enabled channels in specified guild,
+        # appending each channel to the list of enabled channels.
         async with self.conf.guild(guild).channels() as channels:
             for channel in channels:
                 enabled_channels.append(guild.get_channel(channel))
@@ -377,11 +399,19 @@ class Markov(commands.Cog):
         """Retrieve a list of enabled users in a given guild"""
         enabled_users = 0
         users_no_mutual = 0
+        # Get all users who've interfaced with the cog
         users = await self.conf.all_users()
 
+        # Iterate over users, selecting only those who are enabled
         for conf_user in users:
             if users[conf_user]['enabled']:
+                # Attempt to get user object
                 user = self.bot.get_user(conf_user)
+
+                # If user can be found and shares a mutual guild(s) with the bot,
+                # increase count of enabled users.
+                # Else if user can be found but shares no mutual guild(s) with the bot,
+                # increase count of users with no known guild.
                 if user:
                     for guild in user.mutual_guilds:
                         if guild.id == guild_id:
@@ -391,6 +421,7 @@ class Markov(commands.Cog):
                 else:
                     users_no_mutual += 1
 
+        # Return dict of enabled users and users with no mutual guild
         return {
             "enabled": enabled_users,
             "no_mutual": users_no_mutual
