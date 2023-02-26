@@ -4,7 +4,7 @@ import re
 from io import BytesIO
 
 import discord
-from redbot.core import Config, bot, checks, commands
+from redbot.core import Config, checks, commands
 from redbot.core.utils.mod import is_mod_or_superior
 
 log = logging.getLogger("red.rhomelab.markov")
@@ -46,7 +46,7 @@ class Markov(commands.Cog):
 
     async def red_delete_data_for_user(self, *, requester, user_id):
         """Delete a user's personal data."""
-        await self.config.member(await self.bot.fetch_user(user_id)).clear()
+        await self.conf.member(await self.bot.fetch_user(user_id)).clear()
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -99,7 +99,6 @@ class Markov(commands.Cog):
     @commands.group()
     async def markov(self, ctx: commands.Context):
         """New users must `enable` and say some words before using `generate`"""
-        pass
 
     @markov.command()
     async def generate(self, ctx: commands.Context, user: discord.abc.User = None):
@@ -115,7 +114,7 @@ class Markov(commands.Cog):
         while not text:
             text = await self.generate_text(chains, depth, mode)
             if i > 3:
-                await ctx.send(f"I tried to generate text 3 times, now I'm giving up.")
+                await ctx.send("I tried to generate text 3 times, now I'm giving up.")
                 return
             i += 1
         await ctx.send(text[:2000])
@@ -163,17 +162,16 @@ class Markov(commands.Cog):
 
         `user`: A user mention or ID
         """
-        embed = discord.Embed(title=f"Markov settings", colour=await ctx.embed_colour())
+        embed = discord.Embed(title="Markov settings", colour=await ctx.embed_colour())
         # Check if user parameter was specified and valid
         user_specified = isinstance(user, discord.abc.User)
 
         if user_specified:
-            # if non-mod user requests another user's data
+            # Warn and stop if non-mod user requests another user's data
             if not await is_mod_or_superior(self.bot, ctx.message):
                 await ctx.send("Sorry, viewing other member's settings is limited to moderators.")
                 return
-            else:
-                embed.description = f"Settings for user {user.display_name}"
+            embed.description = f"Settings for user {user.display_name}"
         else:
             user = ctx.message.author
 
@@ -199,7 +197,7 @@ class Markov(commands.Cog):
     @markov.command(aliases=["show_config"])
     async def show_global(self, ctx: commands.Context, guild_id: int = None):
         """Show global summary info or info for `guild_id`"""
-        embed = discord.Embed(title=f"Markov settings", colour=await ctx.embed_colour())
+        embed = discord.Embed(title="Markov settings", colour=await ctx.embed_colour())
         enabled_channels = ""
         enabled_users = ""
         users = await self.conf.all_users()
@@ -215,16 +213,16 @@ class Markov(commands.Cog):
             # Get all guilds where Markov has been installed
             guilds = await self.conf.all_guilds()
             # Iterate over guild IDs, discard returned guild data
-            for guild_id, _ in guilds.items():
+            for loop_guild_id, _ in guilds.items():
                 # Get this guild
-                guild = self.bot.get_guild(guild_id)
+                guild = self.bot.get_guild(loop_guild_id)
 
                 # Get enabled channels and add output line
                 channels = await self.get_enabled_channels(guild)
                 enabled_channels += f"{guild.name} ({guild.id}): {len(channels)}"
 
                 # Get enabled users and format output line
-                users = await self.get_enabled_users(guild_id)
+                users = await self.get_enabled_users(loop_guild_id)
                 enabled_users += f"{guild.name} ({guild.id}): {users['enabled']}\n"
 
             # Append output line for users with no known guild (i.e. bot has no mutual guilds with user)
@@ -242,9 +240,9 @@ class Markov(commands.Cog):
         if model in chains.keys():
             del chains[model]
             await self.conf.user(ctx.message.author).chains.set(chains)
-            await ctx.send(f"Deleted model")
+            await ctx.send("Deleted model")
         else:
-            await ctx.send(f"Model not found")
+            await ctx.send("Model not found")
 
     @markov.command()
     async def reset(self, ctx: commands.Context):
@@ -287,7 +285,8 @@ class Markov(commands.Cog):
         else:
             await ctx.send(f"Modelling already {phrase}d in {channel.mention}.")
             log.debug(
-                f"{ctx.author.name}({ctx.author.id}) attempted to {phrase} modelling on {phrase}d channel {channel.name}({channel.id})"
+                f"{ctx.author.name}({ctx.author.id}) attempted to {phrase} "
+                + f"modelling on {phrase}d channel {channel.name}({channel.id})"
             )
 
     async def get_user_config(self, user: discord.abc.User, lazy: bool = True):
@@ -442,7 +441,7 @@ class Markov(commands.Cog):
         enabled_users = users["enabled"]
 
         # Build & return embed
-        embed = discord.Embed(title=f"Markov settings", colour=await self.bot.get_embed_colour(guild))
+        embed = discord.Embed(title="Markov settings", colour=await self.bot.get_embed_colour(guild))
         embed.add_field(name="Enabled Channels", value=enabled_channels, inline=True)
         embed.add_field(name="Enabled Members", value=enabled_users, inline=True)
         return embed
