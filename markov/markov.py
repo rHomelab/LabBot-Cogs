@@ -373,7 +373,7 @@ class Markov(commands.Cog):
                 enabled_channels.append(guild.get_channel(channel))
         return enabled_channels
 
-    async def get_enabled_users(self, guild_id: int) -> int:
+    async def get_enabled_users(self, guild_id: int) -> dict:
         """Retrieve a list of enabled users in a given guild"""
         enabled_users = 0
         users_no_mutual = 0
