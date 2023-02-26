@@ -1,7 +1,7 @@
-from io import BytesIO
 import logging
 import random
 import re
+from io import BytesIO
 
 import discord
 from redbot.core import Config, bot, checks, commands
