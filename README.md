@@ -11,39 +11,43 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
 
 ## Table of Contents
 
-- [LabBot Cogs](#labbot-cogs)
-  - [Table of Contents](#table-of-contents)
-  - [Contributors](#contributors)
-    - [Moderation Team](#moderation-team)
-    - [Other](#other)
-  - [Cog Summaries](#cog-summaries)
-  - [Cog Documentation](#cog-documentation)
-    - [AutoReact](#autoreact)
-    - [AutoReply](#autoreply)
-    - [Convert](#convert)
-    - [Custom-msg](#custom-msg)
-    - [Enforcer](#enforcer)
-      - [Configure Enforcer](#configure-enforcer)
-    - [Feed](#feed)
-    - [Google](#google)
-    - [Latex](#latex)
-    - [Letters](#letters)
-    - [Notes](#notes)
-    - [Penis](#penis)
-    - [Phishingdetection](#phishingdetection)
-    - [Purge](#purge)
-    - [Quotes](#quotes)
-    - [Reactrole](#reactrole)
-    - [Report](#report)
-    - [Roleinfo](#roleinfo)
-    - [Sentry](#sentry)
-    - [Timeout](#timeout)
-    - [Verify](#verify)
-    - [xkcd](#xkcd)
-  - [License](#license)
-  - [Contributing](#contributing)
-    - [Linting your code](#linting-your-code)
-    - [Making changes](#making-changes)
+* [LabBot Cogs](#labbot-cogs)
+  * [Table of Contents](#table-of-contents)
+  * [Contributors](#contributors)
+    * [Moderation Team](#moderation-team)
+    * [Other](#other)
+  * [Cog Summaries](#cog-summaries)
+  * [Cog Documentation](#cog-documentation)
+    * [AutoReact](#autoreact)
+    * [AutoReply](#autoreply)
+    * [Convert](#convert)
+    * [Custom-msg](#custom-msg)
+    * [Enforcer](#enforcer)
+      * [Configure Enforcer](#configure-enforcer)
+    * [Feed](#feed)
+    * [Google](#google)
+    * [Latex](#latex)
+    * [Letters](#letters)
+    * [Markov](#markov)
+      * [User commands](#user-commands)
+      * [Mod Commands](#mod-commands)
+      * [Owner Commands](#owner-commands)
+    * [Notes](#notes)
+    * [Penis](#penis)
+    * [Phishingdetection](#phishingdetection)
+    * [Purge](#purge)
+    * [Quotes](#quotes)
+    * [Reactrole](#reactrole)
+    * [Report](#report)
+    * [Roleinfo](#roleinfo)
+    * [Sentry](#sentry)
+    * [Timeout](#timeout)
+    * [Verify](#verify)
+    * [xkcd](#xkcd)
+  * [License](#license)
+  * [Contributing](#contributing)
+    * [Linting your code](#linting-your-code)
+    * [Making changes](#making-changes)
 
 ## Contributors
 
@@ -186,6 +190,34 @@ This cog converts a string of letters/numbers into large emote letters ("regiona
 
 `[p]letters I would like this text as emotes 123`
 `[p]letters -raw I would like this text as raw emote code 123`
+
+### Markov
+
+This cog generates messages based on markov chains generated per-user.
+
+User messages will never be analysed unless the user explicitly opts in.  
+It must also be enabled per-channel: `[p]markov channelenable`
+
+#### User commands
+
+- `[p]markov generate` - Generate text based on user language models.
+- `[p]markov enable` - Allow the bot to model your messages and generate text.
+- `[p]markov disable` - Disallow the bot from model;ing your messages or generating text.
+- `[p]markov mode` - Set the tokenization mode for model building.
+- `[p]markov depth` - Set the modelling depth (the "n" in "ngrams").
+- `[p]markov show_user` - Show your current settings and models, or those of another user.
+- `[p]markov delete` - Delete a specific model from your profile.
+- `[p]markov reset` - Remove all language models from your profile.
+
+#### Mod Commands
+
+- `[p]markov show_guild` - Show current guild settings.
+- `[p]markov channelenable` - Allow language modelling on messages in a given channel.
+- `[p]markov channeldisable` - Disallow language modelling on messages in a given channel.
+
+#### Owner Commands
+
+- `[p]markov show_global [guild_id]` - Show global summary info or summary of `guild_id`.
 
 ### Notes
 
