@@ -394,13 +394,10 @@ class Markov(commands.Cog):
 
     async def get_enabled_channels(self, guild: discord.Guild) -> list[discord.abc.GuildChannel]:
         """Retrieve a list of enabled channels in a given guild"""
-        enabled_channels = []
-
         # Retrieve and iterate over enabled channels in specified guild,
         # appending each channel to the list of enabled channels.
         async with self.conf.guild(guild).channels() as channels:
-            for channel in channels:
-                enabled_channels.append(guild.get_channel(channel))
+            enabled_channels = [guild.get_channel(channel) for channel in channels]
         return enabled_channels
 
     async def get_enabled_users(self, guild_id: int) -> dict:
