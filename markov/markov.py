@@ -12,7 +12,7 @@ log = logging.getLogger("red.rhomelab.markov")
 __all__ = ["UNIQUE_ID", "Markov"]
 
 UNIQUE_ID = 0x6D61726B6F76
-WORD_TOKENIZER = re.compile(r'(\W+)')
+WORD_TOKENIZER = re.compile(r"(\W+)")
 CONTROL = f"{UNIQUE_ID}"
 
 
@@ -35,10 +35,10 @@ class Markov(commands.Cog):
         if user_data.chains:
             data = (
                 f"Stored data for user with ID {user_id}:\n"
-                f"User modelling enabled: {await user_data.enabled()}\n" +
-                f"User chain depth: {await user_data.chain_depth()}\n" +
-                f"User mode: {await user_data.mode()}\n" +
-                f"User chains: {await user_data.chains()}"
+                f"User modelling enabled: {await user_data.enabled()}\n"
+                + f"User chain depth: {await user_data.chain_depth()}\n"
+                + f"User mode: {await user_data.mode()}\n"
+                + f"User chains: {await user_data.chains()}"
             )
         else:
             data = f"No data is stored for user with ID {user_id}.\n"
@@ -67,15 +67,18 @@ class Markov(commands.Cog):
             cleaner = lambda x: x.strip()
         elif mode.startswith("chunk"):
             chunk_length = 3 if len(mode) == 5 else mode[5:]
-            tokenizer = re.compile(fr'(.{{{chunk_length}}})')
+            tokenizer = re.compile(rf"(.{{{chunk_length}}})")
 
-        model = chains.get(f"{mode}-{depth}", {})           # Get or create chain for tokenizer settings
-        state = CONTROL                                     # Begin all state chains with the control marker
-        content = message.content.replace('`', '').strip()  # Remove code block formatting and outer whitespace
-        tokens = [                                          # Split message into cleaned tokens
-            t for x in tokenizer.split(content) if (t := cleaner(x))
-        ]
-        tokens.append(CONTROL)                              # Add control character transition to end of token chain
+        # Get or create chain for tokenizer settings
+        model = chains.get(f"{mode}-{depth}", {})
+        # Begin all state chains with the control marker
+        state = CONTROL
+        # Remove code block formatting and outer whitespace
+        content = message.content.replace("`", "").strip()
+        # Split message into cleaned tokens
+        tokens = [t for x in tokenizer.split(content) if (t := cleaner(x))]
+        # Add control character transition to end of token chain
+        tokens.append(CONTROL)
 
         # Iterate over the tokens in the message
         for i, token in enumerate(tokens):
@@ -87,7 +90,7 @@ class Markov(commands.Cog):
 
             # Produce sliding state window (ngram)
             j = 1 + i - depth if i >= depth else 0
-            state = "".join(cleaner(x) for x in tokens[j:i+1])
+            state = "".join(cleaner(x) for x in tokens[j : i + 1])
 
         # Store the model
         chains[f"{mode}-{depth}"] = model
@@ -127,13 +130,15 @@ class Markov(commands.Cog):
     async def disable(self, ctx: commands.Context):
         """Disallow the bot from modelling your message or generating text based on your models"""
         await self.conf.user(ctx.author).enabled.set(False)
-        await ctx.send("Markov text generation is now disabled for your user.\n"
-                        "I will stop updating your language models, but they are still stored.\n"
-                        "You may use `[p]markov` reset to delete them.\n")
+        await ctx.send(
+            "Markov text generation is now disabled for your user.\n"
+            "I will stop updating your language models, but they are still stored.\n"
+            "You may use `[p]markov` reset to delete them.\n"
+        )
 
     @markov.command()
     async def mode(self, ctx: commands.Context, mode: str):
-        """ Set the tokenization mode for model building
+        """Set the tokenization mode for model building
 
         Available modes are:
         - `word`: Tokenize input based on words and punctuation using the regular expression (\\W+)
@@ -153,7 +158,7 @@ class Markov(commands.Cog):
     @markov.command(aliases=["user_settings"])
     async def show_user(self, ctx: commands.Context, user: discord.abc.User = None):
         """Show your current settings and models
-        
+
         Moderators can also view the settings and models of another member if they specify one.
 
         `user`: A user mention or ID
@@ -174,7 +179,7 @@ class Markov(commands.Cog):
 
         # Get user configs
         enabled, chains, depth, mode = await self.get_user_config(user, lazy=False)
-        models = '\n'.join(chains.keys())
+        models = "\n".join(chains.keys())
 
         # Build & send embed
         embed.add_field(name="Enabled", value=enabled, inline=True)
@@ -226,7 +231,7 @@ class Markov(commands.Cog):
             enabled_users += f"No known guild: {users['no_mutual']}"
 
             # Add fields & send embed
-            embed.add_field( name="Enabled Channels", value=enabled_channels, inline=False)
+            embed.add_field(name="Enabled Channels", value=enabled_channels, inline=False)
             embed.add_field(name=f"Enabled {'Members' if guild_id else 'Users'}", value=enabled_users, inline=False)
             await ctx.send(embed=embed)
 
@@ -281,14 +286,16 @@ class Markov(commands.Cog):
             log.debug(f"Modelling {phrase}d in {channel.name}({channel.id})")
         else:
             await ctx.send(f"Modelling already {phrase}d in {channel.mention}.")
-            log.debug(f"{ctx.author.name}({ctx.author.id}) attempted to {phrase} modelling on {phrase}d channel {channel.name}({channel.id})")
+            log.debug(
+                f"{ctx.author.name}({ctx.author.id}) attempted to {phrase} modelling on {phrase}d channel {channel.name}({channel.id})"
+            )
 
     async def get_user_config(self, user: discord.abc.User, lazy: bool = True):
         """Get a user config, optionally short circuiting if not enabled"""
         user_config = self.conf.user(user)
         enabled = await user_config.enabled()
         if lazy and not enabled:
-            return (False, )*4
+            return (False,) * 4
         chains = await user_config.chains() or {}
         depth = await user_config.chain_depth() or 1
         mode = (await user_config.mode() or "word").lower()
@@ -344,13 +351,14 @@ class Markov(commands.Cog):
 
     async def choose_gram(self, model: dict, state: str):
         """Here lies the secret sauce"""
-        gram, = random.choices(population=list(model[state].keys()),
-                                weights=list(model[state].values()),
-                                k=1)  # Caution: basically magic
+        (gram,) = random.choices(
+            population=list(model[state].keys()), weights=list(model[state].values()), k=1
+        )  # Caution: basically magic
         return gram
 
     async def should_process_message(self, message: discord.Message) -> bool:
         """Returns true if a message should be processed"""
+
         # Define simple function to log ignored message event
         # and return False (i.e. shouldn't process message)
         def no_process(reason: str) -> bool:
@@ -404,7 +412,7 @@ class Markov(commands.Cog):
 
         # Iterate over users, selecting only those who are enabled
         for conf_user in users:
-            if users[conf_user]['enabled']:
+            if users[conf_user]["enabled"]:
                 # Attempt to get user object
                 user = self.bot.get_user(conf_user)
 
@@ -422,10 +430,7 @@ class Markov(commands.Cog):
                     users_no_mutual += 1
 
         # Return dict of enabled users and users with no mutual guild
-        return {
-            "enabled": enabled_users,
-            "no_mutual": users_no_mutual
-        }
+        return {"enabled": enabled_users, "no_mutual": users_no_mutual}
 
     async def gen_guild_settings_embed(self, guild: discord.Guild) -> discord.Embed:
         """Generate guild settings embed"""
@@ -437,7 +442,7 @@ class Markov(commands.Cog):
 
         # Get enabled users in guild and use 'enabled' list
         users = await self.get_enabled_users(guild.id)
-        enabled_users = users['enabled']
+        enabled_users = users["enabled"]
 
         # Build & return embed
         embed = discord.Embed(title=f"Markov settings", colour=await self.bot.get_embed_colour(guild))
