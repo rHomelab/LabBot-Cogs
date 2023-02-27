@@ -74,9 +74,7 @@ class Timeout(commands.Cog):
             return
 
         # Store the user's current roles
-        user_roles = []
-        for role in user.roles:
-            user_roles.append(role.id)
+        user_roles = [r.id for r in user.roles]
 
         await self.config.member(user).roles.set(user_roles)
 
@@ -299,15 +297,14 @@ class Timeout(commands.Cog):
         # This is necessary since you cannot remove the boost
         # role, so we must ensure we avoid attempting to do so.
         booster_role = ctx.guild.premium_subscriber_role
-        if user in ctx.guild.premium_subscribers:
-            timeout_roleset = [timeout_role, booster_role]
-        else:
-            timeout_roleset = [timeout_role]
+        timeout_roleset = {timeout_role}
+        if booster_role in user.roles:
+            timeout_roleset.add(booster_role)
 
         # Check if user already in timeout.
         # Remove & restore if so, else add to timeout.
-        if sorted(user.roles) == sorted([everyone_role] + timeout_roleset):
+        if set(user.roles) == {everyone_role} | {timeout_roleset}:
             await self.timeout_remove(ctx, user, reason)
 
         else:
-            await self.timeout_add(ctx, user, reason, timeout_role, timeout_roleset)
+            await self.timeout_add(ctx, user, reason, timeout_role, list(timeout_roleset))
