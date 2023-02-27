@@ -29,6 +29,8 @@ class Markov(commands.Cog):
             enabled=False)
         self.conf.register_guild(channels=[])
 
+    # Red end user data management support
+
     async def red_get_data_for_user(self, *, user_id: int) -> dict[str, BytesIO]:
         """Get a user's personal data."""
         user_data = self.conf.user(await self.bot.fetch_user(user_id))
@@ -44,9 +46,11 @@ class Markov(commands.Cog):
             data = f"No data is stored for user with ID {user_id}.\n"
         return {"user_data.txt": BytesIO(data.encode())}
 
+
     async def red_delete_data_for_user(self, *, requester, user_id):
         """Delete a user's personal data."""
         await self.conf.member(await self.bot.fetch_user(user_id)).clear()
+
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -96,9 +100,12 @@ class Markov(commands.Cog):
         chains[f"{mode}-{depth}"] = model
         await self.conf.user(message.author).chains.set(chains)
 
+    # Commands
+
     @commands.group()
     async def markov(self, ctx: commands.Context):
         """New users must `enable` and say some words before using `generate`"""
+
 
     @markov.command()
     async def generate(self, ctx: commands.Context, user: discord.abc.User = None):
@@ -119,11 +126,13 @@ class Markov(commands.Cog):
             i += 1
         await ctx.send(text[:2000])
 
+
     @markov.command()
     async def enable(self, ctx: commands.Context):
         """Allow the bot to model your messages and generate text based on that"""
         await self.conf.user(ctx.author).enabled.set(True)
         await ctx.send("Markov modelling enabled!")
+
 
     @markov.command()
     async def disable(self, ctx: commands.Context):
@@ -134,6 +143,7 @@ class Markov(commands.Cog):
             "I will stop updating your language models, but they are still stored.\n"
             "You may use `[p]markov` reset to delete them.\n"
         )
+
 
     @markov.command()
     async def mode(self, ctx: commands.Context, mode: str):
@@ -148,11 +158,13 @@ class Markov(commands.Cog):
         await self.conf.user(ctx.author).mode.set(mode)
         await ctx.send(f"Token mode set to '{mode}'.")
 
+
     @markov.command()
     async def depth(self, ctx: commands.Context, depth: int):
         """Set the modelling depth (the "n" in "ngrams")"""
         await self.conf.user(ctx.author).chain_depth.set(depth)
         await ctx.send(f"Ngram modelling depth set to {depth}.")
+
 
     @markov.command(aliases=["user_settings"])
     async def show_user(self, ctx: commands.Context, user: discord.abc.User = None):
@@ -186,12 +198,14 @@ class Markov(commands.Cog):
         embed.add_field(name="Stored Models", value=models, inline=False)
         await ctx.send(embed=embed)
 
+
     @checks.mod()
     @commands.guild_only()
     @markov.command(aliases=["guild_settings"])
     async def show_guild(self, ctx: commands.Context):
         """Show current guild settings"""
         await ctx.send(embed=await self.gen_guild_settings_embed(ctx.guild))
+
 
     @checks.is_owner()
     @markov.command(aliases=["show_config"])
@@ -233,6 +247,7 @@ class Markov(commands.Cog):
             embed.add_field(name=f"Enabled {'Members' if guild_id else 'Users'}", value=enabled_users, inline=False)
             await ctx.send(embed=embed)
 
+
     @markov.command()
     async def delete(self, ctx: commands.Context, model: str):
         """Delete a specific model from your profile"""
@@ -244,10 +259,12 @@ class Markov(commands.Cog):
         else:
             await ctx.send("Model not found")
 
+
     @markov.command()
     async def reset(self, ctx: commands.Context):
         """Remove all language models from your profile"""
         await self.conf.user(ctx.author).chains.set({})
+
 
     @checks.mod()
     @commands.guild_only()
@@ -256,12 +273,75 @@ class Markov(commands.Cog):
         """Enable modelling of messages in a channel for enabled users"""
         await self.channels_update(ctx, channel or ctx.channel, True)
 
+
     @checks.mod()
     @commands.guild_only()
     @markov.command()
     async def channeldisable(self, ctx: commands.Context, channel: discord.TextChannel = None):
         """Disable modelling of messages in a channel"""
         await self.channels_update(ctx, channel or ctx.channel, False)
+
+    # Markov generation functions
+
+    async def generate_text(self, chains: dict, depth: int, mode: str):
+        """Generate text based on the appropriate model for user settings"""
+        generator = None
+        if mode == "word":
+            generator = self.generate_word_gram
+        elif mode.startswith("chunk"):
+            generator = self.generate_chunk_gram
+        if not generator:
+            return f"Sorry, I don't have a text generator for token mode '{mode}'"
+        # Get appropriate model for settings
+        try:
+            model = chains[f"{mode}-{depth}"]
+        except KeyError:
+            return "Sorry, I can't find a model to use"
+        output = []
+        i = 0
+        gram = ""
+        # Begin in a state of transitioning from message boundary
+        state = CONTROL
+        while gram.strip() != CONTROL:
+            # Generate and store next gram
+            gram = await generator(model, state)
+            output.append(gram)
+            # Produce sliding state window (ngram)
+            i += 1
+            j = i - depth if i > depth else 0
+            state = "".join(output[j:i])
+        if not output:
+            return
+        return "".join(output[:-1])
+
+
+    async def generate_word_gram(self, model: dict, state: str):
+        """Generate text for word-mode vectorization"""
+        # Remove word boundaries from ngram; whitespace is added back later
+        state = state.replace(" ", "")
+        # Choose the next word taking into account recorded vector weights
+        gram = await self.choose_gram(model, state)
+        # Don't worry about it ;)
+        prepend_space = all((state != CONTROL,
+                                gram[-1].isalnum() or gram in "\"([{|",
+                                state[-1] not in "\"([{'/-_"))
+        # Format gram
+        return f"{' ' if prepend_space else ''}{gram}"
+
+
+    async def generate_chunk_gram(self, *args):
+        """Generate text for chunk-mode vectorization"""
+        return await self.choose_gram(*args)
+
+
+    async def choose_gram(self, model: dict, state: str):
+        """Here lies the secret sauce"""
+        (gram,) = random.choices(
+            population=list(model[state].keys()), weights=list(model[state].values()), k=1
+        )  # Caution: basically magic
+        return gram
+
+    # Helper functions
 
     async def channels_update(self, ctx: commands.Context, channel: discord.TextChannel, enable: bool):
         """Update list of channels in which modelling is allowed"""
@@ -300,60 +380,6 @@ class Markov(commands.Cog):
         mode = (await user_config.mode() or "word").lower()
         return enabled, chains, depth, mode
 
-    async def generate_text(self, chains: dict, depth: int, mode: str):
-        """Generate text based on the appropriate model for user settings"""
-        generator = None
-        if mode == "word":
-            generator = self.generate_word_gram
-        elif mode.startswith("chunk"):
-            generator = self.generate_chunk_gram
-        if not generator:
-            return f"Sorry, I don't have a text generator for token mode '{mode}'"
-        # Get appropriate model for settings
-        try:
-            model = chains[f"{mode}-{depth}"]
-        except KeyError:
-            return "Sorry, I can't find a model to use"
-        output = []
-        i = 0
-        gram = ""
-        # Begin in a state of transitioning from message boundary
-        state = CONTROL
-        while gram.strip() != CONTROL:
-            # Generate and store next gram
-            gram = await generator(model, state)
-            output.append(gram)
-            # Produce sliding state window (ngram)
-            i += 1
-            j = i - depth if i > depth else 0
-            state = "".join(output[j:i])
-        if not output:
-            return
-        return "".join(output[:-1])
-
-    async def generate_word_gram(self, model: dict, state: str):
-        """Generate text for word-mode vectorization"""
-        # Remove word boundaries from ngram; whitespace is added back later
-        state = state.replace(" ", "")
-        # Choose the next word taking into account recorded vector weights
-        gram = await self.choose_gram(model, state)
-        # Don't worry about it ;)
-        prepend_space = all((state != CONTROL,
-                                gram[-1].isalnum() or gram in "\"([{|",
-                                state[-1] not in "\"([{'/-_"))
-        # Format gram
-        return f"{' ' if prepend_space else ''}{gram}"
-
-    async def generate_chunk_gram(self, *args):
-        """Generate text for chunk-mode vectorization"""
-        return await self.choose_gram(*args)
-
-    async def choose_gram(self, model: dict, state: str):
-        """Here lies the secret sauce"""
-        (gram,) = random.choices(
-            population=list(model[state].keys()), weights=list(model[state].values()), k=1
-        )  # Caution: basically magic
-        return gram
 
     async def should_process_message(self, message: discord.Message) -> bool:
         """Returns true if a message should be processed"""
@@ -391,6 +417,7 @@ class Markov(commands.Cog):
         # Return true (i.e. should process message) if all checks passed
         return True
 
+
     async def get_enabled_channels(self, guild: discord.Guild) -> list[discord.abc.GuildChannel]:
         """Retrieve a list of enabled channels in a given guild"""
         # Retrieve and iterate over enabled channels in specified guild,
@@ -398,6 +425,7 @@ class Markov(commands.Cog):
         async with self.conf.guild(guild).channels() as channels:
             enabled_channels = [guild.get_channel(channel) for channel in channels]
         return enabled_channels
+
 
     async def get_enabled_users(self, guild_id: int) -> dict:
         """Retrieve a list of enabled users in a given guild"""
@@ -427,6 +455,7 @@ class Markov(commands.Cog):
 
         # Return dict of enabled users and users with no mutual guild
         return {"enabled": enabled_users, "no_mutual": users_no_mutual}
+
 
     async def gen_guild_settings_embed(self, guild: discord.Guild) -> discord.Embed:
         """Generate guild settings embed"""
