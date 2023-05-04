@@ -1,5 +1,7 @@
+from redbot.core.bot import Red
+
 from .latex import LatexCog
 
 
-def setup(bot):
-    bot.add_cog(LatexCog())
+async def setup(bot: Red):
+    await bot.add_cog(LatexCog())

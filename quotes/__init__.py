@@ -1,5 +1,7 @@
+from redbot.core.bot import Red
+
 from .quotes import QuotesCog
 
 
-def setup(bot):
-    bot.add_cog(QuotesCog(bot))
+async def setup(bot: Red):
+    await bot.add_cog(QuotesCog(bot))

@@ -1,5 +1,7 @@
+from redbot.core.bot import Red
+
 from .purge import PurgeCog
 
 
-def setup(bot):
-    bot.add_cog(PurgeCog(bot))
+async def setup(bot: Red):
+    await bot.add_cog(PurgeCog(bot))

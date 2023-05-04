@@ -1,5 +1,7 @@
+from redbot.core.bot import Red
+
 from .autoreact import AutoReactCog
 
 
-def setup(bot):
-    bot.add_cog(AutoReactCog(bot))
+async def setup(bot: Red):
+    await bot.add_cog(AutoReactCog(bot))

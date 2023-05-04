@@ -1,5 +1,7 @@
+from redbot.core.bot import Red
+
 from .sentry import SentryCog
 
 
-def setup(bot):
-    bot.add_cog(SentryCog(bot))
+async def setup(bot: Red):
+    await bot.add_cog(SentryCog(bot))
