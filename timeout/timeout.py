@@ -1,8 +1,10 @@
 import datetime
+import logging
 
 import discord
 from redbot.core import Config, checks, commands
 
+log = logging.getLogger("red.rhomelab.timeout")
 
 class Timeout(commands.Cog):
     """Timeout a user"""
@@ -57,27 +59,47 @@ class Timeout(commands.Cog):
         # Send embed
         await log_channel.send(embed=embed)
 
-    async def timeout_add(self, ctx: commands.Context, user: discord.Member, reason: str, timeout_role: discord.Role):
+    async def timeout_add(self, ctx: commands.Context, user: discord.Member, reason: str, timeout_role: discord.Role, timeout_roleset: list[discord.Role]):
         """Retrieve and save user's roles, then add user to timeout"""
+        # Catch users already holding timeout role.
+        # This could be caused by an error in this cog's logic or,
+        # more likely, someone manually adding the user to the role.
+        if timeout_role in user.roles:
+            await ctx.send("Something went wrong! Is the user already in timeout? Please check the console for more information.")
+            log.warning(
+                f"Something went wrong while trying to add user {self.target} to timeout.\n" +
+                f"Current roles: {user.roles}\n" +
+                f"Attempted new roles: {timeout_roleset}"
+            )
+            return
+
         # Store the user's current roles
-        user_roles = []
-        for role in user.roles:
-            user_roles.append(role.id)
+        user_roles = [r.id for r in user.roles]
 
         await self.config.member(user).roles.set(user_roles)
 
-        # Replace all of a user's roles with timeout role
+        # Replace all of a user's roles with timeout roleset
         try:
-            await user.edit(roles=[timeout_role])
+            await user.edit(roles=timeout_roleset)
+            log.info(f"User {self.target} added to timeout by {self.actor}.")
         except AttributeError:
             await ctx.send("Please set the timeout role using `[p]timeoutset role`.")
             return
-        except discord.Forbidden:
+        except discord.Forbidden as error:
             await ctx.send("Whoops, looks like I don't have permission to do that.")
+            log.exception(
+                f"Something went wrong while trying to add user {self.target} to timeout.\n" +
+                f"Current roles: {user.roles}\n" +
+                f"Attempted new roles: {timeout_roleset}", exc_info=error
+            )
             return
         except discord.HTTPException as error:
-            await ctx.send("Something went wrong!")
-            raise Exception(error) from error
+            await ctx.send("Something went wrong! Please check the console for more information.")
+            log.exception(
+                f"Something went wrong while trying to add user {self.target} to timeout.\n" +
+                f"Current roles: {user.roles}\n" +
+                f"Attempted new roles: {timeout_roleset}", exc_info=error
+            )
         else:
             await ctx.message.add_reaction("✅")
 
@@ -99,11 +121,23 @@ class Timeout(commands.Cog):
         # Replace user's roles with their previous roles.
         try:
             await user.edit(roles=user_roles)
-        except discord.Forbidden:
+            log.info(f"User {self.target} removed from timeout by {self.actor}.")
+        except discord.Forbidden as error:
             await ctx.send("Whoops, looks like I don't have permission to do that.")
+            log.exception(
+                f"Something went wrong while trying to remove user {self.target} from timeout.\n" +
+                f"Current roles: {user.roles}\n" +
+                f"Attempted new roles: {user_roles}", exc_info=error
+            )
+            return
         except discord.HTTPException as error:
-            await ctx.send("Something went wrong!")
-            raise Exception(error) from error
+            await ctx.send("Something went wrong! Please check the console for more information.")
+            log.exception(
+                f"Something went wrong while trying to remove user {self.target} from timeout.\n" +
+                f"Current roles: {user.roles}\n" +
+                f"Attempted new roles: {user_roles}", exc_info=error
+            )
+            return
         else:
             await ctx.message.add_reaction("✅")
 
@@ -174,10 +208,10 @@ class Timeout(commands.Cog):
         await self.config.guild(ctx.guild).timeoutrole.set(role.id)
         await ctx.message.add_reaction("✅")
 
-    @timeoutset.command(name="list")
+    @timeoutset.command(name="list", aliases=["show", "view", "settings"])
     @checks.mod()
     async def timeoutset_list(self, ctx: commands.Context):
-        """List current settings."""
+        """Show current settings."""
 
         log_channel = await self.config.guild(ctx.guild).logchannel()
         report = await self.config.guild(ctx.guild).report()
@@ -236,6 +270,10 @@ class Timeout(commands.Cog):
         author = ctx.author
         everyone_role = ctx.guild.default_role
 
+        # Set actor & target strings for logging
+        self.actor = f"{ctx.author.name}({ctx.author.id})"
+        self.target = f"{user.name}({user.id})"
+
         # Find the timeout role in server
         timeout_role_data = await self.config.guild(ctx.guild).timeoutrole()
         timeout_role = ctx.guild.get_role(timeout_role_data)
@@ -254,10 +292,19 @@ class Timeout(commands.Cog):
             await ctx.send("I cannot do that due to Discord hierarchy rules.")
             return
 
+        # Create a list containing the timeout role so we can
+        # add the boost role to it if the user is a booster.
+        # This is necessary since you cannot remove the boost
+        # role, so we must ensure we avoid attempting to do so.
+        booster_role = ctx.guild.premium_subscriber_role
+        timeout_roleset = {timeout_role}
+        if booster_role in user.roles:
+            timeout_roleset.add(booster_role)
+
         # Check if user already in timeout.
-        # Remove & restore if so, else timeout.
-        if user.roles == [everyone_role, timeout_role]:
+        # Remove & restore if so, else add to timeout.
+        if set(user.roles) == {everyone_role} | {timeout_roleset}:
             await self.timeout_remove(ctx, user, reason)
 
         else:
-            await self.timeout_add(ctx, user, reason, timeout_role)
+            await self.timeout_add(ctx, user, reason, timeout_role, list(timeout_roleset))
