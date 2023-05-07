@@ -36,9 +36,9 @@ class OWProfileCog(commands.Cog):
         matcher_list = await self.config.guild(member.guild).matchers()
 
         for rule, matcher in matcher_list.items():
-            hits = len(re.findall(matcher.pattern(), member.name))
-            if matcher.check_nick():
-                hits += len(re.findall(matcher.pattern(), member.nick))
+            hits = len(re.findall(matcher['pattern'], member.name))
+            if matcher['check_nick']:
+                hits += len(re.findall(matcher['pattern'], member.nick))
             if hits > 0:
 
                 # Credit: Taken from report Cog
@@ -119,8 +119,8 @@ class OWProfileCog(commands.Cog):
         # Copied from the report Cog.
         return (
             discord.Embed(
-                colour=discord.Colour.red() if matcher.alert_level() == "HIGH" else discord.Colour.orange(),
-                description=escape("Rule: " + rule + "\nReason: "+matcher.reason() or "<no message>")
+                colour=discord.Colour.red() if matcher['alert_level'] == "HIGH" else discord.Colour.orange(),
+                description=escape("Rule: " + rule + "\nReason: "+matcher['reason'] or "<no message>")
             )
             .set_author(name="Profile Violation Detected", icon_url=member.avatar.url)
             .add_field(name="Server", value=member.guild.name)
