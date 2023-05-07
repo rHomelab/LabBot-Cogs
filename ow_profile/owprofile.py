@@ -28,7 +28,7 @@ class OWProfileCog(commands.Cog):
             }
         }
 
-        # self.config.register_guild(**default_guild_config)
+        self.config.register_guild(**default_guild_config)
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
