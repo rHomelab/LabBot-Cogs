@@ -111,7 +111,7 @@ class OWProfileCog(commands.Cog):
     async def _channel(self, ctx, channel: discord.TextChannel):
         """Set the alert channel"""
 
-        await self.config.guild(ctx.guild).logchannel().set(channel.id)
+        await self.config.guild(ctx.guild).logchannel.set(channel.id)
         await ctx.send("Alert channel set to current channel!")
 
     def make_alert_embed(self, member: discord.Member, rule: str, matcher) -> discord.Embed:
