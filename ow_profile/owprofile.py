@@ -76,7 +76,7 @@ class OWProfileCog(commands.Cog):
     async def _add(self, ctx, name: str = "", regex: str = "", reason: str = "", alert_level: str = "", check_nick: str = ""):
         """Add member name trigger"""
 
-        usage = "Usage: `[p]owprofile add <name> <regex> <reason> <alert level HIGH or LOW> <check nickname YES or NO>"
+        usage = "Usage: `[p]owprofile add <name> <regex> <reason> <alert level HIGH or LOW> <check nickname YES or NO>`"
         if (not name and not regex and not reason and not alert_level and not check_nick) or \
                 (alert_level != "HIGH" and alert_level != "LOW") or (check_nick != "YES" and check_nick != "NO"):
             await ctx.send(usage)
@@ -94,7 +94,7 @@ class OWProfileCog(commands.Cog):
     async def _delete(self, ctx, name: str = ""):
         """Delete member name trigger"""
 
-        usage = "Usage: [p]owprofile delete <name>"
+        usage = "Usage: `[p]owprofile delete <name>`"
         if not name:
             await ctx.send(usage)
         else:
@@ -106,6 +106,13 @@ class OWProfileCog(commands.Cog):
                 await ctx.send("Matcher rule deleted!")
             else:
                 await ctx.send("Specified matcher rule not found.")
+
+    @_owprofile.command("channel")
+    async def _channel(self, ctx, channel: discord.TextChannel):
+        """Set the alert channel"""
+
+        await self.config.guild(ctx.guild).logchannel().set(channel.id)
+        await ctx.send("Alert channel set to current channel!")
 
     def make_alert_embed(self, member: discord.Member, rule: str, matcher) -> discord.Embed:
         """Construct the alert embed to be sent"""
