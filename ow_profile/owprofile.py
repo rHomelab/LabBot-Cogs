@@ -18,9 +18,9 @@ class OWProfileCog(commands.Cog):
 
         default_guild_config = {
             "logchannel": "",  # Channel to send alerts to
-            "matchers": {
+            "rules": {
                 "spammer1": {  # Name of rule
-                    "pattern": "",  # Regex pattern to match against
+                    "pattern": "^portalBlock$",  # Regex pattern to match against
                     "check_nick": False,  # Whether the user's nickname should be checked too
                     "alert_level": "",  # Severity of alerts (use: HIGH or LOW)
                     "reason": ""  # Reason for the match, used to add context to alerts
@@ -28,17 +28,17 @@ class OWProfileCog(commands.Cog):
             }
         }
 
-        self.config.register_guild(**default_guild_config)
+        # self.config.register_guild(**default_guild_config)
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
 
-        matcher_list = await self.config.guild(member.guild).matchers()
+        matcher_list = await self.config.guild(member.guild).rules()
 
-        for rule, matcher in matcher_list.items():
-            hits = len(re.findall(matcher['pattern'], member.name))
-            if matcher['check_nick']:
-                hits += len(re.findall(matcher['pattern'], member.nick))
+        for ruleName, rule in matcher_list.items():
+            hits = len(re.findall(rule['pattern'], member.name))
+            # if rule['check_nick']:
+            #    hits += len(re.findall(rule['pattern'], member.nick))
             if hits > 0:
 
                 # Credit: Taken from report Cog
@@ -50,11 +50,11 @@ class OWProfileCog(commands.Cog):
                     # Failed to get the channel
                     return
 
-                data = self.make_alert_embed(member, rule, matcher)
+                data = self.make_alert_embed(member, ruleName, rule)
 
                 mod_pings = ""
                 # Alert level logic added
-                if matcher['alert_level'] == "HIGH":
+                if rule['alert_level'] == "HIGH":
                     mod_pings = " ".join(
                         [i.mention for i in log.members if not i.bot and str(i.status) in ["online", "idle"]])
                     if not mod_pings:  # If no online/idle mods
