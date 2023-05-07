@@ -1,0 +1,15 @@
+{
+    "author": [
+        "portalBlock"
+    ],
+    "short": "[Overwatch] Monitor profile names for patterns.",
+    "description": "[Overwatch] Utilize regex pattern matching to check new users' names and nicknames.",
+    "disabled": false,
+    "name": "owprofile",
+    "tags": [
+        "utility",
+        "mod"
+    ],
+    "install_msg": "Usage: `[p]owprofile add`",
+    "min_bot_version": "3.5.1"
+}
