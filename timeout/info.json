@@ -9,5 +9,6 @@
   "tags": [
     "utility",
     "admin"
-  ]
+  ],
+  "min_bot_version": "3.5.1"
 }

@@ -11,5 +11,6 @@
         "roles",
         "react"
     ],
-    "install_msg": "Usage: `[p]reactrole`"
+    "install_msg": "Usage: `[p]reactrole`",
+    "min_bot_version": "3.5.1"
 }

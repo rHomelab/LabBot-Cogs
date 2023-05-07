@@ -11,5 +11,6 @@
         "fun",
         "utility"
     ],
-    "install_msg": "Usage: `[p]quote add [channel] [message IDs]`"
+    "install_msg": "Usage: `[p]quote add [channel] [message IDs]`",
+    "min_bot_version": "3.5.1"
 }

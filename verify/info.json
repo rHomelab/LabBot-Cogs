@@ -16,5 +16,6 @@
 	"install_msg": "Usage: `[p]verify`",
 	"requirements": [
 		"python-Levenshtein"
-	]
+	],
+    "min_bot_version": "3.5.1"
 }

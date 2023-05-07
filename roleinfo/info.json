@@ -10,5 +10,6 @@
         "info",
         "moderation"
     ],
-    "install_msg": "Usage: `[p]roleinfo`"
+    "install_msg": "Usage: `[p]roleinfo`",
+    "min_bot_version": "3.5.1"
 }

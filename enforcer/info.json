@@ -12,5 +12,6 @@
         "enforcement",
         "enforce"
     ],
-    "install_msg": "Usage: `[p]enforcer`"
+    "install_msg": "Usage: `[p]enforcer`",
+    "min_bot_version": "3.5.1"
 }
