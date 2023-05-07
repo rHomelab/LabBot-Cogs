@@ -77,12 +77,13 @@ class OWProfileCog(commands.Cog):
         """Add member name trigger"""
 
         usage = "Usage: `[p]owprofile add <name> <regex> <reason> <alert level HIGH or LOW> <check nickname YES or NO>`"
+        usage += "\nNote: Reason is temporarily limited to 1 word. This is a WIP. Nick checking is also WIP."
         if (not name and not regex and not reason and not alert_level and not check_nick) or \
                 (alert_level != "HIGH" and alert_level != "LOW") or (check_nick != "YES" and check_nick != "NO"):
             await ctx.send(usage)
         else:
-            async with self.config.guild(ctx.guild).matchers() as matchers:
-                matchers[name] = {
+            async with self.config.guild(ctx.guild).rules() as rules:
+                rules[name] = {
                     "pattern": regex,
                     "check_nick": True if check_nick == "YES" else False,
                     "alert_level": alert_level,
