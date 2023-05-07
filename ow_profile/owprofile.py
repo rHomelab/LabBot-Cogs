@@ -54,7 +54,7 @@ class OWProfileCog(commands.Cog):
 
                 mod_pings = ""
                 # Alert level logic added
-                if matcher.alert_level() == "HIGH":
+                if matcher['alert_level'] == "HIGH":
                     mod_pings = " ".join(
                         [i.mention for i in log.members if not i.bot and str(i.status) in ["online", "idle"]])
                     if not mod_pings:  # If no online/idle mods
