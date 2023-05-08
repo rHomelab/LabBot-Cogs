@@ -58,7 +58,7 @@ class TagCog(commands.Cog):
 
     @commands.guild_only()
     @commands.group(name="tag", pass_context=True, invoke_without_command=True)
-    async def _tag(self, ctx: commands.Context, *, tag: str):
+    async def _tag(self, ctx: commands.Context, tag: str):
 
         async def fire_tag(t) -> bool:
             async with self.config.guild(ctx.guild).tags() as tags:
@@ -85,7 +85,7 @@ class TagCog(commands.Cog):
         await ctx.send("Not yet implemented, please try again later. Sorry!")
 
     @_tag.command(name="create")
-    async def _create(self, ctx: commands.Context, tag: str, *content: str):
+    async def _create(self, ctx: commands.Context, tag: str, *, content: str):
         async with self.config.guild(ctx.guild).aliases() as aliases:
             if tag in aliases:
                 await ctx.send("That tag already exists as an alias!")
@@ -130,8 +130,13 @@ class TagCog(commands.Cog):
 
     @_tag.command(name="delete")
     async def _delete(self, ctx: commands.Context, tag: str):
-        # TODO: Check if owner/mod+ and delete if so
-        pass
+        # TODO: Check if owner/mod+
+        async with self.config.guild(ctx.guild).tags() as tags:
+            if tag in tags:
+                del tags[tag]
+                await ctx.send("Tag successfully deleted!")
+            else:
+                await ctx.send("That's not a tag!")
 
     @_tag.command(name="claim")
     async def _claim(self, ctx: commands.Context, tag: str):
