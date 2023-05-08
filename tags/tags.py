@@ -155,8 +155,26 @@ class TagCog(commands.Cog):
 
     @_tag.command(name="claim")
     async def _claim(self, ctx: commands.Context, tag: str):
-        # TODO check if current tag owner is in the server. If not, set as new owner
-        pass
+        async with self.config.guild(ctx.guild).tags() as tags:
+            if tag in tags:
+                to = tags[tag]
+                if to["owner"] == ctx.author.id:
+                    await ctx.send("You're already that tag owner!")
+                else:
+                    curr_owner = ctx.guild.get_member(int(to["owner"]))
+                    if curr_owner is not None:
+                        await ctx.send(f"That tag's owner is still in the guild! You can see if "
+                                       f"<@{curr_owner.id}> wants to transfer it to you.")
+                    else:
+                        new_owner = ctx.author.id
+                        if "transfers" not in to:
+                            to["transfers"] = []
+                        to["transfers"].append({"from": curr_owner,
+                                                "to": new_owner, "time": int(datetime.utcnow().timestamp())})
+                        to["owner"] = new_owner
+                        await ctx.send("Tag successfully claimed!")
+            else:
+                await ctx.send("Sorry, that isn't a valid tag so you can't claim it. Good news! You can create it!")
 
     @_tag.command(name="transfer")
     async def _transfer(self, ctx: commands.Context, tag: str, member: discord.Member):
