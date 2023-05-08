@@ -57,7 +57,7 @@ class TagCog(commands.Cog):
         self.config.register_guild(**default_guild_config)
 
     @commands.guild_only()
-    @commands.group(name="tag", pass_context=True)
+    @commands.group(name="tag", pass_context=True, invoke_without_command=True)
     async def _tag(self, ctx: commands.Context, tag: str):
 
         async def fire_tag(t) -> bool:
@@ -69,7 +69,7 @@ class TagCog(commands.Cog):
                     await ctx.send(to.content())
                     return True
 
-        if not fire_tag(tag):  # Fires the tag if it's a tag itself, otherwise continue and fire as an alias
+        if not await fire_tag(tag):  # Fires the tag if it's a tag itself, otherwise continue and fire as an alias
             async with self.config.guild(ctx.guild).aliases() as aliases:
                 if tag in aliases:
                     alias = aliases[tag]
