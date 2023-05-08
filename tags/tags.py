@@ -85,7 +85,7 @@ class TagCog(commands.Cog):
         await ctx.send("Not yet implemented, please try again later. Sorry!")
 
     @_tag.command(name="create")
-    async def _create(self, ctx: commands.Context, tag: str, content: str):
+    async def _create(self, ctx: commands.Context, tag: str, *content: str):
         async with self.config.guild(ctx.guild).aliases() as aliases:
             if tag in aliases:
                 await ctx.send("That tag already exists as an alias!")
@@ -96,7 +96,7 @@ class TagCog(commands.Cog):
                     "creator": ctx.author.id,
                     "owner": ctx.author.id,
                     "created": int(datetime.utcnow().timestamp()),
-                    content: content,
+                    "content": content,
                     "transfers": [],
                     "uses": []
                 }
@@ -124,8 +124,7 @@ class TagCog(commands.Cog):
             pass
 
     @_tag.command(name="edit")
-    async def _edit(self, ctx: commands.Context, tag: str, content: str):
-        # TODO: Like in create, confirm the full sentence/content is passed as content, not just one word
+    async def _edit(self, ctx: commands.Context, tag: str, *content: str):
         # TODO: Check if owner and edit the tag if so
         pass
 
