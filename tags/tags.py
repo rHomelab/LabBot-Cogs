@@ -61,7 +61,7 @@ class TagCog(commands.Cog):
     async def _tag(self, ctx: commands.Context, tag: str):
 
         async def fire_tag(t) -> bool:
-            with await self.config.guild(ctx.guild).tags.get_attr(t) as to:
+            with self.config.guild(ctx.guild).tags.get_attr(t) as to:
                 if to is not None:
                     with await to.uses() as metrics:
                         metrics.append({"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())})
@@ -69,7 +69,7 @@ class TagCog(commands.Cog):
                     return True
 
         if not await fire_tag(tag):  # Fires the tag if it's a tag itself, otherwise continue and fire as an alias
-            with await self.config.guild(ctx.guild).aliases.get_attr(tag) as alias:
+            with self.config.guild(ctx.guild).aliases.get_attr(tag) as alias:
                 if alias is not None:
                     with await alias.uses() as uses:
                         uses.append({"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())})
