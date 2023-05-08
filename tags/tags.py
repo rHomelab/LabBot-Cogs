@@ -67,7 +67,7 @@ class TagCog(commands.Cog):
                     if "uses" not in to:
                         to["uses"] = []
                     to["uses"].append({"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())})
-                    await ctx.send(await to["content"])
+                    await ctx.send(to["content"])
                     return True
 
         if not await fire_tag(tag):  # Fires the tag if it's a tag itself, otherwise continue and fire as an alias
@@ -77,7 +77,7 @@ class TagCog(commands.Cog):
                     if "uses" not in alias:
                         alias["uses"] = []
                     alias["uses"].append({"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())})
-                    await fire_tag(await alias["tag"])
+                    await fire_tag(alias["tag"])
 
     @_tag.command(name="search")
     async def _search(self, ctx: commands.Context, query: str):
