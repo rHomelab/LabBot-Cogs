@@ -64,18 +64,22 @@ class TagCog(commands.Cog):
             async with self.config.guild(ctx.guild).tags() as tags:
                 if t in tags:
                     to = tags[t]  # Get tag object
-                    with to['uses'] as metrics:
+                    if "uses" not in to:  # Accommodate first use
+                        to["uses"] = []
+                    with to["uses"] as metrics:
                         metrics.append({"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())})
-                    await ctx.send(to.content())
+                    await ctx.send(to["content"])
                     return True
 
         if not await fire_tag(tag):  # Fires the tag if it's a tag itself, otherwise continue and fire as an alias
             async with self.config.guild(ctx.guild).aliases() as aliases:
                 if tag in aliases:
                     alias = aliases[tag]
+                    if "uses" not in alias:  # Accommodate first use
+                        alias["uses"] = []
                     with alias['uses'] as uses:
                         uses.append({"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())})
-                    await fire_tag(alias.tag())
+                    await fire_tag(alias["tag"])
 
     @_tag.command(name="search")
     async def _search(self, ctx: commands.Context, query: str):
