@@ -58,7 +58,7 @@ class TagCog(commands.Cog):
 
     @commands.guild_only()
     @commands.group(name="tag", pass_context=True, invoke_without_command=True)
-    async def _tag(self, ctx: commands.Context, tag: str):
+    async def _tag(self, ctx: commands.Context, *, tag: str):
 
         async def fire_tag(t) -> bool:
             async with self.config.guild(ctx.guild).tags() as tags:
