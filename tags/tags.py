@@ -64,8 +64,8 @@ class TagCog(commands.Cog):
             async with self.config.guild(ctx.guild).tags() as tags:
                 if t in tags:
                     to = tags[t]  # Get tag object
-                    async with to.uses() as uses:
-                        uses.append({"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())})
+                    with to['uses'] as metrics:
+                        metrics.append({"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())})
                     await ctx.send(to.content())
                     return True
 
@@ -73,7 +73,7 @@ class TagCog(commands.Cog):
             async with self.config.guild(ctx.guild).aliases() as aliases:
                 if tag in aliases:
                     alias = aliases[tag]
-                    async with alias.uses() as uses:
+                    with alias['uses'] as uses:
                         uses.append({"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())})
                     await fire_tag(alias.tag())
 
