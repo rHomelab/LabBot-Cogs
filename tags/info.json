@@ -1,0 +1,16 @@
+{
+    "author": [
+        "portalBlock"
+    ],
+    "short": "User-generated tags for re-posting commonly used messages.",
+    "description": "User-generated tags and aliases with statistics tracking for re-posting commonly used messages.",
+    "disabled": false,
+    "name": "tags",
+    "tags": [
+        "utility",
+        "fun",
+        "reply"
+    ],
+    "install_msg": "Usage: `[p]tags`",
+    "min_bot_version": "3.5.1"
+}
