@@ -3,8 +3,8 @@ from datetime import datetime
 import discord
 from discord import Guild
 from redbot.core import Config
-from redbot.core.bot import Red
 from redbot.core import commands
+from redbot.core.bot import Red
 from redbot.core.utils.mod import is_mod_or_superior
 
 
@@ -58,28 +58,28 @@ class TagCog(commands.Cog):
 
         self.config.register_guild(**default_guild_config)
 
+    async def fire_tag(self, ctx: commands.Context, tag: str) -> bool:
+        async with self.config.guild(ctx.guild).tags() as tags:
+            if tag in tags:
+                to = tags[tag]
+                if "uses" not in to:
+                    to["uses"] = []
+                to["uses"].append({"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())})
+                await ctx.send(to["content"])
+                return True
+
     @commands.guild_only()
     @commands.group(name="tag", pass_context=True, invoke_without_command=True)
     async def _tag(self, ctx: commands.Context, tag: str):
 
-        async def fire_tag(t) -> bool:
-            async with self.config.guild(ctx.guild).tags() as tags:
-                if t in tags:
-                    to = tags[t]
-                    if "uses" not in to:
-                        to["uses"] = []
-                    to["uses"].append({"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())})
-                    await ctx.send(to["content"])
-                    return True
-
-        if not await fire_tag(tag):  # Fires the tag if it's a tag itself, otherwise continue and fire as an alias
+        if not await self.fire_tag(ctx, tag):  # Fires the tag if it's a tag itself, otherwise continue and as an alias
             async with self.config.guild(ctx.guild).aliases() as aliases:
                 if tag in aliases:
                     alias = aliases[tag]
                     if "uses" not in alias:
                         alias["uses"] = []
                     alias["uses"].append({"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())})
-                    await fire_tag(alias["tag"])
+                    await self.fire_tag(ctx, alias["tag"])
 
     @_tag.command(name="search")
     async def _search(self, ctx: commands.Context, query: str):
@@ -164,14 +164,14 @@ class TagCog(commands.Cog):
                     curr_owner = ctx.guild.get_member(int(to["owner"]))
                     if curr_owner is not None:
                         await ctx.send(f"That tag's owner is still in the guild! You can see if "
-                                       f"<@{curr_owner.id}> wants to transfer it to you.")
+                                       f"{curr_owner.mention} wants to transfer it to you.")
                     else:
-                        new_owner = ctx.author.id
+                        new_owner_id = ctx.author.id
                         if "transfers" not in to:
                             to["transfers"] = []
-                        to["transfers"].append({"from": curr_owner,
-                                                "to": new_owner, "time": int(datetime.utcnow().timestamp())})
-                        to["owner"] = new_owner
+                        to["transfers"].append({"from": to["owner"],
+                                                "to": new_owner_id, "time": int(datetime.utcnow().timestamp())})
+                        to["owner"] = new_owner_id
                         await ctx.send("Tag successfully claimed!")
             else:
                 await ctx.send("Sorry, that isn't a valid tag so you can't claim it. Good news! You can create it!")
@@ -244,22 +244,22 @@ class TagCog(commands.Cog):
         If no aliases are found, a zero-length array is returned.
 
         """
-        t = None  # A single tag to return
-        a = []  # All aliases for a tag
-        tp = False
-        ap = False
+        hydrated_tag = None  # A single tag to return
+        hydrated_aliases = []  # All aliases for a tag
+        tag_proper = False
+        alias_proper = False
         tag_search = tag
         async with self.config.guild(guild).aliases() as aliases:
             if tag in aliases:
-                a = [aliases[tag]]  # Provided tag is only an alias
-                ap = True
+                hydrated_aliases = [aliases[tag]]  # Provided tag is only an alias
+                alias_proper = True
                 tag_search = aliases[tag]["tag"]
             else:
                 for alias in aliases:
                     if aliases[alias]["tag"] == tag:
-                        a.append(aliases[tag])
+                        hydrated_aliases.append(aliases[tag])
         async with self.config.guild(guild).tags() as tags:
             if tag_search in tags:
-                tp = tag_search == tag
-                t = tags[tag_search]
-        return t, a, tp, ap
+                tag_proper = tag_search == tag
+                hydrated_tag = tags[tag_search]
+        return hydrated_tag, hydrated_aliases, tag_proper, alias_proper
