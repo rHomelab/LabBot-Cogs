@@ -181,7 +181,7 @@ class TagCog(commands.Cog):
         async with self.config.guild(ctx.guild).tags() as tags:
             if tag in tags:
                 to = tags[tag]
-                if not to["owner"] == ctx.author.id and not is_mod_or_superior(self.bot, ctx.author):
+                if to["owner"] == ctx.author.id and is_mod_or_superior(self.bot, ctx.author):
                     await ctx.send("Sorry, you're not the tag owner and you don't have permissions to do that.")
                 else:
                     curr_owner = to["owner"]
