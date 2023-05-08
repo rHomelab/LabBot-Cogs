@@ -178,7 +178,7 @@ class TagCog(commands.Cog):
                 await ctx.send("That's not a tag!")
 
     @_tag.group(name="alias")
-    async def _alias(self, ctx: commands.Context, alias: str, tag: str):
+    async def _alias(self, ctx: commands.Context):
         pass
 
     @_alias.command("create")
@@ -186,7 +186,6 @@ class TagCog(commands.Cog):
         to, al, tag_proper, alias_proper = await self.get_tag_or_alias(alias, ctx.guild)
         if tag_proper:
             await ctx.send("That's already a tag!")
-            return
         elif alias_proper:
             await ctx.send("That's already an alias!")
         else:
