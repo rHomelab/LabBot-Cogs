@@ -100,8 +100,9 @@ class TagCog(commands.Cog):
                     "transfers": [],
                     "uses": []
                 }
-            else:
                 await ctx.send("Tag successfully created!")
+            else:
+                await ctx.send("That tag already exists!")
 
     @_tag.command(name="stats")
     async def _stats(self, ctx: commands.Context, member: discord.Member):
