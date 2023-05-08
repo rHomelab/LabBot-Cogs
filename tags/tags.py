@@ -183,7 +183,7 @@ class TagCog(commands.Cog):
 
     @_alias.command("create")
     async def _alias_create(self, ctx: commands.Context, alias: str, tag: str):
-        to, al, tag_proper, alias_proper = self.get_tag_or_alias(alias, ctx.guild)
+        to, al, tag_proper, alias_proper = await self.get_tag_or_alias(alias, ctx.guild)
         if tag_proper:
             await ctx.send("That's already a tag!")
             return
@@ -211,7 +211,7 @@ class TagCog(commands.Cog):
                     del aliases[alias]
                     await ctx.send("Alias deleted successfully!")
 
-    def get_tag_or_alias(self, tag: str, guild: Guild) -> (object, [], bool, bool):
+    async def get_tag_or_alias(self, tag: str, guild: Guild) -> (object, [], bool, bool):
         """Searches for a tag or alias based on the value provided.
 
         If the provided query is a tag, it will return the tag and all aliases associated with it.
