@@ -60,7 +60,7 @@ class TagCog(commands.Cog):
     @commands.group(name="tag", pass_context=True)
     async def _tag(self, ctx: commands.Context, tag: str):
 
-        def fire_tag(t) -> bool:
+        async def fire_tag(t) -> bool:
             async with self.config.guild(ctx.guild).tags() as tags:
                 if t in tags:
                     to = tags[t]  # Get tag object
@@ -75,7 +75,7 @@ class TagCog(commands.Cog):
                     alias = aliases[tag]
                     async with alias.uses() as uses:
                         uses.append({"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())})
-                    fire_tag(alias.tag())
+                    await fire_tag(alias.tag())
 
     @_tag.command(name="search")
     async def _search(self, ctx: commands.Context, query: str):
