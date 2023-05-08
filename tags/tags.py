@@ -61,19 +61,23 @@ class TagCog(commands.Cog):
     async def _tag(self, ctx: commands.Context, tag: str):
 
         async def fire_tag(t) -> bool:
-            to = self.config.guild(ctx.guild).tags.get_attr(t)
-            if to is not None:
-                with await to.uses() as metrics:
-                    metrics.append({"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())})
-                await ctx.send(await to.content())
-                return True
+            async with self.config.guild(ctx.guild).tags() as tags:
+                to = tags[t]
+                if to is not None:
+                    if "uses" not in to:
+                        to["uses"] = []
+                    to["uses"].append({"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())})
+                    await ctx.send(await to["content"])
+                    return True
 
         if not await fire_tag(tag):  # Fires the tag if it's a tag itself, otherwise continue and fire as an alias
-            alias = self.config.guild(ctx.guild).aliases.get_attr(tag)
-            if alias is not None:
-                with await alias.uses() as uses:
-                    uses.append({"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())})
-                await fire_tag(await alias.tag())
+            async with self.config.guild(ctx.guild).aliases() as aliases:
+                alias = aliases[tag]
+                if alias is not None:
+                    if "uses" not in alias:
+                        alias["uses"] = []
+                    alias["uses"].append({"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())})
+                    await fire_tag(await alias["tag"])
 
     @_tag.command(name="search")
     async def _search(self, ctx: commands.Context, query: str):
