@@ -203,8 +203,8 @@ class TagCog(commands.Cog):
         async with self.config.guild(ctx.guild).aliases() as aliases:
             if alias in aliases:
                 a = aliases[alias]
-                if not a["owner"] == ctx.author.id and is_mod_or_superior(self.bot, ctx.author):
-                    await ctx.send("Sorry, you're not the alias owner and you don't have permissions to do that.")
+                if not a["creator"] == ctx.author.id and is_mod_or_superior(self.bot, ctx.author):
+                    await ctx.send("Sorry, you're not the alias creator and you don't have permissions to do that.")
                     return
                 else:
                     del aliases[alias]
