@@ -238,7 +238,7 @@ class TagCog(commands.Cog):
                 tag_search = aliases[tag]["tag"]
             else:
                 for alias in aliases:
-                    if alias["tag"] == tag:
+                    if aliases[alias]["tag"] == tag:
                         a.append(aliases[tag])
         async with self.config.guild(guild).tags() as tags:
             if tag_search in tags:
