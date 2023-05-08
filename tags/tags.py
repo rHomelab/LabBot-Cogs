@@ -132,7 +132,7 @@ class TagCog(commands.Cog):
         async with self.config.guild(ctx.guild).tags() as tags:
             if tag in tags:
                 to = tags[tag]
-                if not to["owner"] == ctx.author.id and not is_mod_or_superior(self.bot, ctx.author):
+                if not to["owner"] == ctx.author.id and not await is_mod_or_superior(self.bot, ctx.author):
                     await ctx.send("Sorry, you're not the tag owner and you don't have permissions to do that.")
                 else:
                     to["content"] = content
@@ -145,7 +145,7 @@ class TagCog(commands.Cog):
         async with self.config.guild(ctx.guild).tags() as tags:
             if tag in tags:
                 to = tags[tag]
-                if not to["owner"] == ctx.author.id and not is_mod_or_superior(self.bot, ctx.author):
+                if not to["owner"] == ctx.author.id and not await is_mod_or_superior(self.bot, ctx.author):
                     await ctx.send("Sorry, you're not the tag owner and you don't have permissions to do that.")
                 else:
                     del tags[tag]
@@ -181,7 +181,7 @@ class TagCog(commands.Cog):
         async with self.config.guild(ctx.guild).tags() as tags:
             if tag in tags:
                 to = tags[tag]
-                if not to["owner"] == ctx.author.id and not is_mod_or_superior(self.bot, ctx.author):
+                if not to["owner"] == ctx.author.id and not await is_mod_or_superior(self.bot, ctx.author):
                     await ctx.send("Sorry, you're not the tag owner and you don't have permissions to do that.")
                 else:
                     curr_owner = to["owner"]
@@ -221,7 +221,7 @@ class TagCog(commands.Cog):
         async with self.config.guild(ctx.guild).aliases() as aliases:
             if alias in aliases:
                 a = aliases[alias]
-                if not a["creator"] == ctx.author.id and is_mod_or_superior(self.bot, ctx.author):
+                if not a["creator"] == ctx.author.id and await is_mod_or_superior(self.bot, ctx.author):
                     await ctx.send("Sorry, you're not the alias creator and you don't have permissions to do that.")
                     return
                 else:
