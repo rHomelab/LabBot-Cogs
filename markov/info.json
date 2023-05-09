@@ -10,6 +10,6 @@
   "end_user_data_statement": "When a user has explicitly opted in to message analysis, this cog stores words in messages sent by the user.",
   "required_cogs": {},
   "requirements": [],
-  "min_bot_version": "3.1.8",
+  "min_bot_version": "3.5.1",
   "tags": ["fun"]
 }
