@@ -11,7 +11,7 @@ log = logging.getLogger("red.rhomelab.markov")
 
 __all__ = ["UNIQUE_ID", "Markov"]
 
-UNIQUE_ID = 0x6D61726B6F76
+UNIQUE_ID = 0x6D61726B6F77
 WORD_TOKENIZER = re.compile(r"(\W+)")
 CONTROL = f"{UNIQUE_ID}"
 
