@@ -323,8 +323,8 @@ class Markov(commands.Cog):
         gram = await self.choose_gram(model, state)
         # Don't worry about it ;)
         prepend_space = all((state != CONTROL,
-                                gram[-1].isalnum() or gram in "\"([{|",
-                                state[-1] not in "\"([{'/-_"))
+                            gram[-1].isalnum() or gram in "\"([{|",
+                            state[-1] not in "\"([{'/-_"))
         # Format gram
         return f"{' ' if prepend_space else ''}{gram}"
 
@@ -351,7 +351,7 @@ class Markov(commands.Cog):
         # Iterate over all configured channels for this guild
         async with self.conf.guild(ctx.guild).channels() as channels:
             # Enable channel if request is channel enable and channel isn't already enabled
-            if enable and not channel.id in channels:
+            if enable and channel.id not in channels:
                 channels.append(channel.id)
                 updated = True
             # Disable channel if request is channel disable and channel is currently enabled
