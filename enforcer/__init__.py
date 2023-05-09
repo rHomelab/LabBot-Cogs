@@ -1,5 +1,7 @@
+from redbot.core.bot import Red
+
 from .enforcer import EnforcerCog
 
 
-def setup(bot):
-    bot.add_cog(EnforcerCog(bot))
+async def setup(bot: Red):
+    await bot.add_cog(EnforcerCog(bot))

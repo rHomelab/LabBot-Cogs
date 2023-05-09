@@ -10,5 +10,6 @@
         "utility",
         "admin"
     ],
-    "install_msg": "Usage: `[p]msg create <channel>`"
+    "install_msg": "Usage: `[p]msg create <channel>`",
+    "min_bot_version": "3.5.1"
 }

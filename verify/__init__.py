@@ -1,5 +1,7 @@
+from redbot.core.bot import Red
+
 from .verify import VerifyCog
 
 
-def setup(bot):
-    bot.add_cog(VerifyCog(bot))
+async def setup(bot: Red):
+    await bot.add_cog(VerifyCog(bot))

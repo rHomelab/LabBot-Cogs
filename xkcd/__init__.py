@@ -1,5 +1,7 @@
+from redbot.core.bot import Red
+
 from .xkcd import Xkcd
 
 
-def setup(bot):
-    bot.add_cog(Xkcd())
+async def setup(bot: Red):
+    await bot.add_cog(Xkcd())

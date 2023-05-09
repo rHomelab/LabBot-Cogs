@@ -1,5 +1,7 @@
+from redbot.core.bot import Red
+
 from .reactrole import ReactRoleCog
 
 
-def setup(bot):
-    bot.add_cog(ReactRoleCog(bot))
+async def setup(bot: Red):
+    await bot.add_cog(ReactRoleCog(bot))

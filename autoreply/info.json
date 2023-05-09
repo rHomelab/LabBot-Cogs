@@ -11,5 +11,6 @@
         "fun",
         "utility"
     ],
-    "install_msg": "Usage: `[p]autoreply add`"
+    "install_msg": "Usage: `[p]autoreply add`",
+    "min_bot_version": "3.5.1"
 }

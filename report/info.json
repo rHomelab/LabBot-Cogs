@@ -11,5 +11,6 @@
         "report",
         "reports"
     ],
-    "install_msg": "Usage: `[p]report`"
+    "install_msg": "Usage: `[p]report`",
+    "min_bot_version": "3.5.1"
 }

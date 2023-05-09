@@ -13,5 +13,6 @@
     "requirements": [
         "croniter"
     ],
-    "install_msg": "Usage: `[p]purge`"
+    "install_msg": "Usage: `[p]purge`",
+    "min_bot_version": "3.5.1"
 }

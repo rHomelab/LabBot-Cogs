@@ -1,5 +1,7 @@
+from redbot.core.bot import Red
+
 from .feed import FeedCog
 
 
-def setup(bot):
-    bot.add_cog(FeedCog())
+async def setup(bot: Red):
+    await bot.add_cog(FeedCog())

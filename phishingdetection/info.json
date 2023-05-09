@@ -12,5 +12,6 @@
         "scam",
         "prevention"
     ],
-    "install_msg": "Thanks for installing"
+    "install_msg": "Thanks for installing",
+    "min_bot_version": "3.5.1"
 }

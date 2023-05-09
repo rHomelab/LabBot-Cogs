@@ -4,5 +4,6 @@
   "short": "Convert a unit to any other similar unit.",
   "disabled": false,
   "name": "Convert",
-  "tags": ["utility"]
+  "tags": ["utility"],
+  "min_bot_version": "3.5.1"
 }

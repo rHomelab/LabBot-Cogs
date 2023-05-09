@@ -11,5 +11,6 @@
         "mod",
         "log"
     ],
-    "install_msg": "Usage: `[p]notes`"
+    "install_msg": "Usage: `[p]notes`",
+    "min_bot_version": "3.5.1"
 }

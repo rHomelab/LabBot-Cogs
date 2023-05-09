@@ -10,5 +10,6 @@
         "reply",
         "utility"
     ],
-    "install_msg": "Usage: `[p]latex <LaTeX>`"
+    "install_msg": "Usage: `[p]latex <LaTeX>`",
+    "min_bot_version": "3.5.1"
 }
