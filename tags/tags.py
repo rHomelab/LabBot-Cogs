@@ -2,8 +2,7 @@ from datetime import datetime
 
 import discord
 from discord import Guild
-from redbot.core import Config
-from redbot.core import commands
+from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.mod import is_mod_or_superior
 
@@ -71,15 +70,34 @@ class TagCog(commands.Cog):
     @commands.guild_only()
     @commands.group(name="tag", pass_context=True, invoke_without_command=True)
     async def _tag(self, ctx: commands.Context, tag: str):
+        async def on_resolve(trigger: str, tag, alias, trigger_is_alias: bool):
+            use = {"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())}
+            if "uses" not in tag:
+                tag["uses"] = []
+            tag["uses"].append(use)
+            if trigger_is_alias:
+                if "uses" not in alias:
+                    alias["uses"] = []
+                alias["uses"].append(use)
+            await ctx.send(tag["content"])
 
-        if not await self.fire_tag(ctx, tag):  # Fires the tag if it's a tag itself, otherwise continue and as an alias
-            async with self.config.guild(ctx.guild).aliases() as aliases:
-                if tag in aliases:
-                    alias = aliases[tag]
-                    if "uses" not in alias:
-                        alias["uses"] = []
-                    alias["uses"].append({"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())})
-                    await self.fire_tag(ctx, alias["tag"])
+        async def fail_resolve(trigger: str, trigger_is_alias):
+            if trigger_is_alias:
+                await ctx.send("That alias' tag doesn't exist!")
+            else:
+                await ctx.send("That's not a valid tag!")
+
+        await self.resolve_trigger(ctx, tag, on_resolve, fail_resolve)
+
+        # Old way of doing things
+        # if not await self.fire_tag(ctx, tag):  #Fires the tag if it's a tag itself, otherwise continue and as an alias
+        #     async with self.config.guild(ctx.guild).aliases() as aliases:
+        #         if tag in aliases:
+        #             alias = aliases[tag]
+        #             if "uses" not in alias:
+        #                 alias["uses"] = []
+        #             alias["uses"].append({"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())})
+        #             await self.fire_tag(ctx, alias["tag"])
 
     @_tag.command(name="search")
     async def _search(self, ctx: commands.Context, query: str):
@@ -263,3 +281,22 @@ class TagCog(commands.Cog):
                 tag_proper = tag_search == tag
                 hydrated_tag = tags[tag_search]
         return hydrated_tag, hydrated_aliases, tag_proper, alias_proper
+
+    async def resolve_trigger(self, ctx: commands.Context, trigger: str, on_resolve, fail_resolve):
+        search_tag = trigger
+        alias = None
+        trigger_is_alias = False
+        async with self.config.guild(ctx.guild).aliases() as aliases:
+            if search_tag in aliases:
+                alias = aliases[search_tag]
+                search_tag = alias["tag"]
+                trigger_is_alias = True
+            async with self.config.guild(ctx.guild).tags() as tags:
+                if search_tag in tags:
+                    tag = tags[search_tag]
+                    if on_resolve is not None:
+                        await on_resolve(trigger, tag, alias, trigger_is_alias)
+                else:
+                    if fail_resolve is not None:
+                        await fail_resolve(trigger, trigger_is_alias)
+
