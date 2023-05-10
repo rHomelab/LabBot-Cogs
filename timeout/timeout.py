@@ -103,7 +103,6 @@ class Timeout(commands.Cog):
                 f"Current roles: {user.roles}\n" +
                 f"Attempted new roles: {timeout_roleset}", exc_info=error
             )
-            return
         except discord.HTTPException as error:
             await ctx.send("Something went wrong! Please check the console for more information.")
             log.exception(
@@ -140,7 +139,6 @@ class Timeout(commands.Cog):
                 f"Current roles: {user.roles}\n" +
                 f"Attempted new roles: {user_roles}", exc_info=error
             )
-            return
         except discord.HTTPException as error:
             await ctx.send("Something went wrong! Please check the console for more information.")
             log.exception(
@@ -148,7 +146,6 @@ class Timeout(commands.Cog):
                 f"Current roles: {user.roles}\n" +
                 f"Attempted new roles: {user_roles}", exc_info=error
             )
-            return
         else:
             await ctx.message.add_reaction("✅")
 
