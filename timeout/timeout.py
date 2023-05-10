@@ -6,6 +6,7 @@ from redbot.core import Config, checks, commands
 
 log = logging.getLogger("red.rhomelab.timeout")
 
+
 class Timeout(commands.Cog):
     """Timeout a user"""
 
@@ -20,6 +21,9 @@ class Timeout(commands.Cog):
         self.config.register_member(
             roles=[]
         )
+
+        self.actor: str = None
+        self.target: str = None
 
     # Helper functions
 
@@ -59,13 +63,20 @@ class Timeout(commands.Cog):
         # Send embed
         await log_channel.send(embed=embed)
 
-    async def timeout_add(self, ctx: commands.Context, user: discord.Member, reason: str, timeout_role: discord.Role, timeout_roleset: list[discord.Role]):
+    async def timeout_add(
+            self, ctx: commands.Context,
+            user: discord.Member,
+            reason: str,
+            timeout_role: discord.Role,
+            timeout_roleset: list[discord.Role]):
         """Retrieve and save user's roles, then add user to timeout"""
         # Catch users already holding timeout role.
         # This could be caused by an error in this cog's logic or,
         # more likely, someone manually adding the user to the role.
         if timeout_role in user.roles:
-            await ctx.send("Something went wrong! Is the user already in timeout? Please check the console for more information.")
+            await ctx.send(
+                "Something went wrong! Is the user already in timeout? Please check the console for more information."
+            )
             log.warning(
                 f"Something went wrong while trying to add user {self.target} to timeout.\n" +
                 f"Current roles: {user.roles}\n" +
@@ -81,7 +92,7 @@ class Timeout(commands.Cog):
         # Replace all of a user's roles with timeout roleset
         try:
             await user.edit(roles=timeout_roleset)
-            log.info(f"User {self.target} added to timeout by {self.actor}.")
+            log.info("User %s added to timeout by %s.", self.target, self.actor)
         except AttributeError:
             await ctx.send("Please set the timeout role using `[p]timeoutset role`.")
             return
@@ -121,7 +132,7 @@ class Timeout(commands.Cog):
         # Replace user's roles with their previous roles.
         try:
             await user.edit(roles=user_roles)
-            log.info(f"User {self.target} removed from timeout by {self.actor}.")
+            log.info("User %s removed from timeout by %s.", self.target, self.actor)
         except discord.Forbidden as error:
             await ctx.send("Whoops, looks like I don't have permission to do that.")
             log.exception(
