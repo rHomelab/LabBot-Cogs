@@ -7,6 +7,8 @@
   <img src="https://img.shields.io/github/actions/workflow/status/rhomelab/labbot-cogs/ci.yml?style=for-the-badge">
 <p>
 
+## Unmaintained Red 3.4-compatible branch.
+
 Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homelab](https://reddit.com/r/Homelab) Discord server bot.
 
 ## Table of Contents
