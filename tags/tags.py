@@ -57,15 +57,16 @@ class TagCog(commands.Cog):
 
         self.config.register_guild(**default_guild_config)
 
-    async def fire_tag(self, ctx: commands.Context, tag: str) -> bool:
-        async with self.config.guild(ctx.guild).tags() as tags:
-            if tag in tags:
-                to = tags[tag]
-                if "uses" not in to:
-                    to["uses"] = []
-                to["uses"].append({"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())})
-                await ctx.send(to["content"])
-                return True
+    # Old way of doing things
+    # async def fire_tag(self, ctx: commands.Context, tag: str) -> bool:
+    #     async with self.config.guild(ctx.guild).tags() as tags:
+    #         if tag in tags:
+    #             to = tags[tag]
+    #             if "uses" not in to:
+    #                 to["uses"] = []
+    #             to["uses"].append({"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())})
+    #             await ctx.send(to["content"])
+    #             return True
 
     @commands.guild_only()
     @commands.group(name="tag", pass_context=True, invoke_without_command=True)
