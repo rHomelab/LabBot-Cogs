@@ -1,5 +1,5 @@
 """discord red-bot verify"""
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import discord
 import Levenshtein as lev

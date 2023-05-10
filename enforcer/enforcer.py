@@ -1,6 +1,5 @@
 """discord red-bot enforcer"""
 import asyncio
-from datetime import datetime
 from typing import Union
 
 import discord
