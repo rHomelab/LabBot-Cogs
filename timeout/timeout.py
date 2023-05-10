@@ -47,10 +47,10 @@ class Timeout(commands.Cog):
             inline=False
         )
 
-        if user.avatar_url:
+        if user.display_avatar:
             embed.set_author(
                 name=f"{user} {action_info['action']} timeout",
-                icon_url=user.avatar_url)
+                icon_url=user.display_avatar.url)
         else:
             embed.set_author(
                 name=f"{user} {action_info['action']} timeout"
@@ -236,7 +236,7 @@ class Timeout(commands.Cog):
         )
         embed.set_author(
             name="Timeout Cog Settings",
-            icon_url=ctx.guild.me.avatar_url
+            icon_url=ctx.guild.me.display_avatar.url
         )
         embed.add_field(
             name="Log Channel",
