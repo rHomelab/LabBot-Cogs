@@ -59,7 +59,7 @@ class VerifyCog(commands.Cog):
             return
 
         mintime = await self.config.guild(guild).mintime()
-        minjoin = datetime.utcnow() - timedelta(seconds=mintime)
+        minjoin = discord.utils.utcnow() - timedelta(seconds=mintime)
         if author.joined_at > minjoin:
             # User tried to verify too fast
             tooquick = await self.config.guild(guild).tooquick()
