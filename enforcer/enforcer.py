@@ -70,7 +70,7 @@ class EnforcerCog(commands.Cog):
         author = message.author
 
         data = discord.Embed(color=discord.Color.orange(), description=message.content)
-        data.set_author(name=f"Message Enforced - {author}", icon_url=author.avatar_url)
+        data.set_author(name=f"Message Enforced - {author}", icon_url=author.display_avatar.url)
         data.add_field(name="Enforced Reason", value=reason, inline=True)
         data.add_field(name="Channel", value=message.channel.mention, inline=True)
 

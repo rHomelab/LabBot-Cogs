@@ -177,7 +177,7 @@ class ReportCog(commands.Cog):
                 colour=discord.Colour.red() if emergency else discord.Colour.orange(),
                 description=escape(message or "<no message>"),
             )
-            .set_author(name="Report", icon_url=ctx.author.avatar_url)
+            .set_author(name="Report", icon_url=ctx.author.display_avatar.url)
             .add_field(name="Reporter", value=ctx.author.mention)
             .add_field(name="Channel", value=ctx.channel.mention)
             .add_field(name="Timestamp", value=f"<t:{int(ctx.message.created_at.timestamp())}:F>")
@@ -190,7 +190,7 @@ class ReportCog(commands.Cog):
                 colour=discord.Colour.red() if emergency else discord.Colour.orange(),
                 description=escape(message or "<no message>"),
             )
-            .set_author(name="Report Received", icon_url=ctx.author.avatar_url)
+            .set_author(name="Report Received", icon_url=ctx.author.display_avatar.url)
             .add_field(name="Server", value=ctx.guild.name)
             .add_field(name="Channel", value=ctx.channel.mention)
             .add_field(name="Timestamp", value=f"<t:{int(ctx.message.created_at.timestamp())}:F>")

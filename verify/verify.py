@@ -419,7 +419,7 @@ class VerifyCog(commands.Cog):
         if log_id:
             log = guild.get_channel(log_id)
             data = discord.Embed(color=discord.Color.orange())
-            data.set_author(name=f"{message} - {user}", icon_url=user.avatar_url)
+            data.set_author(name=f"{message} - {user}", icon_url=user.display_avatar.url)
             data.add_field(name="User", value=user.mention)
             data.add_field(name="ID", value=user.id)
             if not failmessage:
