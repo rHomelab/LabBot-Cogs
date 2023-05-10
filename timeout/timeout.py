@@ -303,7 +303,7 @@ class Timeout(commands.Cog):
 
         # Check if user already in timeout.
         # Remove & restore if so, else add to timeout.
-        if set(user.roles) == {everyone_role} | {timeout_roleset}:
+        if set(user.roles) == {everyone_role} | timeout_roleset:
             await self.timeout_remove(ctx, user, reason)
 
         else:
