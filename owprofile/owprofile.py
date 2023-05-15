@@ -1,7 +1,6 @@
 """discord red-bot overwatch profile"""
 import re
 from datetime import datetime
-from typing import List
 
 import discord
 import discord.utils
@@ -149,5 +148,5 @@ class OWProfileCog(commands.Cog):
         )
 
     def rule_to_string(self, rule_name: str, rule) -> str:
-        return f"{rule_name}:\n\tPattern: `{rule['pattern']}`\n\tCheck Nick: `{rule['check_nick']}`\n\tAlert Level: " \
-               f"{rule['alert_level']}\n\tReason: {rule['reason']}"
+        return f"**{rule_name}**:\nPattern: `{rule['pattern']}`\nCheck Nick: `{rule['check_nick']}`\nAlert Level: " \
+               f"{rule['alert_level']}\nReason: {rule['reason']}"

@@ -1,0 +1,15 @@
+{
+    "author": [
+        "portalBlock"
+    ],
+    "short": "[Overwatch] Detect suspicious voice channel activity.",
+    "description": "[Overwatch] Analyzes voice and video activity in applicable channels to detect suspicious actions.",
+    "disabled": false,
+    "name": "owvoice",
+    "tags": [
+        "utility",
+        "mod"
+    ],
+    "install_msg": "Usage: `[p]owvoice add`",
+    "min_bot_version": "3.5.1"
+}
