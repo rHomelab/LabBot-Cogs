@@ -28,6 +28,10 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
     - [Google](#google)
     - [Latex](#latex)
     - [Letters](#letters)
+    - [Markov](#markov)
+      - [User commands](#user-commands)
+      - [Mod Commands](#mod-commands)
+      - [Owner Commands](#owner-commands)
     - [Notes](#notes)
     - [Penis](#penis)
     - [Phishingdetection](#phishingdetection)
@@ -188,6 +192,34 @@ This cog converts a string of letters/numbers into large emote letters ("regiona
 
 `[p]letters I would like this text as emotes 123`
 `[p]letters -raw I would like this text as raw emote code 123`
+
+### Markov
+
+This cog generates messages based on markov chains generated per-user.
+
+User messages will never be analysed unless the user explicitly opts in.  
+It must also be enabled per-channel: `[p]markov channelenable`
+
+#### User commands
+
+- `[p]markov generate` - Generate text based on user language models.
+- `[p]markov enable` - Allow the bot to model your messages and generate text.
+- `[p]markov disable` - Disallow the bot from model;ing your messages or generating text.
+- `[p]markov mode` - Set the tokenization mode for model building.
+- `[p]markov depth` - Set the modelling depth (the "n" in "ngrams").
+- `[p]markov show_user` - Show your current settings and models, or those of another user.
+- `[p]markov delete` - Delete a specific model from your profile.
+- `[p]markov reset` - Remove all language models from your profile.
+
+#### Mod Commands
+
+- `[p]markov show_guild` - Show current guild settings.
+- `[p]markov channelenable` - Allow language modelling on messages in a given channel.
+- `[p]markov channeldisable` - Disallow language modelling on messages in a given channel.
+
+#### Owner Commands
+
+- `[p]markov show_global [guild_id]` - Show global summary info or summary of `guild_id`.
 
 ### Notes
 
