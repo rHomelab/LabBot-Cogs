@@ -98,7 +98,7 @@ class OWProfileCog(commands.Cog):
     async def _list(self, ctx: commands.Context):
         """List current name triggers"""
         rules = await self.config.guild(ctx.guild).rules()
-        pages = list(pagify("\n\n".join(self.rule_to_string(rn, r) for rn, r in rules)))
+        pages = list(pagify("\n\n".join(self.rule_to_string(rn, r) for rn, r in rules.items())))
         base_embed_options = {"title": "Overwatch Profile Name Rules", "colour": await ctx.embed_colour()}
         embeds = [
             discord.Embed(**base_embed_options, description=page).set_footer(text=f"Page {index} of {len(pages)}")
