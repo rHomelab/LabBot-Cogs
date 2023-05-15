@@ -1,6 +1,5 @@
 """discord red-bot enforcer"""
 import asyncio
-from datetime import datetime
 from typing import Union
 
 import discord
@@ -271,13 +270,13 @@ class EnforcerCog(commands.Cog):
             return False
 
         if KEY_MINDISCORDAGE in channel and author.created_at:
-            delta = datetime.utcnow() - author.created_at
+            delta = discord.utils.utcnow() - author.created_at
             if delta.total_seconds() < channel[KEY_MINDISCORDAGE]:
                 # They breached minimum discord age
                 return "User account not old enough"
 
         if KEY_MINGUILDAGE in channel and author.joined_at:
-            delta = datetime.utcnow() - author.joined_at
+            delta = discord.utils.utcnow() - author.joined_at
             if delta.total_seconds() < channel[KEY_MINGUILDAGE]:
                 # They breached minimum guild age
                 return "User not in server long enough"
