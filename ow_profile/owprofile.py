@@ -1,12 +1,14 @@
 """discord red-bot overwatch profile"""
 import re
 from datetime import datetime
+from typing import List
 
 import discord
 import discord.utils
 from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
-from redbot.core.utils.chat_formatting import escape
+from redbot.core.utils.chat_formatting import escape, pagify
+from redbot.core.utils.menus import menu, prev_page, close_menu, next_page
 
 
 class OWProfileCog(commands.Cog):
@@ -37,7 +39,7 @@ class OWProfileCog(commands.Cog):
 
         for ruleName, rule in matcher_list.items():
             hits = len(re.findall(rule['pattern'], member.name))
-            if rule['check_nick'] and member.nick is not None:
+            if rule['check_nick'] and member.nick:
                 hits += len(re.findall(rule['pattern'], member.nick))
             if hits > 0:
 
@@ -92,6 +94,23 @@ class OWProfileCog(commands.Cog):
                 }
             await ctx.send("✅ Matcher rule successfully added!")
 
+    @_owprofile.command("list")
+    async def _list(self, ctx: commands.Context):
+        """List current name triggers"""
+        rules = await self.config.guild(ctx.guild).rules()
+        pages = list(pagify("\n\n".join(self.rule_to_string(rn, r) for rn, r in rules)))
+        base_embed_options = {"title": "Overwatch Profile Name Rules", "colour": await ctx.embed_colour()}
+        embeds = [
+            discord.Embed(**base_embed_options, description=page).set_footer(text=f"Page {index} of {len(pages)}")
+            for index, page in enumerate(pages, start=1)
+        ]
+        if len(embeds) == 1:
+            await ctx.send(embed=embeds[0])
+        else:
+            ctx.bot.loop.create_task(
+                menu(ctx=ctx, pages=embeds, controls={"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page},
+                     timeout=180.0)
+            )
     @_owprofile.command("delete")
     async def _delete(self, ctx, name: str = ""):
         """Delete member name trigger"""
@@ -128,3 +147,7 @@ class OWProfileCog(commands.Cog):
             .add_field(name="Server", value=member.guild.name)
             .add_field(name="Timestamp", value=f"<t:{int(datetime.now().utcnow().timestamp())}:F>")
         )
+
+    def rule_to_string(self, rule_name: str, rule) -> str:
+        return f"{rule_name}:\n\tPattern: `{rule['pattern']}`\n\tCheck Nick: `{rule['check_nic']}`\n\tAlert Level: " \
+               f"{rule['alert_level']}\n\tReason: {rule['reason']}"
