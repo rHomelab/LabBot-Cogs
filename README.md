@@ -37,6 +37,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
     - [Report](#report)
     - [Roleinfo](#roleinfo)
     - [Sentry](#sentry)
+    - [Tags](#tags)
     - [Timeout](#timeout)
     - [Verify](#verify)
     - [xkcd](#xkcd)
@@ -87,6 +88,7 @@ A massive thank you to all who've helped out with this project ❤️
 - **[Report](#report):** Allows users to report issues.
 - **[Roleinfo](#roleinfo):** Displays info on a role
 - **[Sentry](#sentry):** Send unhandled errors to sentry.
+- **[Tags](#tags):** Allow user-generated stored messages.
 - **[Timeout](#timeout):** Manage users' timeout status.
 - **[Verify](#verify):** Allows users to verify themselves.
 - **[xkcd](#xkcd):** Allows users to look at xkcd comics.
@@ -274,6 +276,25 @@ Configure Sentry DSN using `[p]set api sentry dsn,https://fooo@bar.baz/9`, then 
 - `[p]sentry get_env` - Returns the currently configured Sentry environment.
 - `[p]sentry set_env` - Set the currently configured Sentry environment. Requires a reload of the cog.
 - `[p]sentry test` - Raise a test exception to test the Sentry connection.
+
+### Tags
+
+Allow user-generated stored messages to be triggered upon configurable tags. Aliases can also be created to make 
+accessing information even quicker. Users can transfer tag ownership between themselves and even claim ownership of 
+abandoned tags. Ever use of a tag or alias is tracked. Same with ownership transfers of any kind. Statistics and 
+searching have not yet been implemented. 
+
+- `[p]tag <tag>` - Triggers the specified tag. 
+- `[p]tag search <query>` - Searches for a tag or alias (WIP).
+- `[p]tag create <tag> <content>` - Creates the specified tag which will reply with the provided content when triggered.
+- `[p]tag stats [user]` - Provides general stats about the tag system, or if a user is provided, about that user (WIP).
+- `[p]tag info <tag>` - Provides info about the tag such as its creator, date of creation, etc. (WIP).
+- `[p]tag edit <tag> <content>` - Updates the content of the specified tag.
+- `[p]tag delete <tag>` - Deletes the specified tag.
+- `[p]tag claim <tag>` - Allows the runner to claim ownership of the tag if the current owner is not in the guild.
+- `[p]tag transfer <tag> <user>` - Transfers ownership of the specified tag to the specified user.
+- `[p]tag alias create <alias> <tag>` - Creates the specified alias to the specified tag.
+- `[p]tag alias delete <alias>` - Deletes the specified alias.
 
 ### Timeout
 
