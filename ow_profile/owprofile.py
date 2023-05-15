@@ -149,5 +149,5 @@ class OWProfileCog(commands.Cog):
         )
 
     def rule_to_string(self, rule_name: str, rule) -> str:
-        return f"{rule_name}:\n\tPattern: `{rule['pattern']}`\n\tCheck Nick: `{rule['check_nic']}`\n\tAlert Level: " \
+        return f"{rule_name}:\n\tPattern: `{rule['pattern']}`\n\tCheck Nick: `{rule['check_nick']}`\n\tAlert Level: " \
                f"{rule['alert_level']}\n\tReason: {rule['reason']}"
