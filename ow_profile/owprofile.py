@@ -22,8 +22,8 @@ class OWProfileCog(commands.Cog):
                 "spammer1": {  # Name of rule
                     "pattern": "^portalBlock$",  # Regex pattern to match against
                     "check_nick": False,  # Whether the user's nickname should be checked too
-                    "alert_level": "",  # Severity of alerts (use: HIGH or LOW)
-                    "reason": ""  # Reason for the match, used to add context to alerts
+                    "alert_level": "HIGH",  # Severity of alerts (use: HIGH or LOW)
+                    "reason": "Impostor :sus:"  # Reason for the match, used to add context to alerts
                 }
             }
         }
@@ -37,8 +37,8 @@ class OWProfileCog(commands.Cog):
 
         for ruleName, rule in matcher_list.items():
             hits = len(re.findall(rule['pattern'], member.name))
-            # if rule['check_nick']:
-            #    hits += len(re.findall(rule['pattern'], member.nick))
+            if rule['check_nick'] and member.nick is not None:
+                hits += len(re.findall(rule['pattern'], member.nick))
             if hits > 0:
 
                 # Credit: Taken from report Cog
@@ -73,11 +73,12 @@ class OWProfileCog(commands.Cog):
     # Commands
 
     @_owprofile.command(name="add")
-    async def _add(self, ctx, name: str = "", regex: str = "", reason: str = "", alert_level: str = "", check_nick: str = ""):
-        """Add member name trigger"""
+    async def _add(self, ctx, name: str = "", regex: str = "", alert_level: str = "",
+                   check_nick: str = "", *, reason: str = ""):
+        """Add/edit member name trigger"""
 
-        usage = "Usage: `[p]owprofile add <name> <regex> <reason> <alert level HIGH or LOW> <check nickname YES or NO>`"
-        usage += "\nNote: Reason is temporarily limited to 1 word. This is a WIP. Nick checking is also WIP."
+        usage = "Usage: `[p]owprofile add <name> <regex> <alert level HIGH or LOW> <check nickname YES or NO> <reason>`"
+        usage += "\nNote: Name & regex fields are limited to 1 word (no spaces)."
         if (not name and not regex and not reason and not alert_level and not check_nick) or \
                 (alert_level != "HIGH" and alert_level != "LOW") or (check_nick != "YES" and check_nick != "NO"):
             await ctx.send(usage)
