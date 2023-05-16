@@ -23,7 +23,7 @@ class OWVoiceCog(commands.Cog):
 
     @checks.admin()
     @commands.group("owvoice", pass_context=True)
-    async def _owvoice(self, ctx: commands.Context):
+    async def _owvoice(self, ctx):
         pass
 
     @_owvoice.command(name="time")
