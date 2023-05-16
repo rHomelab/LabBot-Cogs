@@ -30,7 +30,7 @@ class OWVoiceCog(commands.Cog):
     async def _time(self, ctx: commands.Context, hours: int):
         """Set/update the minimum hours users must be in the server before without triggering an alert."""
 
-        self.config.guild(ctx.guild).min_joined_hours.set(hours)
+        await self.config.guild(ctx.guild).min_joined_hours.set(hours)
         await ctx.send("✅ Time requirement successfully updated!")
 
     @_owvoice.command(name="logchannel")
@@ -40,7 +40,7 @@ class OWVoiceCog(commands.Cog):
         chanId = ctx.channel.id
         if channel:
             chanId = channel.id
-        self.config.guild(ctx.guild).logchannel.set(chanId)
+        await self.config.guild(ctx.guild).logchannel.set(chanId)
         await ctx.send("✅ Alert channel successfully updated!")
 
     @commands.Cog.listener()
