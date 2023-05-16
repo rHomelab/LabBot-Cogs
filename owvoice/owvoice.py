@@ -4,7 +4,7 @@ from typing import Optional
 import discord
 from redbot.core import Config, checks
 from redbot.core.bot import Red
-from redbot.core.commands import commands
+from redbot.core import commands
 
 
 class OWVoiceCog(commands.Cog):
@@ -23,7 +23,7 @@ class OWVoiceCog(commands.Cog):
 
     @checks.admin()
     @commands.group("owvoice", pass_context=True)
-    async def _owvoice(self, ctx):
+    async def _owvoice(self, ctx: commands.Context):
         pass
 
     @_owvoice.command(name="time")
