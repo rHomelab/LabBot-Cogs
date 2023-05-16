@@ -58,8 +58,7 @@ class OWVoiceCog(commands.Cog):
         if after is None or after.channel is None:  # Check if we're missing the after data or associated channel.
             return
 
-        allowable = datetime.now(timezone.utc) + \
-            timedelta(hours=await self.config.guild(after.channel.guild).min_joined_hours())
+        allowable = member.joined_at + timedelta(hours=await self.config.guild(after.channel.guild).min_joined_hours())
         if datetime.now(timezone.utc) < allowable:
             if after.self_stream or after.self_video:
                 self.alertCache[member.id] = True  # Update the cache to indicate we've alerted on this user.
