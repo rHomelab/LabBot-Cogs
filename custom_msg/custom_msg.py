@@ -4,7 +4,8 @@ from typing import Optional
 import discord
 from redbot.core import checks, commands
 
-from .interactive_session import InteractiveSession, SessionCancelled, make_session
+from .interactive_session import (InteractiveSession, SessionCancelled,
+                                  make_session)
 
 
 class CustomMsgCog(commands.Cog):
