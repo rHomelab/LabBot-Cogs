@@ -1,5 +1,6 @@
 """discord red-bot autoreact"""
 import asyncio
+import logging
 from typing import Generator, Optional
 
 import discord
@@ -10,6 +11,7 @@ from redbot.core.utils.predicates import ReactionPredicate
 
 CUSTOM_CONTROLS = {"⬅️": prev_page, "➡️": next_page}
 
+log = logging.getLogger("red.rhomelab.autoreact")
 
 class AutoReactCog(commands.Cog):
     """AutoReact Cog"""
@@ -40,7 +42,16 @@ class AutoReactCog(commands.Cog):
         if str(message.channel.id) in channels.keys():  # process special reactions
             channel_reactions = channels[str(message.channel.id)]
             for reaction in channel_reactions:
-                await message.add_reaction(reaction)
+                try:
+                    await message.add_reaction(reaction)
+                except discord.errors.NotFound:
+                    log.info(
+                        "Could not react to message %s in channel %s (%s) as the message was not found." +
+                        "Maybe the message was deleted?",
+                        message.id,
+                        message.channel.name,
+                        message.channel.id
+                    )
 
         # Do not continue if channel is whitelisted
         if message.channel.id in whitelisted_channels:
@@ -49,7 +60,16 @@ class AutoReactCog(commands.Cog):
         for phrase in reactions.keys():
             if phrase in message.content.lower().split():
                 for emoji in reactions[phrase]:
-                    await message.add_reaction(emoji)
+                    try:
+                        await message.add_reaction(emoji)
+                    except discord.errors.NotFound:
+                        log.info(
+                            "Could not react to message %s in channel %s (%s) as the message was not found." +
+                            "Maybe the message was deleted?",
+                            message.id,
+                            message.channel.name,
+                            message.channel.id
+                        )
 
     # Command groups
 
