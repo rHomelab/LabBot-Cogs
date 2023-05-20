@@ -72,7 +72,7 @@ class MessageWatchCog(commands.Cog):
     async def _messagewatch_exemptions(self, ctx: commands.Context):
         pass
 
-    @_messagewatch_exemptions.command(name="member_duration", aliases="md")
+    @_messagewatch_exemptions.command(name="member_duration", aliases=["md"])
     async def _fetch_time(self, ctx: commands.Context, time: str):
         """Set/update the minimum member duration, in hours, to qualify for exemptions."""
         try:
@@ -82,7 +82,7 @@ class MessageWatchCog(commands.Cog):
         except ValueError:
             await ctx.send("Minimum member duration FAILED to update. Please specify a `integer` value only!")
 
-    @_messagewatch_exemptions.command(name="text_messages", aliases="text")
+    @_messagewatch_exemptions.command(name="text_messages", aliases=["text"])
     async def _fetch_time(self, ctx: commands.Context, frequency: str):
         """Set/update the minimum frequency of text-only messages to be exempt."""
         try:
