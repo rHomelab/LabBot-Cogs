@@ -98,10 +98,10 @@ class MessageWatchCog(commands.Cog):
         if is_mod_or_superior(self.bot, message):  # Automatically exempt mods/admin
             return
         for i in range(len(message.attachments)):
-            self.add_embed_time(message.guild, message.author, datetime.utcnow())  # TODO: Use message timestamp
+            await self.add_embed_time(message.guild, message.author, datetime.utcnow())  # TODO: Use message timestamp
         for i in range(len(message.embeds)):
-            self.add_embed_time(message.guild, message.author, datetime.utcnow())  # TODO: Use message timestamp
-        self.analyze_speed(ctx, message)
+            await self.add_embed_time(message.guild, message.author, datetime.utcnow())  # TODO: Use message timestamp
+        await self.analyze_speed(ctx, message)
 
     @commands.Cog.listener()
     async def on_message_edit(self, ctx: commands.Context, before: discord.Message, after: discord.Message):
@@ -111,28 +111,28 @@ class MessageWatchCog(commands.Cog):
         total_increase += len(after.embeds) - len(before.attachments)
         if total_increase > 0:
             for i in range(total_increase):
-                self.add_embed_time(ctx.guild,  # Use the ctx guild because edits are inconsistent, TODO: Message time
+                await self.add_embed_time(ctx.guild,  # Use the ctx guild because edits are inconsistent, TODO: Message time
                                     after.author if after.author is not None else before.author, datetime.utcnow())
-            self.analyze_speed(ctx, after)
+            await self.analyze_speed(ctx, after)
 
-    def get_embed_times(self, guild: discord.Guild, user: discord.User) -> List[datetime]:
+    async def get_embed_times(self, guild: discord.Guild, user: discord.User) -> List[datetime]:
         if guild.id not in self.embed_speeds:
             self.embed_speeds[guild.id] = []
         if user.id not in self.embed_speeds[guild.id]:
             self.embed_speeds[guild.id][user.id] = []
         return self.embed_speeds[guild.id][user.id]
 
-    def add_embed_time(self, guild: discord.Guild, user: discord.User, time: datetime):
-        self.get_embed_times(guild, user)  # Call to get the times to build the user's cache if not already exists
+    async def add_embed_time(self, guild: discord.Guild, user: discord.User, time: datetime):
+        await self.get_embed_times(guild, user)  # Call to get the times to build the user's cache if not already exists
         self.embed_speeds[guild.id][user.id].append(time)
 
-    def get_recent_embed_times(self, guild: discord.Guild, user: discord.User) -> List[datetime]:
+    async def get_recent_embed_times(self, guild: discord.Guild, user: discord.User) -> List[datetime]:
         filter_time = datetime.utcnow() - timedelta(milliseconds=await self.config.guild(guild).recent_fetch_time())
-        return [time for time in self.get_embed_times(guild, user) if time >= filter_time]
+        return [time for time in await self.get_embed_times(guild, user) if time >= filter_time]
 
-    def analyze_speed(self, ctx: commands.Context, trigger: discord.Message):
+    async def analyze_speed(self, ctx: commands.Context, trigger: discord.Message):
         """Analyzes the frequency of embeds  & attachments by a user. Should only be called upon message create/edit."""
-        embed_times = self.get_recent_embed_times(ctx.guild, trigger.author)
+        embed_times = await self.get_recent_embed_times(ctx.guild, trigger.author)
         if len(embed_times) < 2:
             return  # Return because we don't have enough data to calculate the frequency
         first_time = embed_times[0]
