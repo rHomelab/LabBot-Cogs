@@ -1,0 +1,15 @@
+{
+    "author": [
+        "portalBlock"
+    ],
+    "short": "Monitor the frequency of messages and embeds.",
+    "description": "Analyzes message and embed activity in channels to detect suspicious actions.",
+    "disabled": false,
+    "name": "messagewatch",
+    "tags": [
+        "utility",
+        "mod"
+    ],
+    "install_msg": "Usage: `[p]messagewatch add`",
+    "min_bot_version": "3.5.1"
+}
