@@ -1,4 +1,5 @@
-from typing import Optional
+from datetime import datetime, timedelta
+from typing import Optional, List
 
 import discord
 from redbot.core import Config, checks
@@ -13,10 +14,10 @@ class MessageWatchCog(commands.Cog):
     def __init__(self, bot: Red):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=128986274420752384004)
-        self.alertCache = {}
+        self.embed_speeds = {}
         default_guild_config = {
             "logchannel": "",  # Channel to send alerts to
-            "recent_fetch_time": 15000,  # Time, in milliseconds, to fetch recent prior messages used for calculations.
+            "recent_fetch_time": 15000,  # Time in milliseconds to fetch recent prior embed times used for calculations.
             "frequencies": {  # Collection of allowable frequencies
                 "embed": 1  # Allowable frequency for embeds
             },
@@ -96,4 +97,90 @@ class MessageWatchCog(commands.Cog):
     async def on_message(self, ctx: commands.Context, message: discord.Message):
         if is_mod_or_superior(self.bot, message):  # Automatically exempt mods/admin
             return
-        pass
+        for i in range(len(message.attachments)):
+            self.add_embed_time(message.guild, message.author, datetime.utcnow())  # TODO: Use message timestamp
+        for i in range(len(message.embeds)):
+            self.add_embed_time(message.guild, message.author, datetime.utcnow())  # TODO: Use message timestamp
+        self.analyze_speed(ctx, message)
+
+    @commands.Cog.listener()
+    async def on_message_edit(self, ctx: commands.Context, before: discord.Message, after: discord.Message):
+        if is_mod_or_superior(self.bot, before):  # Automatically exempt mods/admins
+            return
+        total_increase = len(after.attachments) - len(before.attachments)
+        total_increase += len(after.embeds) - len(before.attachments)
+        if total_increase > 0:
+            for i in range(total_increase):
+                self.add_embed_time(ctx.guild,  # Use the ctx guild because edits are inconsistent, TODO: Message time
+                                    after.author if after.author is not None else before.author, datetime.utcnow())
+            self.analyze_speed(ctx, after)
+
+    def get_embed_times(self, guild: discord.Guild, user: discord.User) -> List[datetime]:
+        if guild.id not in self.embed_speeds:
+            self.embed_speeds[guild.id] = []
+        if user.id not in self.embed_speeds[guild.id]:
+            self.embed_speeds[guild.id][user.id] = []
+        return self.embed_speeds[guild.id][user.id]
+
+    def add_embed_time(self, guild: discord.Guild, user: discord.User, time: datetime):
+        self.get_embed_times(guild, user)  # Call to get the times to build the user's cache if not already exists
+        self.embed_speeds[guild.id][user.id].append(time)
+
+    def get_recent_embed_times(self, guild: discord.Guild, user: discord.User) -> List[datetime]:
+        filter_time = datetime.utcnow() - timedelta(milliseconds=await self.config.guild(guild).recent_fetch_time())
+        return [time for time in self.get_embed_times(guild, user) if time >= filter_time]
+
+    def analyze_speed(self, ctx: commands.Context, trigger: discord.Message):
+        """Analyzes the frequency of embeds  & attachments by a user. Should only be called upon message create/edit."""
+        embed_times = self.get_recent_embed_times(ctx.guild, trigger.author)
+        if len(embed_times) < 2:
+            return  # Return because we don't have enough data to calculate the frequency
+        first_time = embed_times[0]
+        last_time = embed_times[len(embed_times) - 1]
+        embed_frequency = len(embed_times) / (last_time - first_time).microseconds  # may need to convert to nano
+        if embed_frequency > await self.config.guild(ctx.guild).frequencies.embed():
+            # Alert triggered, send unless exempt
+
+            # Membership duration exemption
+            allowable = trigger.author.joined_at + timedelta(
+                hours=await self.config.guild(ctx.guild).exemptions.member_duration())
+            if datetime.utcnow() < allowable:
+                return
+
+            # Text-only message exemption (aka active participation exemption)
+            # TODO
+
+            # No exemptions at this point, alert!
+            # Credit: Taken from report Cog
+            log_id = await self.config.guild(ctx.guild).logchannel()
+            log = None
+            if log_id:
+                log = ctx.guild.get_channel(log_id)
+            if not log:
+                # Failed to get the channel
+                return
+
+            data = self.make_alert_embed(trigger.author, trigger)
+
+            mod_pings = " ".join(
+                [i.mention for i in log.members if not i.bot and str(i.status) in ["online", "idle"]])
+            if not mod_pings:  # If no online/idle mods
+                mod_pings = " ".join([i.mention for i in log.members if not i.bot])
+
+            await log.send(content=mod_pings, embed=data)
+            # End credit
+    def make_alert_embed(self, member: discord.Member, message: discord.Message) -> discord.Embed:
+        """Construct the alert embed to be sent"""
+        # Copied from the report Cog.
+        return (
+            discord.Embed(
+                colour=discord.Colour.orange(),
+                description="High frequency of embeds detected from a user."
+            )
+            .set_author(name="Suspicious User Activity", icon_url=member.avatar.url)
+            .add_field(name="Server", value=member.guild.name)
+            .add_field(name="User", value=member.mention)
+            .add_field(name="Message",
+                       value=f"https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id}")
+            .add_field(name="Timestamp", value=f"<t:{int(datetime.now().utcnow().timestamp())}:F>")
+        )
