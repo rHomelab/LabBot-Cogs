@@ -1,5 +1,6 @@
 import re
 from datetime import datetime
+from typing import Optional
 
 import discord
 import discord.utils
@@ -126,12 +127,15 @@ class ProfileWatchCog(commands.Cog):
             else:
                 await ctx.send("Specified matcher rule not found.")
 
-    @_profilewatch.command("channel")
-    async def _channel(self, ctx, channel: discord.TextChannel):
-        """Set the alert channel"""
+    @_profilewatch.command(name="logchannel")
+    async def _logchannel(self, ctx: commands.Context, channel: Optional[discord.TextChannel]):
+        """Set/update the channel to send profile violation alerts to."""
 
-        await self.config.guild(ctx.guild).logchannel.set(channel.id)
-        await ctx.send("Alert channel set to current channel!")
+        chanId = ctx.channel.id
+        if channel:
+            chanId = channel.id
+        await self.config.guild(ctx.guild).logchannel.set(chanId)
+        await ctx.send("✅ Alert channel successfully updated!")
 
     def make_alert_embed(self, member: discord.Member, rule: str, matcher) -> discord.Embed:
         """Construct the alert embed to be sent"""
