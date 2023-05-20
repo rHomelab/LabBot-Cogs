@@ -1,0 +1,15 @@
+{
+    "author": [
+        "portalBlock"
+    ],
+    "short": "Monitor profile names for patterns.",
+    "description": "Utilize regex pattern matching to check new users' names and nicknames.",
+    "disabled": false,
+    "name": "profilewatch",
+    "tags": [
+        "utility",
+        "mod"
+    ],
+    "install_msg": "Usage: `[p]profilewatch add`",
+    "min_bot_version": "3.5.1"
+}

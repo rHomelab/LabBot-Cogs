@@ -7,8 +7,8 @@ from redbot.core.bot import Red
 from redbot.core import commands
 
 
-class OWVoiceCog(commands.Cog):
-    """Overwatch Voice Cog"""
+class VoiceWatchCog(commands.Cog):
+    """VoiceWatch Cog"""
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -22,11 +22,11 @@ class OWVoiceCog(commands.Cog):
         self.config.register_guild(**default_guild_config)
 
     @checks.admin()
-    @commands.group("owvoice", pass_context=True)
-    async def _owvoice(self, ctx: commands.Context):
+    @commands.group("voicewatch", aliases=["vw"], pass_context=True)
+    async def _voicewatch(self, ctx: commands.Context):
         pass
 
-    @_owvoice.command(name="time")
+    @_voicewatch.command(name="time")
     async def _time(self, ctx: commands.Context, hours: str):
         """Set/update the minimum hours users must be in the server before without triggering an alert."""
         try:
@@ -36,7 +36,7 @@ class OWVoiceCog(commands.Cog):
         except ValueError:
             await ctx.send("Error: Non-number hour argument supplied.")
 
-    @_owvoice.command(name="logchannel")
+    @_voicewatch.command(name="logchannel")
     async def _logchannel(self, ctx: commands.Context, channel: Optional[discord.TextChannel]):
         """Set/update the channel to send voice activity alerts to."""
 

@@ -1,4 +1,3 @@
-"""discord red-bot overwatch profile"""
 import re
 from datetime import datetime
 
@@ -10,8 +9,8 @@ from redbot.core.utils.chat_formatting import escape, pagify
 from redbot.core.utils.menus import menu, prev_page, close_menu, next_page
 
 
-class OWProfileCog(commands.Cog):
-    """Overwatch Profile Cog"""
+class ProfileWatchCog(commands.Cog):
+    """ProfileWatch Cog"""
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -67,18 +66,18 @@ class OWProfileCog(commands.Cog):
     # Command groups
 
     @checks.admin()
-    @commands.group(name="owprofile", pass_context=True)
-    async def _owprofile(self, ctx):
+    @commands.group(name="profilewatch", aliases=["pw"], pass_context=True)
+    async def _profilewatch(self, ctx):
         """Monitor for flagged member name formats"""
 
     # Commands
 
-    @_owprofile.command(name="add")
+    @_profilewatch.command(name="add")
     async def _add(self, ctx, name: str = "", regex: str = "", alert_level: str = "",
                    check_nick: str = "", *, reason: str = ""):
         """Add/edit member name trigger"""
 
-        usage = "Usage: `[p]owprofile add <name> <regex> <alert level HIGH or LOW> <check nickname YES or NO> <reason>`"
+        usage = "Usage: `[p]profilewatch add <name> <regex> <alert level HIGH or LOW> <check nickname YES or NO> <reason>`"
         usage += "\nNote: Name & regex fields are limited to 1 word (no spaces)."
         if (not name and not regex and not reason and not alert_level and not check_nick) or \
                 (alert_level != "HIGH" and alert_level != "LOW") or (check_nick != "YES" and check_nick != "NO"):
@@ -93,12 +92,12 @@ class OWProfileCog(commands.Cog):
                 }
             await ctx.send("✅ Matcher rule successfully added!")
 
-    @_owprofile.command("list")
+    @_profilewatch.command("list")
     async def _list(self, ctx: commands.Context):
         """List current name triggers"""
         rules = await self.config.guild(ctx.guild).rules()
         pages = list(pagify("\n\n".join(self.rule_to_string(rn, r) for rn, r in rules.items())))
-        base_embed_options = {"title": "Overwatch Profile Name Rules", "colour": await ctx.embed_colour()}
+        base_embed_options = {"title": "Profile Watch Name Rules", "colour": await ctx.embed_colour()}
         embeds = [
             discord.Embed(**base_embed_options, description=page).set_footer(text=f"Page {index} of {len(pages)}")
             for index, page in enumerate(pages, start=1)
@@ -110,11 +109,11 @@ class OWProfileCog(commands.Cog):
                 menu(ctx=ctx, pages=embeds, controls={"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page},
                      timeout=180.0)
             )
-    @_owprofile.command("delete")
+    @_profilewatch.command("delete")
     async def _delete(self, ctx, name: str = ""):
         """Delete member name trigger"""
 
-        usage = "Usage: `[p]owprofile delete <name>`"
+        usage = "Usage: `[p]profilewatch delete <name>`"
         if not name:
             await ctx.send(usage)
         else:
@@ -127,7 +126,7 @@ class OWProfileCog(commands.Cog):
             else:
                 await ctx.send("Specified matcher rule not found.")
 
-    @_owprofile.command("channel")
+    @_profilewatch.command("channel")
     async def _channel(self, ctx, channel: discord.TextChannel):
         """Set the alert channel"""
 

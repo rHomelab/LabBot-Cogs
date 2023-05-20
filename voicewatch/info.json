@@ -1,0 +1,15 @@
+{
+    "author": [
+        "portalBlock"
+    ],
+    "short": "Detect suspicious voice channel activity.",
+    "description": "Analyzes voice and video activity in applicable channels to detect suspicious actions.",
+    "disabled": false,
+    "name": "voicewatch",
+    "tags": [
+        "utility",
+        "mod"
+    ],
+    "install_msg": "Usage: `[p]voicewatch add`",
+    "min_bot_version": "3.5.1"
+}
