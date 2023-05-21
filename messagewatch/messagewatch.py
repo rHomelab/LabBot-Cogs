@@ -132,16 +132,27 @@ class MessageWatchCog(commands.Cog):
 
     async def analyze_speed(self, guild: discord.Guild, trigger: discord.Message):
         """Analyzes the frequency of embeds  & attachments by a user. Should only be called upon message create/edit."""
+
         embed_times = await self.get_recent_embed_times(guild, trigger.author)
+
+        # Check if we have enough basic data to calculate the frequency (prevents some config fetches below)
         if len(embed_times) < 2:
-            return  # Return because we don't have enough data to calculate the frequency
+            return
+
+        # This is a bit of a hack but check if the total embeds, regardless of times, could exceed the frequency limit
+        # This is needed because one message with N > 1 embeds and no prior embed times would always trigger.
+        allowable_embed_frequency = await self.config.guild(guild).frequencies.embed()
+        fetch_time = await self.config.guild(guild).recent_fetch_time()
+        if len(embed_times) < allowable_embed_frequency * fetch_time:
+            return
+
         first_time = embed_times[0]
         last_time = embed_times[len(embed_times) - 1]
-        embed_frequency = len(embed_times) / (last_time - first_time).microseconds  # may need to convert to nano
-        if embed_frequency > await self.config.guild(guild).frequencies.embed():
+        embed_frequency = len(embed_times) / ((last_time - first_time).microseconds / 1000)  # convert to milliseconds
+        if embed_frequency > allowable_embed_frequency:
             # Alert triggered, send unless exempt
 
-            # Membership duration exemption
+            # Membership duration exemption TODO: remove this once other logic is bolstered
             allowable = trigger.author.joined_at + timedelta(
                 hours=await self.config.guild(guild).exemptions.member_duration())
             if datetime.now(timezone.utc) < allowable:
