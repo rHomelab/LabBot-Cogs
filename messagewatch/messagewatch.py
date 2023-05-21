@@ -152,14 +152,13 @@ class MessageWatchCog(commands.Cog):
         if embed_frequency > allowable_embed_frequency:
             # Alert triggered, send unless exempt
 
-            # Membership duration exemption TODO: remove this once other logic is bolstered
+            # Membership duration exemption
             allowable = trigger.author.joined_at + timedelta(
                 hours=await self.config.guild(guild).exemptions.member_duration())
-            if datetime.now(timezone.utc) < allowable:
+            if datetime.now(timezone.utc) < allowable:  # Todo: this isn't supposed to exempt them, just allow exempts
+                # Text-only message exemption (aka active participation exemption)
+                # TODO
                 return
-
-            # Text-only message exemption (aka active participation exemption)
-            # TODO
 
             # No exemptions at this point, alert!
             # Credit: Taken from report Cog

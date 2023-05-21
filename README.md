@@ -28,9 +28,11 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
     - [Google](#google)
     - [Latex](#latex)
     - [Letters](#letters)
+    - [MessageWatch](#messagewatch)
     - [Notes](#notes)
     - [Penis](#penis)
     - [Phishingdetection](#phishingdetection)
+    - [ProfileWatch](#profilewatch)
     - [Purge](#purge)
     - [Quotes](#quotes)
     - [Reactrole](#reactrole)
@@ -39,6 +41,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
     - [Sentry](#sentry)
     - [Timeout](#timeout)
     - [Verify](#verify)
+    - [VoiceWatch](#voicewatch)
     - [xkcd](#xkcd)
   - [License](#license)
   - [Contributing](#contributing)
@@ -79,8 +82,10 @@ A massive thank you to all who've helped out with this project ❤️
 - **[Google](#google):** Send a google link to someone.
 - **[LaTeX](#latex):** Render a LaTeX statement.
 - **[Letters](#letters):** Outputs large emote letters/numbers from input text.
+- **[MessageWatch](#messagewatch):** Analyzes message components to detect automated activity.
 - **[Notes](#notes):** Manage notes and warnings against users.
 - **[Penis](#penis):** Allows users to check the size of their penis.
+- **[ProfileWatch](#profilewatch):** Analyzes profile data and alerts upon recognized patterns.
 - **[Purge](#purge):** This will purge users based on criteria.
 - **[Quotes](#quotes):** Allows users to quote other users' messages in a quotes channel.
 - **[Reactrole](#reactrole):** Allows roles to be applied and removed using reactions.
@@ -89,6 +94,7 @@ A massive thank you to all who've helped out with this project ❤️
 - **[Sentry](#sentry):** Send unhandled errors to sentry.
 - **[Timeout](#timeout):** Manage users' timeout status.
 - **[Verify](#verify):** Allows users to verify themselves.
+- **[VoiceWatch](#voicewatch):** Analyzes voice channel activity and alerts upon suspicious patterns.
 - **[xkcd](#xkcd):** Allows users to look at xkcd comics.
 
 ## Cog Documentation
@@ -187,6 +193,16 @@ This cog converts a string of letters/numbers into large emote letters ("regiona
 `[p]letters I would like this text as emotes 123`
 `[p]letters -raw I would like this text as raw emote code 123`
 
+### MessageWatch
+
+Analyzes message components to detect automated activity.
+
+- `[p]messagewatch logchannel [channel]` - Set the log output channel to the current (or specified) channel.
+- `[p]messagewatch fetchtime <float: time (milliseconds)>` - Set the recent message timeframe used in calculations.
+- `[p]messagewatch frequencies embed <float: frequency>` - Set the maximum allowable frequency of embeds/attachments.
+- `[p]messagewatch exemptions memberduration <int: time (hours)>` - Set the minimum membership duration to qualify for exemptions. 
+- `[p]messagewatch exemptions textmessages <float: frequency>` - Set the minimum text-only frequency for participation exemptions.
+
 ### Notes
 
 Manage notes and warnings against users.
@@ -212,6 +228,15 @@ This cog allows users to check the size of their penis.
 ### Phishingdetection
 
 This cog automatically deletes any messages containing suspected phishing/scam links. This information is sourced from [phish.sinking.yachts](https://phish.sinking.yachts/)
+
+### ProfileWatch
+
+Analyzes profile data and alerts upon recognized name/nickname patterns. 
+
+- `[p]profilewatch logchannel [channel]` - Set the log output channel to the current (or specified) channel.
+- `[p]profilewatch add <name> <pattern> <level: HIGH or LOW> <check nickname: YES or NO> <reason>` - Add/edit a rule with the specified name. Pattern is a python-style regex. 
+- `[p]profilewatch list` - List the current rules.  
+- `[p]profilewatch delete <name>` - Delete the specified rule.
 
 ### Purge
 
@@ -296,6 +321,13 @@ This cog will allow users to prove they're not a bot by having to read rules and
 - `[p]verify role <role>` - Set the role to which users are added upon successful verification.
 
 Further configuration options can be seen with `[p]verify help`
+
+### VoiceWatch
+
+Analyzes voice channel activity and alerts upon suspicious patterns.  
+
+- `[p]voicewatch logchannel [channel]` - Set the log output channel to the current (or specified) channel.
+- `[p]voicewatch time <int: time (hours)>` - Set/update the minimum hours users must be in the server before without triggering an alert.
 
 ### xkcd
 
