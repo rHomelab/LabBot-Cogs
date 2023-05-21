@@ -35,7 +35,7 @@ class MessageWatchCog(commands.Cog):
         pass
 
     @_messagewatch.command(name="logchannel")
-    async def _logchannel(self, ctx: commands.Context, channel: Optional[discord.TextChannel]):
+    async def _messagewatch_logchannel(self, ctx: commands.Context, channel: Optional[discord.TextChannel]):
         """Set/update the channel to send message activity alerts to."""
 
         chanId = ctx.channel.id
@@ -45,7 +45,7 @@ class MessageWatchCog(commands.Cog):
         await ctx.send("✅ Alert channel successfully updated!")
 
     @_messagewatch.command(name="fetchtime")
-    async def _fetch_time(self, ctx: commands.Context, time: str):
+    async def _messagewatch_fetchtime(self, ctx: commands.Context, time: str):
         """Set/update the recent message fetch time (in milliseconds)."""
         try:
             val = float(time)
@@ -54,12 +54,12 @@ class MessageWatchCog(commands.Cog):
         except ValueError:
             await ctx.send("Recent message fetch time FAILED to update. Please specify a `float` value only!")
 
-    @_messagewatch.group("frequencies", aliases=["freq", "freqs"])
+    @_messagewatch.group("frequencies", aliases=["freq", "freqs"], pass_context=True)
     async def _messagewatch_frequencies(self, ctx: commands.Context):
         pass
 
     @_messagewatch_frequencies.command(name="embed")
-    async def _fetch_time(self, ctx: commands.Context, frequency: str):
+    async def _messagewatch_frequencies_embed(self, ctx: commands.Context, frequency: str):
         """Set/update the allowable embed frequency."""
         try:
             val = float(frequency)
@@ -68,12 +68,12 @@ class MessageWatchCog(commands.Cog):
         except ValueError:
             await ctx.send("Allowable embed frequency FAILED to update. Please specify a `float` value only!")
 
-    @_messagewatch.group("exemptions", aliases=["exempt", "exempts"])
+    @_messagewatch.group("exemptions", aliases=["exempt", "exempts"], pass_context=True)
     async def _messagewatch_exemptions(self, ctx: commands.Context):
         pass
 
-    @_messagewatch_exemptions.command(name="member_duration", aliases=["md"])
-    async def _fetch_time(self, ctx: commands.Context, time: str):
+    @_messagewatch_exemptions.command(name="memberduration", aliases=["md"])
+    async def _messagewatch_exemptions_memberduration(self, ctx: commands.Context, time: str):
         """Set/update the minimum member duration, in hours, to qualify for exemptions."""
         try:
             val = int(time)
@@ -82,8 +82,8 @@ class MessageWatchCog(commands.Cog):
         except ValueError:
             await ctx.send("Minimum member duration FAILED to update. Please specify a `integer` value only!")
 
-    @_messagewatch_exemptions.command(name="text_messages", aliases=["text"])
-    async def _fetch_time(self, ctx: commands.Context, frequency: str):
+    @_messagewatch_exemptions.command(name="textmessages", aliases=["text"])
+    async def _messagewatch_expemptions_textmessages(self, ctx: commands.Context, frequency: str):
         """Set/update the minimum frequency of text-only messages to be exempt."""
         try:
             val = float(frequency)
@@ -94,26 +94,26 @@ class MessageWatchCog(commands.Cog):
                            "only!")
 
     @commands.Cog.listener()
-    async def on_message(self, ctx: commands.Context, message: discord.Message):
+    async def on_message(self, message: discord.Message):
         if is_mod_or_superior(self.bot, message):  # Automatically exempt mods/admin
             return
         for i in range(len(message.attachments)):
             await self.add_embed_time(message.guild, message.author, datetime.utcnow())  # TODO: Use message timestamp
         for i in range(len(message.embeds)):
             await self.add_embed_time(message.guild, message.author, datetime.utcnow())  # TODO: Use message timestamp
-        await self.analyze_speed(ctx, message)
+        await self.analyze_speed(message.guild, message)
 
     @commands.Cog.listener()
-    async def on_message_edit(self, ctx: commands.Context, before: discord.Message, after: discord.Message):
+    async def on_message_edit(self, before: discord.Message, after: discord.Message):
         if is_mod_or_superior(self.bot, before):  # Automatically exempt mods/admins
             return
         total_increase = len(after.attachments) - len(before.attachments)
         total_increase += len(after.embeds) - len(before.attachments)
         if total_increase > 0:
             for i in range(total_increase):
-                await self.add_embed_time(ctx.guild,  # Use the ctx guild because edits are inconsistent, TODO: Message time
+                await self.add_embed_time(after.guild,  # Use the ctx guild because edits are inconsistent, TODO: Message time
                                     after.author if after.author is not None else before.author, datetime.utcnow())
-            await self.analyze_speed(ctx, after)
+            await self.analyze_speed(after.guild, after)
 
     async def get_embed_times(self, guild: discord.Guild, user: discord.User) -> List[datetime]:
         if guild.id not in self.embed_speeds:
@@ -130,20 +130,20 @@ class MessageWatchCog(commands.Cog):
         filter_time = datetime.utcnow() - timedelta(milliseconds=await self.config.guild(guild).recent_fetch_time())
         return [time for time in await self.get_embed_times(guild, user) if time >= filter_time]
 
-    async def analyze_speed(self, ctx: commands.Context, trigger: discord.Message):
+    async def analyze_speed(self, guild: discord.Guild, trigger: discord.Message):
         """Analyzes the frequency of embeds  & attachments by a user. Should only be called upon message create/edit."""
-        embed_times = await self.get_recent_embed_times(ctx.guild, trigger.author)
+        embed_times = await self.get_recent_embed_times(guild, trigger.author)
         if len(embed_times) < 2:
             return  # Return because we don't have enough data to calculate the frequency
         first_time = embed_times[0]
         last_time = embed_times[len(embed_times) - 1]
         embed_frequency = len(embed_times) / (last_time - first_time).microseconds  # may need to convert to nano
-        if embed_frequency > await self.config.guild(ctx.guild).frequencies.embed():
+        if embed_frequency > await self.config.guild(guild).frequencies.embed():
             # Alert triggered, send unless exempt
 
             # Membership duration exemption
             allowable = trigger.author.joined_at + timedelta(
-                hours=await self.config.guild(ctx.guild).exemptions.member_duration())
+                hours=await self.config.guild(guild).exemptions.member_duration())
             if datetime.utcnow() < allowable:
                 return
 
@@ -152,10 +152,10 @@ class MessageWatchCog(commands.Cog):
 
             # No exemptions at this point, alert!
             # Credit: Taken from report Cog
-            log_id = await self.config.guild(ctx.guild).logchannel()
+            log_id = await self.config.guild(guild).logchannel()
             log = None
             if log_id:
-                log = ctx.guild.get_channel(log_id)
+                log = guild.get_channel(log_id)
             if not log:
                 # Failed to get the channel
                 return
