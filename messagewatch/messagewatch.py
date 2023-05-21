@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, List
 
 import discord
@@ -144,7 +144,7 @@ class MessageWatchCog(commands.Cog):
             # Membership duration exemption
             allowable = trigger.author.joined_at + timedelta(
                 hours=await self.config.guild(guild).exemptions.member_duration())
-            if datetime.utcnow() < allowable:
+            if datetime.now(timezone.utc) < allowable:
                 return
 
             # Text-only message exemption (aka active participation exemption)
