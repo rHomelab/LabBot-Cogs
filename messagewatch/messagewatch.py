@@ -95,7 +95,7 @@ class MessageWatchCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        if is_mod_or_superior(self.bot, message):  # Automatically exempt mods/admin
+        if await is_mod_or_superior(self.bot, message):  # Automatically exempt mods/admin
             return
         for i in range(len(message.attachments)):
             await self.add_embed_time(message.guild, message.author, datetime.utcnow())  # TODO: Use message timestamp
@@ -105,7 +105,7 @@ class MessageWatchCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
-        if is_mod_or_superior(self.bot, before):  # Automatically exempt mods/admins
+        if await is_mod_or_superior(self.bot, before):  # Automatically exempt mods/admins
             return
         total_increase = len(after.attachments) - len(before.attachments)
         total_increase += len(after.embeds) - len(before.attachments)
