@@ -117,7 +117,7 @@ class MessageWatchCog(commands.Cog):
 
     async def get_embed_times(self, guild: discord.Guild, user: discord.User) -> List[datetime]:
         if guild.id not in self.embed_speeds:
-            self.embed_speeds[guild.id] = []
+            self.embed_speeds[guild.id] = {}
         if user.id not in self.embed_speeds[guild.id]:
             self.embed_speeds[guild.id][user.id] = []
         return self.embed_speeds[guild.id][user.id]
