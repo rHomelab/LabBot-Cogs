@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional, List, Union
 
 import discord
 from discord import Guild
@@ -57,20 +58,10 @@ class TagCog(commands.Cog):
 
         self.config.register_guild(**default_guild_config)
 
-    # Old way of doing things
-    # async def fire_tag(self, ctx: commands.Context, tag: str) -> bool:
-    #     async with self.config.guild(ctx.guild).tags() as tags:
-    #         if tag in tags:
-    #             to = tags[tag]
-    #             if "uses" not in to:
-    #                 to["uses"] = []
-    #             to["uses"].append({"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())})
-    #             await ctx.send(to["content"])
-    #             return True
-
     @commands.guild_only()
     @commands.group(name="tag", pass_context=True, invoke_without_command=True)
     async def _tag(self, ctx: commands.Context, tag: str):
+        """Manage tags and aliases."""
         async def on_resolve(trigger: str, tag, alias, trigger_is_alias: bool):
             use = {"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())}
             if "uses" not in tag:
@@ -90,23 +81,15 @@ class TagCog(commands.Cog):
 
         await self.resolve_trigger(ctx, tag, on_resolve, fail_resolve)
 
-        # Old way of doing things
-        # if not await self.fire_tag(ctx, tag):  #Fires the tag if it's a tag itself, otherwise continue and as an alias
-        #     async with self.config.guild(ctx.guild).aliases() as aliases:
-        #         if tag in aliases:
-        #             alias = aliases[tag]
-        #             if "uses" not in alias:
-        #                 alias["uses"] = []
-        #             alias["uses"].append({"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())})
-        #             await self.fire_tag(ctx, alias["tag"])
-
     @_tag.command(name="search")
     async def _search(self, ctx: commands.Context, query: str):
+        """Fuzzy search for tags and aliases matching the provided query. (WIP)"""
         # TODO: Search for a matching tag or alias and return information about it to the user
         await ctx.send("Not yet implemented, please try again later. Sorry!")
 
     @_tag.command(name="create")
     async def _create(self, ctx: commands.Context, tag: str, *, content: str):
+        """Create a new tag with the provided content (attachments excluded)."""
         async with self.config.guild(ctx.guild).aliases() as aliases:
             if tag in aliases:
                 await ctx.send("That tag already exists as an alias!")
@@ -127,6 +110,7 @@ class TagCog(commands.Cog):
 
     @_tag.command(name="stats")
     async def _stats(self, ctx: commands.Context, member: discord.Member):
+        """Provide general stats about the tag system, or if a user is provided, about that user. (WIP)"""
         await ctx.send("Stats reporting has not yet been implemented. Don't worry, we're tracking the stats though!")
         if not member:
             # TODO Return general stats
@@ -138,6 +122,7 @@ class TagCog(commands.Cog):
 
     @_tag.command(name="info")
     async def _info(self, ctx: commands.Context, tag: str):
+        """Provide information about the specified tag/alias. (WIP)"""
         await ctx.send("Info reporting has not yet been implemented.")
         if not tag:
             # TODO Error
@@ -148,6 +133,7 @@ class TagCog(commands.Cog):
 
     @_tag.command(name="edit")
     async def _edit(self, ctx: commands.Context, tag: str, *, content: str):
+        """Replace the tag content with the supplied content."""
         async with self.config.guild(ctx.guild).tags() as tags:
             if tag in tags:
                 to = tags[tag]
@@ -161,6 +147,7 @@ class TagCog(commands.Cog):
 
     @_tag.command(name="delete")
     async def _delete(self, ctx: commands.Context, tag: str):
+        """Delete the specified tag."""
         async with self.config.guild(ctx.guild).tags() as tags:
             if tag in tags:
                 to = tags[tag]
@@ -174,6 +161,7 @@ class TagCog(commands.Cog):
 
     @_tag.command(name="claim")
     async def _claim(self, ctx: commands.Context, tag: str):
+        """Claim an abandoned tag (if the creator has left the guild)."""
         async with self.config.guild(ctx.guild).tags() as tags:
             if tag in tags:
                 to = tags[tag]
@@ -197,6 +185,7 @@ class TagCog(commands.Cog):
 
     @_tag.command(name="transfer")
     async def _transfer(self, ctx: commands.Context, tag: str, member: discord.Member):
+        """Transfer ownership of the tag to the specified user."""
         async with self.config.guild(ctx.guild).tags() as tags:
             if tag in tags:
                 to = tags[tag]
@@ -216,10 +205,12 @@ class TagCog(commands.Cog):
 
     @_tag.group(name="alias")
     async def _alias(self, ctx: commands.Context):
+        """Manage tag aliases."""
         pass
 
     @_alias.command("create")
     async def _alias_create(self, ctx: commands.Context, alias: str, tag: str):
+        """Create an alias to the specified tag."""
         to, al, tag_proper, alias_proper = await self.get_tag_or_alias(alias, ctx.guild)
         if tag_proper:
             await ctx.send("That's already a tag!")
@@ -237,6 +228,7 @@ class TagCog(commands.Cog):
 
     @_alias.command("delete")
     async def _alias_delete(self, ctx: commands.Context, alias: str):
+        """Delete the specified alias."""
         async with self.config.guild(ctx.guild).aliases() as aliases:
             if alias in aliases:
                 a = aliases[alias]
