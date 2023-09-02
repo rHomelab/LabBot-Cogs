@@ -2,7 +2,7 @@
 import random
 
 import discord
-from redbot.core import commands, app_commands
+from redbot.core import app_commands, commands
 
 food = (
     "🍇",
