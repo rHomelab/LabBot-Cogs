@@ -1,5 +1,6 @@
 from redbot.core import commands
 
+
 class Topic(commands.Cog):
     """Thus beginith the topic command"""
 
@@ -13,6 +14,6 @@ class Topic(commands.Cog):
 
         topic = ctx.channel.topic
         if topic:
-            await ctx.send(f'{ctx.channel.mention}: {topic}')
+            await ctx.send(f"{ctx.channel.mention}: {topic}")
         else:
-            await ctx.send('This channel does not have a topic.')
+            await ctx.send("This channel does not have a topic.")
