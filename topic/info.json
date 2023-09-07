@@ -1,0 +1,14 @@
+{
+    "author": [
+        "Hugh Mungus (the1337g33k)"
+    ],
+    "short": "Topic cog",
+    "description": "Allows users to request the bot regurgitate the current channel topic as a message response.",
+    "disabled": false,
+    "name": "topic",
+    "tags": [
+        "info"
+    ],
+    "install_msg": "Usage: `[p]topic`",
+    "min_bot_version": "3.5.1"
+}
