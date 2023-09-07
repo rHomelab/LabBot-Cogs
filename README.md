@@ -351,6 +351,7 @@ Shows the current channel topic as a message in the channel.
 Channel topics are notoriously hard for users to see.  It's in a not so obvious place in the desktop UI and it's not possible to see in the mobile UI unless you are looking at the memberlist.  Topic allows users to easily view the current channel topic or use it to remind other users in the channel what the topic currently is.
 
 - `[p]topic` - Prints the current channel topic. Output message format: `#channel: topic`
+- `/topic` - Same as above but implemented as a discord slash command.
 
 ### Verify
 
