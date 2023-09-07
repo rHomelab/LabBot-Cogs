@@ -72,7 +72,7 @@ A massive thank you to all who've helped out with this project ❤️
 - [TheDevFreak](https://github.com/TheDevFreak)
 - [McTwist](https://github.com/McTwist)
 - [Darkflame72](https://github.com/Darkflame72)
-- [the1337g33k aka Hugh Mungus](https://github.com/the1337g33k)
+- [Hugh Mungus (the1337g33k)](https://github.com/the1337g33k)
 
 ## Cog Summaries
 
@@ -348,7 +348,7 @@ All of the member's roles will be stripped when they are added to timeout, and r
 
 Shows the current channel topic as a message in the channel.
 
-Channel topics are notoriously hard for users to see.  It's in a not so obvious place in the desktop UI and it's not possible to see in the UI unless you are looking at the memberlist.  Topic allows users to easily view the current channel topic or use it to remind other users in the channel what the topic currently is.
+Channel topics are notoriously hard for users to see.  It's in a not so obvious place in the desktop UI and it's not possible to see in the mobile UI unless you are looking at the memberlist.  Topic allows users to easily view the current channel topic or use it to remind other users in the channel what the topic currently is.
 
 - `[p]topic` - Prints the current channel topic. Output message format: `#channel: topic`
 
