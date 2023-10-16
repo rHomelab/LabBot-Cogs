@@ -1,0 +1,15 @@
+{
+    "author": [
+        "portalBlock"
+    ],
+    "short": "Detect suspicious user activity.",
+    "description": "Analyzes voice, text, and profile activity to detect suspicious actions.",
+    "disabled": false,
+    "name": "watcher",
+    "tags": [
+        "utility",
+        "mod"
+    ],
+    "install_msg": "Usage: `[p]watcher help`",
+    "min_bot_version": "3.5.1"
+}
