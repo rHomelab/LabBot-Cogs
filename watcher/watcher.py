@@ -5,7 +5,7 @@ import discord
 import re
 from redbot.core import Config, checks
 from redbot.core.bot import Red
-from redbot.core.commands import commands
+from redbot.core import commands
 from redbot.core.utils.chat_formatting import pagify, escape
 from redbot.core.utils.menus import menu, prev_page, close_menu, next_page
 from redbot.core.utils.mod import is_mod_or_superior
