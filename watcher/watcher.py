@@ -3,12 +3,23 @@ from typing import Optional, List
 
 import discord
 import re
+
+from discord.ext.commands import CommandError
 from redbot.core import Config, checks
 from redbot.core.bot import Red
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import pagify, escape
 from redbot.core.utils.menus import menu, prev_page, close_menu, next_page
 from redbot.core.utils.mod import is_mod_or_superior
+
+
+def custom_float_converter(message: str):
+    async def convert(ctx: commands.Context, arg: str) -> float:
+        try:
+            return float(arg)
+        except ValueError:
+            raise CommandError(message)
+    return convert
 
 
 class WatcherCog(commands.Cog):
@@ -84,10 +95,11 @@ class WatcherCog(commands.Cog):
 
     @_profilewatch.command(name="add")
     async def _profilewatch_add(self, ctx, name: str = "", regex: str = "", alert_level: str = "",
-                   check_nick: str = "", *, reason: str = ""):
+                   check_nick: bool = False, *, reason: str = ""):
         """Add/edit member name trigger"""
 
-        usage = "Usage: `[p]profilewatch add <name> <regex> <alert level HIGH or LOW> <check nickname YES or NO> <reason>`"
+        usage = "Usage: `[p]profilewatch add <name> <regex> <alert level HIGH or LOW> <check nickname TRUE or FALSE> " \
+                "<reason>` "
         usage += "\nNote: Name & regex fields are limited to 1 word (no spaces)."
         if (not name and not regex and not reason and not alert_level and not check_nick) or \
                 (alert_level != "HIGH" and alert_level != "LOW") or (check_nick != "YES" and check_nick != "NO"):
@@ -142,28 +154,28 @@ class WatcherCog(commands.Cog):
         pass
 
     @_messagewatch.command(name="fetchtime")
-    async def _messagewatch_fetchtime(self, ctx: commands.Context, time: str):
+    async def _messagewatch_fetchtime(self, ctx: commands.Context, time: custom_float_converter("Recent message fetch "
+                                                                                                "time FAILED to "
+                                                                                                "update. Please "
+                                                                                                "specify a `float` "
+                                                                                                "value only!")):
         """Set/update the recent message fetch time (in milliseconds)."""
-        try:
-            val = float(time)
-            await self.config.guild(ctx.guild).messagewatcher.recent_fetch_time.set(val)
-            await ctx.send("Recent message fetch time successfully updated!")
-        except ValueError:
-            await ctx.send("Recent message fetch time FAILED to update. Please specify a `float` value only!")
+        await self.config.guild(ctx.guild).messagewatcher.recent_fetch_time.set(time)
+        await ctx.send("Recent message fetch time successfully updated!")
 
     @_messagewatch.group("frequencies", aliases=["freq", "freqs"], pass_context=True)
     async def _messagewatch_frequencies(self, ctx: commands.Context):
         pass
 
     @_messagewatch_frequencies.command(name="embed")
-    async def _messagewatch_frequencies_embed(self, ctx: commands.Context, frequency: str):
+    async def _messagewatch_frequencies_embed(self, ctx: commands.Context,
+                                              frequency: custom_float_converter("Allowable embed frequency FAILED to "
+                                                                                "update. Please specify a `float` "
+                                                                                "value only!")):
         """Set/update the allowable embed frequency."""
-        try:
-            val = float(frequency)
-            await self.config.guild(ctx.guild).messagewatcher.frequencies.embed.set(val)
-            await ctx.send("Allowable embed frequency successfully updated!")
-        except ValueError:
-            await ctx.send("Allowable embed frequency FAILED to update. Please specify a `float` value only!")
+
+        await self.config.guild(ctx.guild).messagewatcher.frequencies.embed.set(frequency)
+        await ctx.send("Allowable embed frequency successfully updated!")
 
     @_messagewatch.group("exemptions", aliases=["exempt", "exempts"], pass_context=True)
     async def _messagewatch_exemptions(self, ctx: commands.Context):
@@ -180,15 +192,14 @@ class WatcherCog(commands.Cog):
             await ctx.send("Minimum member duration FAILED to update. Please specify a `integer` value only!")
 
     @_messagewatch_exemptions.command(name="textmessages", aliases=["text"])
-    async def _messagewatch_expemptions_textmessages(self, ctx: commands.Context, frequency: str):
+    async def _messagewatch_expemptions_textmessages(self, ctx: commands.Context,
+                                                     frequency: custom_float_converter("Text-only message frequency "
+                                                                                       "exemption FAILED to update. "
+                                                                                       "Please specify a `float` "
+                                                                                       "value only!")):
         """Set/update the minimum frequency of text-only messages to be exempt."""
-        try:
-            val = float(frequency)
-            await self.config.guild(ctx.guild).messagewatcher.exemptions.text_messages.set(val)
-            await ctx.send("Text-only message frequency exemption successfully updated!")
-        except ValueError:
-            await ctx.send("Text-only message frequency exemption FAILED to update. Please specify a `float` value "
-                           "only!")
+        await self.config.guild(ctx.guild).messagewatcher.exemptions.text_messages.set(frequency)
+        await ctx.send("Text-only message frequency exemption successfully updated!")
 
     # Helper Functions
     @staticmethod
@@ -286,24 +297,25 @@ class WatcherCog(commands.Cog):
                 return
 
             # No exemptions at this point, alert!
-            # Credit: Taken from report Cog
-            log_id = await self.config.guild(guild).logchannel()
-            log = None
-            if log_id:
-                log = guild.get_channel(log_id)
-            if not log:
-                # Failed to get the channel
-                return
+            await self.send_mod_alert(guild, self.make_message_alert_embed(trigger.author, trigger))
 
-            data = self.make_message_alert_embed(trigger.author, trigger)
+    async def send_mod_alert(self, guild, data):
+        # Credit: Taken from report Cog
+        log_id = await self.config.guild(guild).logchannel()
+        log = None
+        if log_id:
+            log = guild.get_channel(log_id)
+        if not log:
+            # Failed to get the channel
+            return
 
-            mod_pings = " ".join(
-                [i.mention for i in log.members if not i.bot and str(i.status) in ["online", "idle"]])
-            if not mod_pings:  # If no online/idle mods
-                mod_pings = " ".join([i.mention for i in log.members if not i.bot])
+        mod_pings = " ".join(
+            i.mention for i in log.members if not i.bot and str(i.status) in ["online", "idle"])
+        if not mod_pings:  # If no online/idle mods
+            mod_pings = " ".join([i.mention for i in log.members if not i.bot])
 
-            await log.send(content=mod_pings, embed=data)
-            # End credit
+        await log.send(content=mod_pings, embed=data)
+        # End credit
 
     # Listeners
     @commands.Cog.listener()
@@ -322,25 +334,7 @@ class WatcherCog(commands.Cog):
         if datetime.now(timezone.utc) < allowable:
             if after.self_stream or after.self_video:
                 self.alert_cache[member.id] = True  # Update the cache to indicate we've alerted on this user.
-                # Credit: Taken from report Cog
-                log_id = await self.config.guild(after.channel.guild).logchannel()
-                log = None
-                if log_id:
-                    log = member.guild.get_channel(log_id)
-                if not log:
-                    # Failed to get the channel
-                    return
-
-                data = self.make_voice_alert_embed(member, after.channel)
-
-                # Alert level logic added
-                mod_pings = " ".join(
-                    [i.mention for i in log.members if not i.bot and str(i.status) in ["online", "idle"]])
-                if not mod_pings:  # If no online/idle mods
-                    mod_pings = " ".join([i.mention for i in log.members if not i.bot])
-
-                await log.send(content=mod_pings, embed=data)
-                # End credit
+                await self.send_mod_alert(after.channel.guild, self.make_voice_alert_embed(member, after.channel))
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
@@ -352,28 +346,7 @@ class WatcherCog(commands.Cog):
             if rule['check_nick'] and member.nick:
                 hits += len(re.findall(rule['pattern'], member.nick))
             if hits > 0:
-
-                # Credit: Taken from report Cog
-                log_id = await self.config.guild(member.guild).logchannel()
-                log = None
-                if log_id:
-                    log = member.guild.get_channel(log_id)
-                if not log:
-                    # Failed to get the channel
-                    return
-
-                data = self.make_profile_alert_embed(member, ruleName, rule)
-
-                mod_pings = ""
-                # Alert level logic added
-                if rule['alert_level'] == "HIGH":
-                    mod_pings = " ".join(
-                        [i.mention for i in log.members if not i.bot and str(i.status) in ["online", "idle"]])
-                    if not mod_pings:  # If no online/idle mods
-                        mod_pings = " ".join([i.mention for i in log.members if not i.bot])
-
-                await log.send(content=mod_pings, embed=data)
-                # End credit
+                await self.send_mod_alert(member.guild, self.make_profile_alert_embed(member, ruleName, rule))
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
