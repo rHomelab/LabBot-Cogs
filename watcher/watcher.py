@@ -102,7 +102,7 @@ class WatcherCog(commands.Cog):
                 "<reason>` "
         usage += "\nNote: Name & regex fields are limited to 1 word (no spaces)."
         if (not name and not regex and not reason and not alert_level and not check_nick) or \
-                (alert_level != "HIGH" and alert_level != "LOW") or (check_nick != "YES" and check_nick != "NO"):
+                (alert_level != "HIGH" and alert_level != "LOW"):
             await ctx.send(usage)
         else:
             async with self.config.guild(ctx.guild).profilewatcher.rules() as rules:
