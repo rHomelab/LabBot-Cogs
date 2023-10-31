@@ -3,12 +3,14 @@ import asyncio
 import logging
 import os
 import typing
-from typing import Protocol, Optional
+from collections import defaultdict
+from typing import Optional, Protocol
+
 import discord
 from discord.ext import tasks
 from prometheus_client import CollectorRegistry, Counter, Gauge
 from redbot.core.bot import Red
-from collections import defaultdict
+
 if typing.TYPE_CHECKING:
     from .prom_server import PrometheusMetricsServer
 

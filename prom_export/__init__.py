@@ -1,5 +1,7 @@
-from redbot.core.bot import Red
 import time
+
+from redbot.core.bot import Red
+
 from .main import PromExporter
 
 
