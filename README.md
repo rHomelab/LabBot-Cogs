@@ -42,7 +42,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
     - [Roleinfo](#roleinfo)
     - [Sentry](#sentry)
     - [Tags](#tags)
-    - [prom_export](#promexport)
+    - [prom\_export](#prom_export)
     - [Timeout](#timeout)
     - [Topic](#topic)
     - [Verify](#verify)
@@ -79,7 +79,6 @@ A massive thank you to all who've helped out with this project ❤️
 ## Cog Summaries
 
 - **[AutoReact](#autoreact):** React to specific phrases with one or more emotes.
-- **[prom_export](#promExport):** Exposes a HTTP endpoint for exporting guild metrics in Prometheus format
 - **[AutoReply](#autoreply):** Automatically replies to messages that match a trigger phrase.
 - **[Convert](#convert):** Converts any unit to any another unit.
 - **[Custom-msg](#custom-msg):** Allows moderators to send/edit messages from the bot.
@@ -90,6 +89,7 @@ A massive thank you to all who've helped out with this project ❤️
 - **[Letters](#letters):** Outputs large emote letters/numbers from input text.
 - **[Notes](#notes):** Manage notes and warnings against users.
 - **[Penis](#penis):** Allows users to check the size of their penis.
+- **[prom_export](#prom_export):** Exposes a HTTP endpoint for exporting guild metrics in Prometheus format
 - **[Purge](#purge):** This will purge users based on criteria.
 - **[Quotes](#quotes):** Allows users to quote other users' messages in a quotes channel.
 - **[Reactrole](#reactrole):** Allows roles to be applied and removed using reactions.
