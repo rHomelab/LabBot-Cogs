@@ -42,7 +42,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
     - [Roleinfo](#roleinfo)
     - [Sentry](#sentry)
     - [Tags](#tags)
-    - [promExport](#promexport)
+    - [prom_export](#promexport)
     - [Timeout](#timeout)
     - [Topic](#topic)
     - [Verify](#verify)
