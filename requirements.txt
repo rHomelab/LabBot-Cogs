@@ -1,3 +1,4 @@
 pip
 wheel
 Red-DiscordBot
+prometheus-client

@@ -1,0 +1,14 @@
+{
+    "author": [
+        "ripple (frzen chip lova)"
+    ],
+    "description": "exposes a prom endpoint for exporting a guilds metrics",
+    "short": "exports guild metrics",
+    "name": "prom exporter",
+    "tags": [
+        "metrics",
+        "prom"
+
+    ],
+    "min_bot_version": "3.5.1"
+}
