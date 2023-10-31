@@ -79,7 +79,7 @@ A massive thank you to all who've helped out with this project ❤️
 ## Cog Summaries
 
 - **[AutoReact](#autoreact):** React to specific phrases with one or more emotes.
-- **[PromExport](#promExport):** Exposes a HTTP endpoint for exporting guild metrics in Prometheus format
+- **[prom_export](#promExport):** Exposes a HTTP endpoint for exporting guild metrics in Prometheus format
 - **[AutoReply](#autoreply):** Automatically replies to messages that match a trigger phrase.
 - **[Convert](#convert):** Converts any unit to any another unit.
 - **[Custom-msg](#custom-msg):** Allows moderators to send/edit messages from the bot.
