@@ -2,7 +2,7 @@
     "author": [
         "ripple (frzen chip lova)"
     ],
-    "description": "Exposes a HTTP endpoint for exporting a guild's metrics in Prometheus format",
+    "description": "Exposes a HTTP endpoint for exporting guild metrics in Prometheus format",
     "short": "Exports guild metrics in Prometheus format",
     "name": "Prom Exporter",
 
