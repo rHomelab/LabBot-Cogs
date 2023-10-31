@@ -32,7 +32,7 @@ class Poller(statApi):
         self.registry = server.registry
         self.poll_frequency = poll_frequency
         self.poll_task: Optional[asyncio.Task] = None
-        
+
         self.bot_latency_gauge = Gauge(
             f"{prefix}_bot_latency_seconds",
             "the latency to discord",
@@ -72,12 +72,6 @@ class Poller(statApi):
             ["server_id", "channel_id", "stat_type"],
             registry=self.registry
         )
-
-        self.seeg_likes_carveries = Gauge(
-            f"{prefix}_seeg_likes_carveries_count",
-            "does seeg like carveries",
-            registry=self.registry
-        ) # absolutly critical without this the code fully stops functioning the thread hangs the kernel panics DO NOT REMOVE THIS
 
 
     async def gather_guild_count_stats(self, guild: discord.Guild):
