@@ -60,19 +60,20 @@ A massive thank you to all who've helped out with this project ❤️
 
 ### Moderation Team
 
-- [tigattack](https://github.com/tigattack)
-- [Issy](https://github.issy.dev)
 - [portalBlock](https://github.com/portalBlock)
+- [tigattack](https://github.com/tigattack)
 
 ### Other
 
-- [Sneezey](https://github.com/kdavis)
-- [DanTho](https://github.com/dannyt66)
 - [BeryJu](https://github.com/BeryJu)
-- [TheDevFreak](https://github.com/TheDevFreak)
-- [McTwist](https://github.com/McTwist)
+- [DanTho](https://github.com/dannyt66)
 - [Darkflame72](https://github.com/Darkflame72)
 - [Hugh Mungus (the1337g33k)](https://github.com/the1337g33k)
+- [Issy](https://github.issy.dev)
+- [McTwist](https://github.com/McTwist)
+- [Sneezey](https://github.com/kdavis)
+- [TheDevFreak](https://github.com/TheDevFreak)
+- [s33g](https://github.com/s33g)
 
 ## Cog Summaries
 
