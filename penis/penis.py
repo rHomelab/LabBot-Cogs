@@ -23,7 +23,7 @@ class Penis(commands.Cog):
         state = random.getstate()
 
         if len(users) == 0:
-            users = (ctx.author,)
+            users = (ctx.author)
 
         for user in users:
             random.seed(user.id)
