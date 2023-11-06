@@ -76,7 +76,7 @@ class AutoReactCog(commands.Cog):
     @checks.mod()
     @commands.group(name="autoreact", pass_context=True)
     async def _autoreact(self, ctx):
-        """Automagically add reactions to messages containing certain phrases"""
+        """Automatically add reactions to messages containing certain phrases"""
 
     @_autoreact.group(name="add", pass_context=True)
     async def _add(self, ctx):
