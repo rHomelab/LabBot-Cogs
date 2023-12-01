@@ -397,7 +397,7 @@ This cog allows users to look at xkcd comics
 
 ## License
 
-All code in this repository is licensed under the [GNU General Public License version 3](https://github.com/tigattack/LabBot/blob/main/LICENSE).
+All code in this repository is licensed under the [GNU General Public License version 3](https://github.com/rHomelab/LabBot-Cogs/blob/main/LICENSE).
 
 Copyright (c) 2018-2023 tigattack, contributors and original authors.
 
