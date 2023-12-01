@@ -20,6 +20,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
   - [Cog Documentation](#cog-documentation)
     - [AutoReact](#autoreact)
     - [AutoReply](#autoreply)
+    - [BetterPing](#betterping)
     - [Convert](#convert)
     - [Custom-msg](#custom-msg)
     - [Enforcer](#enforcer)
@@ -80,6 +81,7 @@ A massive thank you to all who've helped out with this project ❤️
 
 - **[AutoReact](#autoreact):** React to specific phrases with one or more emotes.
 - **[AutoReply](#autoreply):** Automatically replies to messages that match a trigger phrase.
+- **[BetterPing](#betterping):** Outputs the current channel topic as a message in the channel.
 - **[Convert](#convert):** Converts any unit to any another unit.
 - **[Custom-msg](#custom-msg):** Allows moderators to send/edit messages from the bot.
 - **[Enforcer](#enforcer):** Allows you to enforce certain characteristics on a channel.
@@ -115,6 +117,14 @@ This cog allows mods to add auto reactions to certain phrases.
 This cog automatically responds to messages that match specific trigger phrases, set by admins.
 
 `[p]autoreact`
+
+### BetterPing
+
+This cog is an upgraded version of the built-in ping command showing some latency information. It will override the built-in ping command when loaded, but reinstate it once when loaded.
+
+It was inspired by [Vexed01's AnotherPingCog](https://cogdocs.vexcodes.com/en/latest/cogs/anotherpingcog.html), but it's slimmed down and not as snazzy.
+
+`[p]ping`
 
 ### Convert
 

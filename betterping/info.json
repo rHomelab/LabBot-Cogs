@@ -1,0 +1,10 @@
+{
+    "author": ["tigattack"],
+    "description": "Usage: [p]ping",
+    "short": "Upgraded version of the built-in ping command",
+    "name": "Ping",
+    "tags": [
+        "utility"
+    ],
+    "min_bot_version": "3.5.0"
+}
