@@ -13,6 +13,7 @@ CUSTOM_CONTROLS = {"⬅️": prev_page, "➡️": next_page}
 
 log = logging.getLogger("red.rhomelab.autoreact")
 
+
 class AutoReactCog(commands.Cog):
     """AutoReact Cog"""
 
