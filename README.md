@@ -74,6 +74,7 @@ A massive thank you to all who've helped out with this project ❤️
 - [Hugh Mungus (the1337g33k)](https://github.com/the1337g33k)
 - [Issy](https://github.issy.dev)
 - [McTwist](https://github.com/McTwist)
+- [ripple](https://github.com/rippleFCL)
 - [Sneezey](https://github.com/kdavis)
 - [TheDevFreak](https://github.com/TheDevFreak)
 - [s33g](https://github.com/s33g)
