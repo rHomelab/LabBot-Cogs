@@ -1,0 +1,15 @@
+{
+    "author": [
+        "ripple (frzen chip lova)"
+    ],
+    "description": "Exposes a HTTP endpoint for exporting guild metrics in Prometheus format",
+    "short": "Exports guild metrics in Prometheus format",
+    "name": "Prom Exporter",
+
+    "tags": [
+        "metrics",
+        "prom"
+
+    ],
+    "min_bot_version": "3.5.1"
+}

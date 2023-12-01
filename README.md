@@ -42,7 +42,9 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
     - [Roleinfo](#roleinfo)
     - [Sentry](#sentry)
     - [Tags](#tags)
+    - [prom\_export](#prom_export)
     - [Timeout](#timeout)
+    - [Topic](#topic)
     - [Verify](#verify)
     - [xkcd](#xkcd)
   - [License](#license)
@@ -87,6 +89,7 @@ A massive thank you to all who've helped out with this project ❤️
 - **[Letters](#letters):** Outputs large emote letters/numbers from input text.
 - **[Notes](#notes):** Manage notes and warnings against users.
 - **[Penis](#penis):** Allows users to check the size of their penis.
+- **[prom_export](#prom_export):** Exposes a HTTP endpoint for exporting guild metrics in Prometheus format
 - **[Purge](#purge):** This will purge users based on criteria.
 - **[Quotes](#quotes):** Allows users to quote other users' messages in a quotes channel.
 - **[Reactrole](#reactrole):** Allows roles to be applied and removed using reactions.
@@ -199,7 +202,7 @@ This cog converts a string of letters/numbers into large emote letters ("regiona
 
 This cog generates messages based on markov chains generated per-user.
 
-User messages will never be analysed unless the user explicitly opts in.  
+User messages will never be analysed unless the user explicitly opts in.
 It must also be enabled per-channel: `[p]markov channelenable`
 
 #### User commands
@@ -313,12 +316,12 @@ Configure Sentry DSN using `[p]set api sentry dsn,https://fooo@bar.baz/9`, then 
 
 ### Tags
 
-Allow user-generated stored messages to be triggered upon configurable tags. Aliases can also be created to make 
-accessing information even quicker. Users can transfer tag ownership between themselves and even claim ownership of 
-abandoned tags. Ever use of a tag or alias is tracked. Same with ownership transfers of any kind. Statistics and 
-searching have not yet been implemented. 
+Allow user-generated stored messages to be triggered upon configurable tags. Aliases can also be created to make
+accessing information even quicker. Users can transfer tag ownership between themselves and even claim ownership of
+abandoned tags. Ever use of a tag or alias is tracked. Same with ownership transfers of any kind. Statistics and
+searching have not yet been implemented.
 
-- `[p]tag <tag>` - Triggers the specified tag. 
+- `[p]tag <tag>` - Triggers the specified tag.
 - `[p]tag search <query>` - Searches for a tag or alias (WIP).
 - `[p]tag create <tag> <content>` - Creates the specified tag which will reply with the provided content when triggered.
 - `[p]tag stats [user]` - Provides general stats about the tag system, or if a user is provided, about that user (WIP).
@@ -330,12 +333,22 @@ searching have not yet been implemented.
 - `[p]tag alias create <alias> <tag>` - Creates the specified alias to the specified tag.
 - `[p]tag alias delete <alias>` - Deletes the specified alias.
 
+### prom_export
+
+This cog exposes a HTTP server for serving metrics in Prometheus format
+
+- `[p]prom_exporter set_port <port>` - Sets the port of the HTTP server
+- `[p]prom_exporter set_address <address>` - Sets the bind address (IP) of the HTTP server
+- `[p]prom_exporter set_poll_interval <interval>` - Sets the time between metrics updates
+- `[p]prom_exporter get_config ` - Shows the current running config
+
+
 ### Timeout
 
 Manage the timeout status of users.
 
-Run the command to add a user to timeout, run it again to remove them. Append a reason if you wish: `[p]timeout @someUser said a bad thing`  
-If the user is not in timeout, they are added. If they are in timeout, they are removed.  
+Run the command to add a user to timeout, run it again to remove them. Append a reason if you wish: `[p]timeout @someUser said a bad thing`
+If the user is not in timeout, they are added. If they are in timeout, they are removed.
 All of the member's roles will be stripped when they are added to timeout, and re-added when they are removed.
 
 - `[p]timeout <user> [reason]` - Add/remove a user from timeout, optionally specifying a reason.
@@ -397,3 +410,4 @@ If you use [VSCode](https://code.visualstudio.com/) you can use the tasks integr
 When suggesting changes, please [open an issue](https://github.com/rHomelab/LabBot-Cogs/issues/new/choose) so it can be reviewed by the team who can then suggest how and if the idea is to be implemented.
 
 When submitting changes, please [create a pull request](https://github.com/rHomelab/LabBot-Cogs/compare) targeting the main branch.
+
