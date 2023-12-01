@@ -347,12 +347,12 @@ searching have not yet been implemented.
 
 ### prom_export
 
-This cog exposes a HTTP server for serving metrics in Prometheus format
+This cog exposes a HTTP endpoint for exporting guild metrics in Prometheus format.
 
 - `[p]prom_exporter set_port <port>` - Sets the port of the HTTP server
 - `[p]prom_exporter set_address <address>` - Sets the bind address (IP) of the HTTP server
 - `[p]prom_exporter set_poll_interval <interval>` - Sets the time between metrics updates
-- `[p]prom_exporter get_config ` - Shows the current running config
+- `[p]prom_exporter get_config` - Shows the current running config
 
 
 ### Timeout
