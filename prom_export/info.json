@@ -9,5 +9,6 @@
         "metrics",
         "prom"
     ],
-    "min_bot_version": "3.5.1"
+    "min_bot_version": "3.5.1",
+    "requirements": ["prometheus_client"]
 }
