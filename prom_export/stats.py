@@ -140,13 +140,10 @@ class Poller(statApi):
 
     async def poll_total_guilds(self):
         self.total_guild_gauge.set(len(self.bot.guilds))
-    async def poll_seeg(self):
-        self.seeg_likes_carveries.set(1)
 
     async def poll(self):
         await self.poll_latency()
         await self.poll_total_guilds()
-        await self.poll_seeg()
         await self.poll_per_guild_stats()
 
     def start(self):
