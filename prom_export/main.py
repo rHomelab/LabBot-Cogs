@@ -1,7 +1,4 @@
-import asyncio
 import logging
-import os
-import time
 
 import discord
 from redbot.core import Config, checks, commands

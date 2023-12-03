@@ -2,13 +2,10 @@ import logging
 import socket
 import threading
 from functools import partial
-from socketserver import ThreadingMixIn
 from typing import Protocol
-from wsgiref.simple_server import WSGIRequestHandler, WSGIServer, make_server
+from wsgiref.simple_server import WSGIRequestHandler, make_server
 
 from prometheus_client import CollectorRegistry, make_wsgi_app
-
-from .stats import statApi
 
 
 class _SilentHandler(WSGIRequestHandler):
