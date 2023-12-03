@@ -69,9 +69,8 @@ class Poller(statApi):
             registry=self.registry
         )
 
-
     async def gather_guild_count_stats(self, guild: discord.Guild):
-        emoji_types = [True if emote.animated else False for emote in guild.emojis]
+        emoji_types = [emote.animated for emote in guild.emojis]
         data_types = {
             "members": len(guild.members),
             "voice_channels": len(guild.voice_channels),
