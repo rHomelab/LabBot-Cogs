@@ -90,12 +90,14 @@ class PromExporter(commands.Cog):
     @checks.is_owner()
     @prom_export.command(name="config")
     async def show_config(self, ctx: commands.Context):
-        """shows the current running config"""
-        addr = await self.config.address()
-        port = await self.config.port()
-        poll_interval = await self.config.poll_interval()
+        """Show the current config"""
+        conf_embed = (discord.Embed(title="Role info", colour=await ctx.embed_colour())
+            .add_field(name="Address", value=self.address)
+            .add_field(name="Port", value=self.port)
+            .add_field(name="Poll Frequency", value=self.poll_frequency)
+        )
+        await ctx.send(embed=conf_embed)
 
-        await ctx.send(f"{self.address}:{self.port}:{self.poll_frequency}")
 
     def start(self):
         self.prom_server = self.create_server(self.address, self.port)
