@@ -14,6 +14,7 @@ class _SilentHandler(WSGIRequestHandler):
     def log_message(self, format, *args):
         """Log nothing."""
 
+
 class MetricsServer(Protocol):
     def serve(self) -> None:
         ...
@@ -21,10 +22,12 @@ class MetricsServer(Protocol):
     def stop(self) -> None:
         ...
 
+
 class PrometheusMetricsServer(MetricsServer, Protocol):
     @property
     def registry(self) -> CollectorRegistry:
         ...
+
 
 class promServer(PrometheusMetricsServer):
     def __init__(self, addr: str, port: int):
@@ -60,7 +63,7 @@ class promServer(PrometheusMetricsServer):
         self.server_thread.start()
 
     def stop(self) -> None:
-        if not self.server_thread is None and not self.server is None:
+        if self.server_thread is not None and self.server is not None:
             self.logger.info("shutting down prom server")
             self.server.shutdown()
             self.server.server_close()

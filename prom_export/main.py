@@ -10,6 +10,7 @@ from .stats import Poller, statApi
 logger = logging.getLogger("red.rhomelab.prom")
 logger.setLevel(logging.DEBUG)
 
+
 class PromExporter(commands.Cog):
     """commands for managing the prom exporter"""
 
@@ -61,7 +62,6 @@ class PromExporter(commands.Cog):
         self.reload()
         await ctx.tick()
 
-
     @checks.is_owner()
     @prom_export.command()
     async def set_address(self, ctx: commands.Context, address: str):
@@ -73,7 +73,6 @@ class PromExporter(commands.Cog):
         await self.config.address.set(address)
         self.reload()
         await ctx.tick()
-
 
     @checks.is_owner()
     @prom_export.command()
@@ -90,13 +89,13 @@ class PromExporter(commands.Cog):
     @prom_export.command(name="config")
     async def show_config(self, ctx: commands.Context):
         """Show the current config"""
-        conf_embed = (discord.Embed(title="Role info", colour=await ctx.embed_colour())
+        conf_embed = (
+            discord.Embed(title="Role info", colour=await ctx.embed_colour())
             .add_field(name="Address", value=self.address)
             .add_field(name="Port", value=self.port)
             .add_field(name="Poll Frequency", value=self.poll_frequency)
         )
         await ctx.send(embed=conf_embed)
-
 
     def start(self):
         self.prom_server = self.create_server(self.address, self.port)

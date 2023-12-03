@@ -21,6 +21,7 @@ class statApi(Protocol):
     def stop(self) -> None:
         ...
 
+
 class Poller(statApi):
     def __init__(self, prefix: str, poll_frequency: float, bot: Red, server: "PrometheusMetricsServer"):
         self.bot = bot
@@ -52,21 +53,21 @@ class Poller(statApi):
             f"{prefix}_guild_user_status_count",
             "count of each user status in a guild",
             ["server_id", "client_type", "status"],
-            registry=self.registry
+            registry=self.registry,
         )
 
         self.guild_user_activity_gauge = Gauge(
             f"{prefix}_guild_user_activity_count",
             "count of each user activity in a guild",
             ["server_id", "activity"],
-            registry=self.registry
+            registry=self.registry,
         )
 
         self.guild_voice_stats_gauge = Gauge(
             f"{prefix}_guild_voice_stats_count",
             "count of voice stats in a guild",
             ["server_id", "channel_id", "stat_type"],
-            registry=self.registry
+            registry=self.registry,
         )
 
     async def gather_guild_count_stats(self, guild: discord.Guild):
@@ -81,17 +82,17 @@ class Poller(statApi):
             "roles": len(guild.roles),
             "emojis": len(guild.emojis),
             "animated_emojis": emoji_types.count(True),
-            "static_emojis": emoji_types.count(False)
+            "static_emojis": emoji_types.count(False),
         }
         for data_type, data in data_types.items():
             self.guild_stats_gauge.labels(server_id=guild.id, stat_type=data_type).set(data)
 
     async def gather_user_status_stats(self, guild: discord.Guild):
         data_types = {
-            "web": {value:0 for value in discord.Status},
-            "mobile": {value:0 for value in discord.Status},
-            "desktop": {value:0 for value in discord.Status},
-            "total": {value:0 for value in discord.Status}
+            "web": {value: 0 for value in discord.Status},
+            "mobile": {value: 0 for value in discord.Status},
+            "desktop": {value: 0 for value in discord.Status},
+            "total": {value: 0 for value in discord.Status},
         }
 
         for member in guild.members:
@@ -100,16 +101,14 @@ class Poller(statApi):
             data_types["desktop"][member.desktop_status] += 1
             data_types["total"][member.status] += 1
 
-
         for client_type, statuses in data_types.items():
             for status, count in statuses.items():
                 self.guild_user_status_gauge.labels(server_id=guild.id, client_type=client_type, status=status).set(count)
 
-
     async def gather_user_activity_stats(self, guild: discord.Guild):
-        data_types = {value.name : 0 for value in discord.ActivityType}
+        data_types = {value.name: 0 for value in discord.ActivityType}
         for member in guild.members:
-            if not member.activity is None:
+            if member.activity is not None:
                 data_types[member.activity.type.name] += 1
 
         for data_type, data in data_types.items():
