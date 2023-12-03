@@ -49,13 +49,13 @@ class PromExporter(commands.Cog):
         return Poller(prefix, poll_frequency, bot, server)
 
     @commands.group()
-    async def prom_exporter(self, ctx: commands.Context):
-        """New users must `enable` and say some words before using `generate`"""
+    async def prom_export(self, ctx: commands.Context):
+        """Red Bot Prometheus Exporter"""
 
     @checks.is_owner()
-    @prom_exporter.command()
+    @prom_export.command()
     async def set_port(self, ctx: commands.Context, port: int):
-        """sets the port the prometheus exporter should listen on"""
+        """Set the port the exporter should listen on"""
         self.logger.info(f"changing port to {port}")
         self.port = port
         await self.config.port.set(port)
@@ -64,9 +64,9 @@ class PromExporter(commands.Cog):
 
 
     @checks.is_owner()
-    @prom_exporter.command()
+    @prom_export.command()
     async def set_address(self, ctx: commands.Context, address: str):
-        """sets the address the prometheus exporter should listen on"""
+        """Set the address the exporter should listen on"""
 
         self.logger.info(f"changing address to {address}")
 
@@ -77,9 +77,9 @@ class PromExporter(commands.Cog):
 
 
     @checks.is_owner()
-    @prom_exporter.command()
+    @prom_export.command()
     async def set_poll_interval(self, ctx: commands.Context, poll_interval: float):
-        """sets the poll interval to update the endpoint metrics"""
+        """Set the metrics poll interval (seconds)"""
 
         self.logger.info(f"changing poll interval to {poll_interval}")
         self.poll_frequency = poll_interval
@@ -88,7 +88,7 @@ class PromExporter(commands.Cog):
         await ctx.tick()
 
     @checks.is_owner()
-    @prom_exporter.command()
+    @prom_export.command(name="config")
     async def show_config(self, ctx: commands.Context):
         """shows the current running config"""
         addr = await self.config.address()
