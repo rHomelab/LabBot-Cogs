@@ -30,6 +30,8 @@ class PromExporter(commands.Cog):
         }
         self.config.register_global(**default_global)
 
+        self.prom_server = None
+        self.stat_api = None
 
     async def init(self):
         self.address = await self.config.address()
