@@ -4,7 +4,7 @@
     ],
     "description": "Exposes a HTTP endpoint for exporting guild metrics in Prometheus format",
     "short": "Exports guild metrics in Prometheus format",
-    "name": "prom_export",
+    "name": "prometheus_exporter",
     "tags": [
         "metrics",
         "prom"
