@@ -55,7 +55,7 @@ class PromExporter(commands.Cog):
     @checks.is_owner()
     @prom_export.command()
     async def set_port(self, ctx: commands.Context, port: int):
-        """Set the port the exporter should listen on"""
+        """Set the port the HTTP server should listen on"""
         self.logger.info(f"changing port to {port}")
         self.port = port
         await self.config.port.set(port)
@@ -65,7 +65,7 @@ class PromExporter(commands.Cog):
     @checks.is_owner()
     @prom_export.command()
     async def set_address(self, ctx: commands.Context, address: str):
-        """Set the address the exporter should listen on"""
+        """Sets the bind address (IP) of the HTTP server"""
 
         self.logger.info(f"changing address to {address}")
 

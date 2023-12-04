@@ -349,10 +349,10 @@ searching have not yet been implemented.
 
 This cog exposes a HTTP endpoint for exporting guild metrics in Prometheus format.
 
-- `[p]prom_exporter set_port <port>` - Sets the port of the HTTP server
+- `[p]prom_exporter set_port <port>` - Set the port the HTTP server should listen on
 - `[p]prom_exporter set_address <address>` - Sets the bind address (IP) of the HTTP server
-- `[p]prom_exporter set_poll_interval <interval>` - Sets the time between metrics updates
-- `[p]prom_exporter get_config` - Shows the current running config
+- `[p]prom_exporter set_poll_interval <interval>` - Set the metrics poll interval (seconds)
+- `[p]prom_exporter config` - Show the current running config
 
 
 ### Timeout
