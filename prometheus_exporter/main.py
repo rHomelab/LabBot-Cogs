@@ -1,7 +1,4 @@
-import asyncio
 import logging
-import os
-import time
 
 import discord
 from redbot.core import Config, checks, commands
@@ -12,6 +9,7 @@ from .stats import Poller, statApi
 
 logger = logging.getLogger("red.rhomelab.prom")
 logger.setLevel(logging.DEBUG)
+
 
 class PromExporter(commands.Cog):
     """commands for managing the prom exporter"""
@@ -33,6 +31,8 @@ class PromExporter(commands.Cog):
         }
         self.config.register_global(**default_global)
 
+        self.prom_server = None
+        self.stat_api = None
 
     async def init(self):
         self.address = await self.config.address()
@@ -49,24 +49,23 @@ class PromExporter(commands.Cog):
         return Poller(prefix, poll_frequency, bot, server)
 
     @commands.group()
-    async def prom_exporter(self, ctx: commands.Context):
-        """New users must `enable` and say some words before using `generate`"""
+    async def prom_export(self, ctx: commands.Context):
+        """Red Bot Prometheus Exporter"""
 
     @checks.is_owner()
-    @prom_exporter.command()
+    @prom_export.command()
     async def set_port(self, ctx: commands.Context, port: int):
-        """sets the port the prometheus exporter should listen on"""
+        """Set the port the HTTP server should listen on"""
         self.logger.info(f"changing port to {port}")
         self.port = port
         await self.config.port.set(port)
         self.reload()
         await ctx.tick()
 
-
     @checks.is_owner()
-    @prom_exporter.command()
+    @prom_export.command()
     async def set_address(self, ctx: commands.Context, address: str):
-        """sets the address the prometheus exporter should listen on"""
+        """Sets the bind address (IP) of the HTTP server"""
 
         self.logger.info(f"changing address to {address}")
 
@@ -75,11 +74,10 @@ class PromExporter(commands.Cog):
         self.reload()
         await ctx.tick()
 
-
     @checks.is_owner()
-    @prom_exporter.command()
+    @prom_export.command()
     async def set_poll_interval(self, ctx: commands.Context, poll_interval: float):
-        """sets the poll interval to update the endpoint metrics"""
+        """Set the metrics poll interval (seconds)"""
 
         self.logger.info(f"changing poll interval to {poll_interval}")
         self.poll_frequency = poll_interval
@@ -88,14 +86,16 @@ class PromExporter(commands.Cog):
         await ctx.tick()
 
     @checks.is_owner()
-    @prom_exporter.command()
+    @prom_export.command(name="config")
     async def show_config(self, ctx: commands.Context):
-        """shows the current running config"""
-        addr = await self.config.address()
-        port = await self.config.port()
-        poll_interval = await self.config.poll_interval()
-
-        await ctx.send(f"{self.address}:{self.port}:{self.poll_frequency}")
+        """Show the current config"""
+        conf_embed = (
+            discord.Embed(title="Role info", colour=await ctx.embed_colour())
+            .add_field(name="Address", value=self.address)
+            .add_field(name="Port", value=self.port)
+            .add_field(name="Poll Frequency", value=self.poll_frequency)
+        )
+        await ctx.send(embed=conf_embed)
 
     def start(self):
         self.prom_server = self.create_server(self.address, self.port)

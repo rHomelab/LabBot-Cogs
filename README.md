@@ -43,7 +43,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
     - [Roleinfo](#roleinfo)
     - [Sentry](#sentry)
     - [Tags](#tags)
-    - [prom\_export](#prom_export)
+    - [prometheus\_exporter](#prometheus_exporter)
     - [Timeout](#timeout)
     - [Topic](#topic)
     - [Verify](#verify)
@@ -74,6 +74,7 @@ A massive thank you to all who've helped out with this project ❤️
 - [Hugh Mungus (the1337g33k)](https://github.com/the1337g33k)
 - [Issy](https://github.issy.dev)
 - [McTwist](https://github.com/McTwist)
+- [ripple](https://github.com/rippleFCL)
 - [Sneezey](https://github.com/kdavis)
 - [TheDevFreak](https://github.com/TheDevFreak)
 - [s33g](https://github.com/s33g)
@@ -92,7 +93,7 @@ A massive thank you to all who've helped out with this project ❤️
 - **[Letters](#letters):** Outputs large emote letters/numbers from input text.
 - **[Notes](#notes):** Manage notes and warnings against users.
 - **[Penis](#penis):** Allows users to check the size of their penis.
-- **[prom_export](#prom_export):** Exposes a HTTP endpoint for exporting guild metrics in Prometheus format
+- **[prometheus_exporter](#prometheus_exporter):** Exposes a HTTP endpoint for exporting guild metrics in Prometheus format.
 - **[Purge](#purge):** This will purge users based on criteria.
 - **[Quotes](#quotes):** Allows users to quote other users' messages in a quotes channel.
 - **[Reactrole](#reactrole):** Allows roles to be applied and removed using reactions.
@@ -344,14 +345,14 @@ searching have not yet been implemented.
 - `[p]tag alias create <alias> <tag>` - Creates the specified alias to the specified tag.
 - `[p]tag alias delete <alias>` - Deletes the specified alias.
 
-### prom_export
+### prometheus_exporter
 
-This cog exposes a HTTP server for serving metrics in Prometheus format
+This cog exposes a HTTP endpoint for exporting guild metrics in Prometheus format.
 
-- `[p]prom_exporter set_port <port>` - Sets the port of the HTTP server
-- `[p]prom_exporter set_address <address>` - Sets the bind address (IP) of the HTTP server
-- `[p]prom_exporter set_poll_interval <interval>` - Sets the time between metrics updates
-- `[p]prom_exporter get_config ` - Shows the current running config
+- `[p]prom_export set_port <port>` - Set the port the HTTP server should listen on
+- `[p]prom_export set_address <address>` - Sets the bind address (IP) of the HTTP server
+- `[p]prom_export set_poll_interval <interval>` - Set the metrics poll interval (seconds)
+- `[p]prom_export config` - Show the current running config
 
 
 ### Timeout

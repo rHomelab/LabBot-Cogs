@@ -1,15 +1,16 @@
 {
     "author": [
-        "ripple (frzen chip lova)"
+        "ripple (frzen chip lova)",
+        "tigattack"
     ],
     "description": "Exposes a HTTP endpoint for exporting guild metrics in Prometheus format",
     "short": "Exports guild metrics in Prometheus format",
-    "name": "Prom Exporter",
-
+    "name": "prometheus_exporter",
     "tags": [
         "metrics",
         "prom"
-
     ],
-    "min_bot_version": "3.5.1"
+    "min_bot_version": "3.5.1",
+    "requirements": ["prometheus_client"],
+    "install_msg": "Usage: `[p]prom_export`"
 }
