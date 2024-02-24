@@ -205,7 +205,7 @@ class WatcherCog(commands.Cog):
     @staticmethod
     def profile_rule_to_string(rule_name: str, rule) -> str:
         return f"**{rule_name}**:\nPattern: `{rule['pattern']}`\nCheck Nick: `{rule['check_nick']}`\nAlert Level: " \
-               f"{rule['alert_level']}\nReason: {rule['reason']}"
+               f"`{rule['alert_level']}`\nReason: `{rule['reason']}`"
 
     def make_voice_alert_embed(self, member: discord.Member, chan: discord.VoiceChannel) -> discord.Embed:
         """Construct the alert embed to be sent"""
