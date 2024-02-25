@@ -304,7 +304,7 @@ class TagCog(commands.Cog):
         for xfer in tag['transfers']:
             transfers += xfer['from']
         alias_list = ""
-        for alias, data in aliases:
+        for alias in aliases.keys():
             alias_list += alias
         return (
             discord.Embed(
