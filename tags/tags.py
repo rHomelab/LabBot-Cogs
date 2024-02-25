@@ -273,7 +273,7 @@ class TagCog(commands.Cog):
             else:
                 for alias in aliases:
                     if aliases[alias]["tag"] == tag:
-                        hydrated_aliases.append(aliases[tag])
+                        hydrated_aliases.append(aliases[alias])
         async with self.config.guild(guild).tags() as tags:
             if tag_search in tags:
                 tag_proper = tag_search == tag
