@@ -300,13 +300,15 @@ class TagCog(commands.Cog):
 
     def make_tag_info_embed(self, tag, aliases) -> discord.Embed:
         """Construct the Tag information embed to be sent."""
-        transfers = ""
+        transfers = []
         for xfer in tag['transfers']:
-            transfers += xfer['from']
-        alias_list = ""
+            transfers.append(f"<@{xfer['from']}>")
+
+        alias_list = []
         for alias in aliases.keys():
-            alias_list += alias
-        return (
+            alias_list.append(alias)
+
+        result = (
             discord.Embed(
                 colour=discord.Colour.blue(),
             )
@@ -314,6 +316,10 @@ class TagCog(commands.Cog):
             .add_field(name="Owner", value=f"<@{tag['owner']}>")
             .add_field(name="Created", value=f"<t:{tag['created']}:F>")
             .add_field(name="Usage", value=len(tag['uses']))
-            .add_field(name="Aliases", value=alias_list)
-            .add_field(name="Prior Owners", value=transfers)
         )
+        if len(aliases) > 0:
+            result.add_field(name="Aliases", value=', '.join(alias_list))
+        if len(transfers) > 0:
+            result.add_field(name="Prior Owners", value=', '.join(transfers))
+
+        return result
