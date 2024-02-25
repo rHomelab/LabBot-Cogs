@@ -123,7 +123,7 @@ class TagCog(commands.Cog):
     @_tag.command(name="info")
     async def _info(self, ctx: commands.Context, tag: str):
         """Provide information about the specified tag/alias."""
-        tag, aliases, is_tag, is_alias = self.get_tag_or_alias(tag, ctx.guild)
+        tag, aliases, is_tag, is_alias = await self.get_tag_or_alias(tag, ctx.guild)
         if not is_tag and not is_alias:
             await ctx.send("That's not a known tag or alias!")
         else:
