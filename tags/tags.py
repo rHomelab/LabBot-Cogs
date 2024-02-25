@@ -261,19 +261,19 @@ class TagCog(commands.Cog):
 
         """
         hydrated_tag = None  # A single tag to return
-        hydrated_aliases = []  # All aliases for a tag
+        hydrated_aliases = {}  # All aliases for a tag
         tag_proper = False
         alias_proper = False
         tag_search = tag
         async with self.config.guild(guild).aliases() as aliases:
             if tag in aliases:
-                hydrated_aliases = [aliases[tag]]  # Provided tag is only an alias
+                hydrated_aliases[tag] = aliases[tag]  # Provided tag is only an alias
                 alias_proper = True
                 tag_search = aliases[tag]["tag"]
             else:
                 for alias in aliases:
                     if aliases[alias]["tag"] == tag:
-                        hydrated_aliases.append(aliases[alias])
+                        hydrated_aliases[alias] = aliases[alias]
         async with self.config.guild(guild).tags() as tags:
             if tag_search in tags:
                 tag_proper = tag_search == tag
