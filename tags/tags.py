@@ -61,6 +61,7 @@ class TagCog(commands.Cog):
     @commands.group(name="tag", pass_context=True, invoke_without_command=True)
     async def _tag(self, ctx: commands.Context, tag: str):
         """Manage tags and aliases."""
+
         async def on_resolve(trigger: str, tag, alias, trigger_is_alias: bool):
             use = {"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())}
             if "uses" not in tag:
@@ -121,14 +122,13 @@ class TagCog(commands.Cog):
 
     @_tag.command(name="info")
     async def _info(self, ctx: commands.Context, tag: str):
-        """Provide information about the specified tag/alias. (WIP)"""
-        await ctx.send("Info reporting has not yet been implemented.")
-        if not tag:
-            # TODO Error
-            pass
+        """Provide information about the specified tag/alias."""
+        tag, aliases, is_tag, is_alias = self.get_tag_or_alias(tag, ctx.guild)
+        if not is_tag and not is_alias:
+            await ctx.send("That's not a known tag or alias!")
         else:
-            # TODO return information about the tag
-            pass
+            embed = self.make_tag_info_embed(tag, aliases)
+            await ctx.send(embed=embed)
 
     @_tag.command(name="edit")
     async def _edit(self, ctx: commands.Context, tag: str, *, content: str):
@@ -175,7 +175,7 @@ class TagCog(commands.Cog):
                         new_owner_id = ctx.author.id
                         if "transfers" not in to:
                             to["transfers"] = []
-                        to["transfers"].append({"from": to["owner"],
+                        to["transfers"].append({"from": to["owner"], "reason": "Claim",
                                                 "to": new_owner_id, "time": int(datetime.utcnow().timestamp())})
                         to["owner"] = new_owner_id
                         await ctx.send("Tag successfully claimed!")
@@ -185,17 +185,23 @@ class TagCog(commands.Cog):
     @_tag.command(name="transfer")
     async def _transfer(self, ctx: commands.Context, tag: str, member: discord.Member):
         """Transfer ownership of the tag to the specified user."""
+        is_mod = await is_mod_or_superior(self.bot, ctx.author)
+        reason = "Transfer ("
+        if is_mod:
+            reason += f"Mod-initiated {ctx.author.mention})"
+        else:
+            reason += "Owner-initiated)"
         async with self.config.guild(ctx.guild).tags() as tags:
             if tag in tags:
                 to = tags[tag]
-                if not to["owner"] == ctx.author.id and not await is_mod_or_superior(self.bot, ctx.author):
+                if not to["owner"] == ctx.author.id and not is_mod:
                     await ctx.send("Sorry, you're not the tag owner and you don't have permissions to do that.")
                 else:
                     curr_owner = to["owner"]
                     new_owner = member.id
                     if "transfers" not in to:
                         to["transfers"] = []
-                    to["transfers"].append({"from": curr_owner,
+                    to["transfers"].append({"from": curr_owner, "reason": reason,
                                             "to": new_owner, "time": int(datetime.utcnow().timestamp())})
                     to["owner"] = new_owner
                     await ctx.send("Tag successfully transferred!")
@@ -292,3 +298,22 @@ class TagCog(commands.Cog):
                     if fail_resolve is not None:
                         await fail_resolve(trigger, trigger_is_alias)
 
+    def make_tag_info_embed(self, tag, aliases) -> discord.Embed:
+        """Construct the Tag information embed to be sent."""
+        transfers = ""
+        for xfer in tag['transfers']:
+            transfers += xfer['from']
+        alias_list = ""
+        for alias, data in aliases:
+            alias_list += alias
+        return (
+            discord.Embed(
+                colour=discord.Colour.blue(),
+            )
+            .add_field(name="Creator", value=f"<@{tag['creator']}>")
+            .add_field(name="Owner", value=f"<@{tag['owner']}>")
+            .add_field(name="Created", value=f"<t:{tag['created']}:F>")
+            .add_field(name="Usage", value=len(tag['uses']))
+            .add_field(name="Aliases", value=alias_list)
+            .add_field(name="Prior Owners", value=transfers)
+        )
