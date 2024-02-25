@@ -302,7 +302,7 @@ class TagCog(commands.Cog):
         """Construct the Tag information embed to be sent."""
         transfers = ""
         for xfer in tag['transfers']:
-            transfers += xfer['from']
+            transfers += str(xfer['from'])
         alias_list = ""
         for alias in aliases.keys():
             alias_list += alias
