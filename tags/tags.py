@@ -6,80 +6,36 @@ from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.mod import is_mod_or_superior
 
+from tags.utils import TagConfigHelper
+
 
 class TagCog(commands.Cog):
     """Tag cog"""
 
     def __init__(self, bot: Red):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=128986274420752384002)
-
-        default_guild_config = {
-            "log": {  # TODO: The log booleans are not respected right now. Everything is logged.
-                "transfers": True,
-                "uses": True
-            },
-            "tags": {
-                "example": {
-                    "creator": "128986274420752384",
-                    "owner": "128986274420752384",
-                    "created": int(datetime.utcnow().timestamp()),
-                    "content": "This is an example tag!",
-                    "transfers": [
-                        {
-                            "time": int(datetime.utcnow().timestamp()),
-                            "from": "128986274420752384",
-                            "to": "128986274420752384"
-                        }
-                    ],
-                    "uses": [
-                        {
-                            "user": "128986274420752384",
-                            "time": int(datetime.utcnow().timestamp())
-                        }
-                    ]
-                }
-            },
-            "aliases": {
-                "ex": {
-                    "tag": "example",
-                    "creator": "128986274420752384",
-                    "created": int(datetime.utcnow().timestamp()),
-                    "uses": [
-                        {
-                            "user": "128986274420752384",
-                            "time": int(datetime.utcnow().timestamp())
-                        }
-                    ]
-                }
-            }
-        }
-
-        self.config.register_guild(**default_guild_config)
+        self.config = TagConfigHelper()
 
     @commands.guild_only()
     @commands.group(name="tag", pass_context=True, invoke_without_command=True)
-    async def _tag(self, ctx: commands.Context, tag: str):
+    async def _tag(self, ctx: commands.Context, trigger: str):
         """Manage tags and aliases."""
+        alias, tag = await self.config.get_tag_or_alias(ctx, trigger)
 
-        async def on_resolve(trigger: str, tag, alias, trigger_is_alias: bool):
-            use = {"user": ctx.author.id, "time": int(datetime.utcnow().timestamp())}
-            if "uses" not in tag:
-                tag["uses"] = []
-            tag["uses"].append(use)
-            if trigger_is_alias:
-                if "uses" not in alias:
-                    alias["uses"] = []
-                alias["uses"].append(use)
-            await ctx.send(tag["content"])
+        time = int(datetime.utcnow().timestamp())
 
-        async def fail_resolve(trigger: str, trigger_is_alias):
-            if trigger_is_alias:
-                await ctx.send("That alias' tag doesn't exist!")
-            else:
-                await ctx.send("That's not a valid tag!")
+        if tag is None and alias is None:
+            await ctx.send("That's not a valid tag or alias!")
+            return
+        if tag is None and alias is not None:
+            await ctx.send("That alias' tag doesn't exist!")
+            return
 
-        await self.resolve_trigger(ctx, tag, on_resolve, fail_resolve)
+        if tag is not None:
+            await ctx.send(tag.content)
+            await self.config.add_tag_use(tag, ctx.author.id, time)
+        if alias is not None:
+            await self.config.add_alias_use(alias, ctx.author.id, time)
 
     @_tag.command(name="search")
     async def _search(self, ctx: commands.Context, query: str):
