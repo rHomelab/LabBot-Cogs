@@ -104,22 +104,24 @@ class Tag(TagABC):
     @classmethod
     def from_storage(cls, ctx: commands.Context, data: dict):
         return cls(
+            tag=data['tag'],
             creator=data['creator'],
             owner=data['owner'],
             created=data['created'],
-            tag=data['tag'],
-            content=data['content']
+            content=data['content'],
+            transfers=data['transfers'],
+            uses=['uses']
         )
 
     def to_dict(self) -> dict:
         return {
+            "tag": self.tag,
             "creator": self.creator,
             "owner": self.owner,
             "created": self.created,
-            "tag": self.tag,
             "content": self.content,
-            "uses": [],
-            "transfers": []
+            "transfers": [],
+            "uses": []
         }
 
 
