@@ -125,7 +125,7 @@ class TagConfigHelper(TagConfigHelperABC):
 
     def __init__(self):
         self.config = Config.get_conf(None, identifier=128986274420752384002, cog_name="TagCog")
-        self.config.register_guild(log={}, tags=[], aliases=[])
+        self.config.register_guild(log={}, tags={}, aliases={})
 
     async def log_uses(self, ctx: commands.Context) -> bool:
         return self.config.guild(ctx.guild).log().uses()
