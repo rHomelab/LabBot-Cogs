@@ -127,18 +127,17 @@ class TagCog(commands.Cog):
             await ctx.send("Tag content updated!")
 
     @_tag.command(name="delete")
-    async def _delete(self, ctx: commands.Context, tag: str):
+    async def _delete(self, ctx: commands.Context, trigger: str):
         """Delete the specified tag."""
-        async with self.config.guild(ctx.guild).tags() as tags:
-            if tag in tags:
-                to = tags[tag]
-                if not to["owner"] == ctx.author.id and not await is_mod_or_superior(self.bot, ctx.author):
-                    await ctx.send("Sorry, you're not the tag owner and you don't have permissions to do that.")
-                else:
-                    del tags[tag]
-                    await ctx.send("Tag successfully deleted!")
+        tag = await self.config.get_tag(ctx, trigger)
+        if tag is None:
+            await ctx.send("That isn't a tag, sorry.")
+        else:
+            if tag.owner == ctx.author.id or await is_mod_or_superior(self.bot, ctx.author):
+                await self.config.delete_tag(ctx, trigger)
+                await ctx.send("Tag successfully deleted!")
             else:
-                await ctx.send("That's not a tag!")
+                await ctx.send("You can't delete that tag. Only the creator or mods can do that, and you're neither!")
 
     @_tag.command(name="claim")
     async def _claim(self, ctx: commands.Context, trigger: str):
