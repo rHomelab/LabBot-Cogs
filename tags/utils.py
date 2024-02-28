@@ -190,7 +190,7 @@ class TagConfigHelper(TagConfigHelperABC):
         return filtered_tags
 
     async def get_tag_or_alias(self, ctx: commands.Context, trigger: str) -> (Tag, Alias):
-        return self.get_tag(ctx, trigger), self.get_alias(ctx, trigger)
+        return await self.get_tag(ctx, trigger), await self.get_alias(ctx, trigger)
 
     async def add_tag_use(self, ctx: commands.Context, tag: Tag, user: int, time: int):
         use = Use.new(ctx, user, time)
