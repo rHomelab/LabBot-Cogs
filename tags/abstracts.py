@@ -14,9 +14,9 @@ class BaseABC(ABC):
             raise Exception("Invalid kwargs provided")
 
         for key, val in kwargs.items():
-            expected_type: type = self.__annotations__[key]
-            if not isinstance(val, expected_type):
-                raise TypeError(f"Expected type {expected_type} for kwarg {key!r}, got type {type(val)} instead")
+            # expected_type: type = self.__annotations__[key]
+            # if not isinstance(val, expected_type):
+            #     raise TypeError(f"Expected type {expected_type} for kwarg {key!r}, got type {type(val)} instead")
 
             setattr(self, key, val)
 
@@ -78,7 +78,7 @@ class AliasABC(BaseABC):
     creator: int
     created: int
     tag: str
-    uses: [UseABC]
+    uses: List[UseABC]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -107,8 +107,8 @@ class TagABC(BaseABC):
     owner: int
     created: int
     content: str
-    transfers: [TransferABC]
-    uses: [UseABC]
+    transfers: List[TransferABC]
+    uses: List[UseABC]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
