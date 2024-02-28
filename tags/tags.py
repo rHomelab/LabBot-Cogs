@@ -6,27 +6,27 @@ from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.mod import is_mod_or_superior
 
-from tags.utils import TagConfigHelper
+from tags.utils import TagConfigHelper, Alias, Tag
 
 
-def make_tag_info_embed(tag, aliases) -> discord.Embed:
+async def make_tag_info_embed(tag: Tag, aliases: [Alias]) -> discord.Embed:
     """Construct the Tag information embed to be sent."""
     transfers = []
-    for xfer in tag['transfers']:
-        transfers.append(f"<@{xfer['from']}>")
+    for xfer in tag.transfers:
+        transfers.append(f"<@{xfer.prior}>")
 
     alias_list = []
-    for alias in aliases.keys():
-        alias_list.append(alias)
+    for alias in aliases:
+        alias_list.append(alias.alias)
 
     result = (
         discord.Embed(
             colour=discord.Colour.blue(),
         )
-        .add_field(name="Creator", value=f"<@{tag['creator']}>")
-        .add_field(name="Owner", value=f"<@{tag['owner']}>")
-        .add_field(name="Created", value=f"<t:{tag['created']}:F>")
-        .add_field(name="Usage", value=len(tag['uses']))
+        .add_field(name="Creator", value=f"<@{tag.creator}>")
+        .add_field(name="Owner", value=f"<@{tag.owner}>")
+        .add_field(name="Created", value=f"<t:{tag.created}:F>")
+        .add_field(name="Usage", value=len(tag.uses))
     )
     if len(aliases) > 0:
         result.add_field(name="Aliases", value=', '.join(alias_list))
@@ -61,9 +61,9 @@ class TagCog(commands.Cog):
 
         if tag is not None:
             await ctx.send(tag.content)
-            await self.config.add_tag_use(tag, ctx.author.id, time)
+            await self.config.add_tag_use(ctx, tag, ctx.author.id, time)
         if alias is not None:
-            await self.config.add_alias_use(alias, ctx.author.id, time)
+            await self.config.add_alias_use(ctx, alias, ctx.author.id, time)
 
     # @_tag.command(name="search")
     # async def _search(self, ctx: commands.Context, query: str):
@@ -83,7 +83,7 @@ class TagCog(commands.Cog):
             await ctx.send("That tag already exists as an alias!")
             return
 
-        tag = self.config.create_tag(ctx, trigger, content)
+        tag = await self.config.create_tag(ctx, trigger, content)
 
         await ctx.send("Tag successfully created!")
 
@@ -102,11 +102,11 @@ class TagCog(commands.Cog):
     @_tag.command(name="info")
     async def _info(self, ctx: commands.Context, tag: str):
         """Provide information about the specified tag/alias."""
-        tag, aliases, is_tag, is_alias = await self.get_tag_or_alias(tag, ctx.guild)
-        if not is_tag and not is_alias:
+        maybe_tag = await self.config.get_tag(ctx, tag)
+        if maybe_tag is None:
             await ctx.send("That's not a known tag or alias!")
         else:
-            embed = make_tag_info_embed(tag, aliases)
+            embed = make_tag_info_embed(maybe_tag, await self.config.get_aliases_by_tag(ctx, maybe_tag))
             await ctx.send(embed=embed)
 
     @_tag.command(name="edit")
@@ -218,3 +218,5 @@ class TagCog(commands.Cog):
                 await ctx.send("Alias successfully deleted!")
             else:
                 await ctx.send("You can't delete that alias. Only the creator or mods can do that, and you're neither!")
+
+
