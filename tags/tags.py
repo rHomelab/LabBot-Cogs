@@ -48,7 +48,7 @@ class TagCog(commands.Cog):
     @commands.group(name="tag", pass_context=True, invoke_without_command=True)
     async def _tag(self, ctx: commands.Context, trigger: str):
         """Manage tags and aliases."""
-        alias, tag = await self.config.get_tag_or_alias(ctx, trigger)
+        tag, alias = await self.config.get_tag_or_alias(ctx, trigger)
 
         time = int(datetime.utcnow().timestamp())
 
