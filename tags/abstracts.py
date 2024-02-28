@@ -78,7 +78,7 @@ class AliasABC(BaseABC):
     creator: int
     created: int
     tag: str
-    uses: List[UseABC]
+    uses: [UseABC]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -107,8 +107,8 @@ class TagABC(BaseABC):
     owner: int
     created: int
     content: str
-    transfers: List[TransferABC]
-    uses: List[UseABC]
+    transfers: [TransferABC]
+    uses: [UseABC]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
