@@ -202,7 +202,7 @@ class TagConfigHelper(TagConfigHelperABC):
         use = Use.new(ctx, user, time)
         async with self.config.guild(ctx.guild).tags() as tags:
             if tag.tag in tags:
-                tags[tag].uses().append(use)
+                tag.uses.append(use)
 
     async def create_alias(self, ctx: commands.Context, alias: str, tag: str, creator: int, created: int):
         new_alias = Alias.new(ctx, alias, creator, created, tag, [])
@@ -240,7 +240,7 @@ class TagConfigHelper(TagConfigHelperABC):
         use = Use.new(ctx, user, time)
         async with self.config.guild(ctx.guild).aliases() as aliases:
             if alias.alias in aliases:
-                aliases[alias].uses().append(use)
+                alias.uses.append(use)
         tag = await self.get_tag_by_alias(ctx, alias)
         if tag is not None:
             await self.add_tag_use(ctx, tag, user, time)
