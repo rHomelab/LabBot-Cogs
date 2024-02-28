@@ -178,14 +178,23 @@ class TagConfigHelper(TagConfigHelperABC):
             if tag.tag in tags:
                 tags[tag].uses().append(use)
 
-    async def get_alias(self, ctx: commands.Context, alias: str) -> Alias:
-        pass
+    async def get_alias(self, ctx: commands.Context, trigger: str) -> Alias:
+        alias = None
+        async with self.config.guild(ctx.guild).aliases() as aliases:
+            if trigger in aliases:
+                alias = Alias.from_storage(ctx, aliases[trigger])
+        return alias
 
     async def get_aliases_by_tag(self, ctx: commands.Context, tag: Tag) -> List[Alias]:
-        pass
+        alias_list = [Alias]
+        async with self.config.guild(ctx.guild).aliases() as aliases:
+            for alias in aliases:
+                if alias.tag == tag.tag:
+                    alias_list.append(Alias.from_storage(ctx, alias))
+        return alias_list
 
     async def get_aliases_by_owner(self, ctx: commands.Context, owner_id: int) -> List[Alias]:
-        filtered_aliases = []
+        filtered_aliases = [Alias]
         async with self.config.guild(ctx.guild).aliases() as aliases:
             for alias in aliases:
                 if alias.owner == owner_id:

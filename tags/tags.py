@@ -12,7 +12,8 @@ from tags.utils import TagConfigHelper
 class TagCog(commands.Cog):
     """Tag cog"""
 
-    def __init__(self, bot: Red):
+    def __init__(self, bot: Red, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.bot = bot
         self.config = TagConfigHelper()
 
@@ -37,44 +38,39 @@ class TagCog(commands.Cog):
         if alias is not None:
             await self.config.add_alias_use(alias, ctx.author.id, time)
 
-    @_tag.command(name="search")
-    async def _search(self, ctx: commands.Context, query: str):
-        """Fuzzy search for tags and aliases matching the provided query. (WIP)"""
-        # TODO: Search for a matching tag or alias and return information about it to the user
-        await ctx.send("Not yet implemented, please try again later. Sorry!")
+    # @_tag.command(name="search")
+    # async def _search(self, ctx: commands.Context, query: str):
+    #     """Fuzzy search for tags and aliases matching the provided query. (WIP)"""
+    #     # TODO: Search for a matching tag or alias and return information about it to the user
+    #     await ctx.send("Not yet implemented, please try again later. Sorry!")
 
     @_tag.command(name="create")
-    async def _create(self, ctx: commands.Context, tag: str, *, content: str):
+    async def _create(self, ctx: commands.Context, trigger: str, *, content: str):
         """Create a new tag with the provided content (attachments excluded)."""
-        async with self.config.guild(ctx.guild).aliases() as aliases:
-            if tag in aliases:
-                await ctx.send("That tag already exists as an alias!")
-                return
-        async with self.config.guild(ctx.guild).tags() as tags:
-            if tag not in tags:
-                tags[tag] = {
-                    "creator": ctx.author.id,
-                    "owner": ctx.author.id,
-                    "created": int(datetime.utcnow().timestamp()),
-                    "content": content,
-                    "transfers": [],
-                    "uses": []
-                }
-                await ctx.send("Tag successfully created!")
-            else:
-                await ctx.send("That tag already exists!")
+        test_tag, test_alias = await self.config.get_tag_or_alias(ctx, trigger)
 
-    @_tag.command(name="stats")
-    async def _stats(self, ctx: commands.Context, member: discord.Member):
-        """Provide general stats about the tag system, or if a user is provided, about that user. (WIP)"""
-        await ctx.send("Stats reporting has not yet been implemented. Don't worry, we're tracking the stats though!")
-        if not member:
-            # TODO Return general stats
-            pass
-        else:
-            # TODO Return stats about the user (we've collected many)
-            pass
-        pass
+        if test_tag is not None:
+            await ctx.send("That tag already exists! You might be able to claim it, or ask the owner to transfer it.")
+            return
+        if test_alias is not None:
+            await ctx.send("That tag already exists as an alias!")
+            return
+
+        tag = self.config.create_tag(ctx, trigger, content)
+
+        await ctx.send("Tag successfully created!")
+
+    # @_tag.command(name="stats")
+    # async def _stats(self, ctx: commands.Context, member: discord.Member):
+    #     """Provide general stats about the tag system, or if a user is provided, about that user. (WIP)"""
+    #     await ctx.send("Stats reporting has not yet been implemented. Don't worry, we're tracking the stats though!")
+    #     if not member:
+    #         # TODO Return general stats
+    #         pass
+    #     else:
+    #         # TODO Return stats about the user (we've collected many)
+    #         pass
+    #     pass
 
     @_tag.command(name="info")
     async def _info(self, ctx: commands.Context, tag: str):

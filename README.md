@@ -334,16 +334,17 @@ abandoned tags. Ever use of a tag or alias is tracked. Same with ownership trans
 searching have not yet been implemented.
 
 - `[p]tag <tag>` - Triggers the specified tag.
-- `[p]tag search <query>` - Searches for a tag or alias (WIP).
+- ~~`[p]tag search <query>` - Searches for a tag or alias.~~
 - `[p]tag create <tag> <content>` - Creates the specified tag which will reply with the provided content when triggered.
-- `[p]tag stats [user]` - Provides general stats about the tag system, or if a user is provided, about that user (WIP).
-- `[p]tag info <tag>` - Provides info about the tag such as its creator, date of creation, etc. (WIP).
+- ~~`[p]tag stats [user]` - Provides general stats about the tag system, or if a user is provided, about that user.~~
+- `[p]tag info <tag>` - Provides info about the tag such as its creator, date of creation, etc.
 - `[p]tag edit <tag> <content>` - Updates the content of the specified tag.
 - `[p]tag delete <tag>` - Deletes the specified tag.
 - `[p]tag claim <tag>` - Allows the runner to claim ownership of the tag if the current owner is not in the guild.
 - `[p]tag transfer <tag> <user>` - Transfers ownership of the specified tag to the specified user.
 - `[p]tag alias create <alias> <tag>` - Creates the specified alias to the specified tag.
 - `[p]tag alias delete <alias>` - Deletes the specified alias.
+- (struck commands are disabled, pending feature review.)
 
 ### prometheus_exporter
 
