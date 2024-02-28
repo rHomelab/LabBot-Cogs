@@ -9,6 +9,33 @@ from redbot.core.utils.mod import is_mod_or_superior
 from tags.utils import TagConfigHelper
 
 
+def make_tag_info_embed(tag, aliases) -> discord.Embed:
+    """Construct the Tag information embed to be sent."""
+    transfers = []
+    for xfer in tag['transfers']:
+        transfers.append(f"<@{xfer['from']}>")
+
+    alias_list = []
+    for alias in aliases.keys():
+        alias_list.append(alias)
+
+    result = (
+        discord.Embed(
+            colour=discord.Colour.blue(),
+        )
+        .add_field(name="Creator", value=f"<@{tag['creator']}>")
+        .add_field(name="Owner", value=f"<@{tag['owner']}>")
+        .add_field(name="Created", value=f"<t:{tag['created']}:F>")
+        .add_field(name="Usage", value=len(tag['uses']))
+    )
+    if len(aliases) > 0:
+        result.add_field(name="Aliases", value=', '.join(alias_list))
+    if len(transfers) > 0:
+        result.add_field(name="Prior Owners", value=', '.join(transfers))
+
+    return result
+
+
 class TagCog(commands.Cog):
     """Tag cog"""
 
@@ -79,22 +106,25 @@ class TagCog(commands.Cog):
         if not is_tag and not is_alias:
             await ctx.send("That's not a known tag or alias!")
         else:
-            embed = self.make_tag_info_embed(tag, aliases)
+            embed = make_tag_info_embed(tag, aliases)
             await ctx.send(embed=embed)
 
     @_tag.command(name="edit")
-    async def _edit(self, ctx: commands.Context, tag: str, *, content: str):
+    async def _edit(self, ctx: commands.Context, trigger: str, *, content: str):
         """Replace the tag content with the supplied content."""
-        async with self.config.guild(ctx.guild).tags() as tags:
-            if tag in tags:
-                to = tags[tag]
-                if not to["owner"] == ctx.author.id and not await is_mod_or_superior(self.bot, ctx.author):
-                    await ctx.send("Sorry, you're not the tag owner and you don't have permissions to do that.")
-                else:
-                    to["content"] = content
-                    await ctx.send("Tag successfully updated!")
-            else:
-                await ctx.send("That's not a tag!")
+        tag = await self.config.get_tag(ctx, trigger)
+        if tag is None:
+            await ctx.send("Sorry, that's not a tag. That means you can create it!")
+            return
+
+        if not tag.owner == ctx.author.id and not await is_mod_or_superior(self.bot, ctx.author):
+            await ctx.send("Sorry, you're not the tag owner and you don't have permissions to do that.")
+            return
+
+        if await self.config.edit_tag(ctx, trigger, content) is None:
+            await ctx.send("Error editing tag, does not exist.")
+        else:
+            await ctx.send("Tag content updated!")
 
     @_tag.command(name="delete")
     async def _delete(self, ctx: commands.Context, tag: str):
@@ -111,54 +141,45 @@ class TagCog(commands.Cog):
                 await ctx.send("That's not a tag!")
 
     @_tag.command(name="claim")
-    async def _claim(self, ctx: commands.Context, tag: str):
+    async def _claim(self, ctx: commands.Context, trigger: str):
         """Claim an abandoned tag (if the creator has left the guild)."""
-        async with self.config.guild(ctx.guild).tags() as tags:
-            if tag in tags:
-                to = tags[tag]
-                if to["owner"] == ctx.author.id:
-                    await ctx.send("You're already that tag owner!")
-                else:
-                    curr_owner = ctx.guild.get_member(int(to["owner"]))
-                    if curr_owner is not None:
-                        await ctx.send(f"That tag's owner is still in the guild! You can see if "
-                                       f"{curr_owner.mention} wants to transfer it to you.")
-                    else:
-                        new_owner_id = ctx.author.id
-                        if "transfers" not in to:
-                            to["transfers"] = []
-                        to["transfers"].append({"from": to["owner"], "reason": "Claim",
-                                                "to": new_owner_id, "time": int(datetime.utcnow().timestamp())})
-                        to["owner"] = new_owner_id
-                        await ctx.send("Tag successfully claimed!")
+        tag = await self.config.get_tag(ctx, trigger)
+        if tag is not None:
+            if tag.owner == ctx.author.id:
+                await ctx.send("You're already that tag owner!")
             else:
-                await ctx.send("Sorry, that isn't a valid tag so you can't claim it. Good news! You can create it!")
+                curr_owner = ctx.guild.get_member(tag.owner)
+                if curr_owner is not None:
+                    await ctx.send(f"That tag's owner is still in the guild! You can see if {curr_owner.mention} "
+                                   f"wants to transfer it to you.")
+                else:
+                    await self.config.transfer_tag(ctx, trigger, ctx.author.id, "Claim", int(datetime.utcnow().timestamp()))
+                    await ctx.send("Tag successfully claimed!")
+        else:
+            await ctx.send("Sorry, that isn't a valid tag so you can't claim it. Good news! You can create it!")
 
     @_tag.command(name="transfer")
-    async def _transfer(self, ctx: commands.Context, tag: str, member: discord.Member):
+    async def _transfer(self, ctx: commands.Context, trigger: str, member: discord.Member):
         """Transfer ownership of the tag to the specified user."""
-        is_mod = await is_mod_or_superior(self.bot, ctx.author)
-        reason = "Transfer ("
-        if is_mod:
-            reason += f"Mod-initiated {ctx.author.mention})"
-        else:
-            reason += "Owner-initiated)"
-        async with self.config.guild(ctx.guild).tags() as tags:
-            if tag in tags:
-                to = tags[tag]
-                if not to["owner"] == ctx.author.id and not is_mod:
-                    await ctx.send("Sorry, you're not the tag owner and you don't have permissions to do that.")
-                else:
-                    curr_owner = to["owner"]
-                    new_owner = member.id
-                    if "transfers" not in to:
-                        to["transfers"] = []
-                    to["transfers"].append({"from": curr_owner, "reason": reason,
-                                            "to": new_owner, "time": int(datetime.utcnow().timestamp())})
-                    to["owner"] = new_owner
-                    await ctx.send("Tag successfully transferred!")
+        tag = await self.config.get_tag(ctx, trigger)
+        if tag is not None:
+            allowable = False
+            reason = ""
+            if tag.owner == ctx.author.id:
+                allowable = True
+                reason = "Owner-initiated"
             else:
-                await ctx.send("That's not a tag!")
+                if await is_mod_or_superior(self.bot, ctx.author):
+                    allowable = True
+                    reason = f"Mod-initiated by {ctx.author.mention}"
+            if allowable:
+                await self.config.transfer_tag(ctx, trigger, member.id, f"Transfer: {reason}",
+                                               int(datetime.utcnow().timestamp()))
+                await ctx.send("Tag successfully transferred!")
+            else:
+                await ctx.send("You can't transfer that tag. Ask the owner if they want to transfer it to you.")
+        else:
+            await ctx.send("That's not a tag! Good news, you can create now!")
 
     @_tag.group(name="alias")
     async def _alias(self, ctx: commands.Context):
@@ -168,110 +189,33 @@ class TagCog(commands.Cog):
     @_alias.command("create")
     async def _alias_create(self, ctx: commands.Context, alias: str, tag: str):
         """Create an alias to the specified tag."""
-        to, al, tag_proper, alias_proper = await self.get_tag_or_alias(alias, ctx.guild)
-        if tag_proper:
-            await ctx.send("That's already a tag!")
-        elif alias_proper:
-            await ctx.send("That's already an alias!")
-        else:
-            async with self.config.guild(ctx.guild).aliases() as aliases:
-                aliases[alias] = {
-                    "creator": ctx.author.id,
-                    "created": int(datetime.utcnow().timestamp()),
-                    "tag": tag,
-                    "uses": []
-                }
-                await ctx.send("Alias successfully created!")
+
+        alias_search_tag, alias_search_aliases = await self.config.get_tag_or_alias(ctx, alias)
+        tag_search_tag, tag_search_aliases = await self.config.get_tag_or_alias(ctx, tag)
+
+        if alias_search_tag is not None:
+            await ctx.send("Sorry, that alias already exists as a tag.")
+            return
+        if alias_search_aliases is not None and len(alias_search_aliases) > 0:
+            await ctx.send("Sorry, that alias already exists as an alias! Silly you!")
+            return
+
+        if tag_search_tag is not None:
+            await ctx.send("Sorry, that tag doesn't exist so you can't alias it. You can create it though!")
+            return
+        if tag_search_aliases is not None and len(tag_search_aliases) > 0:
+            await ctx.send("You can't alias to another alias! That gets messy.")
+            return
 
     @_alias.command("delete")
-    async def _alias_delete(self, ctx: commands.Context, alias: str):
+    async def _alias_delete(self, ctx: commands.Context, trigger: str):
         """Delete the specified alias."""
-        async with self.config.guild(ctx.guild).aliases() as aliases:
-            if alias in aliases:
-                a = aliases[alias]
-                if not a["creator"] == ctx.author.id and await is_mod_or_superior(self.bot, ctx.author):
-                    await ctx.send("Sorry, you're not the alias creator and you don't have permissions to do that.")
-                    return
-                else:
-                    del aliases[alias]
-                    await ctx.send("Alias deleted successfully!")
-
-    async def get_tag_or_alias(self, tag: str, guild: Guild) -> (object, [], bool, bool):
-        """Searches for a tag or alias based on the value provided.
-
-        If the provided query is a tag, it will return the tag and all aliases associated with it.
-
-        If the provided query is an alias, it will return itself as an alias plus the resolved tag.
-
-        If the provided query is a tag, the first returned boolean will be true.
-
-        If the provided query is an alias, the second returned boolean will be true.
-
-        All returned values are fully hydrated.
-
-        If no aliases are found, a zero-length array is returned.
-
-        """
-        hydrated_tag = None  # A single tag to return
-        hydrated_aliases = {}  # All aliases for a tag
-        tag_proper = False
-        alias_proper = False
-        tag_search = tag
-        async with self.config.guild(guild).aliases() as aliases:
-            if tag in aliases:
-                hydrated_aliases[tag] = aliases[tag]  # Provided tag is only an alias
-                alias_proper = True
-                tag_search = aliases[tag]["tag"]
+        alias = await self.config.get_alias(ctx, trigger)
+        if alias is None:
+            await ctx.send("That isn't an alias, sorry.")
+        else:
+            if alias.creator == ctx.author.id or await is_mod_or_superior(self.bot, ctx.author):
+                await self.config.delete_alias(ctx, trigger)
+                await ctx.send("Alias successfully deleted!")
             else:
-                for alias in aliases:
-                    if aliases[alias]["tag"] == tag:
-                        hydrated_aliases[alias] = aliases[alias]
-        async with self.config.guild(guild).tags() as tags:
-            if tag_search in tags:
-                tag_proper = tag_search == tag
-                hydrated_tag = tags[tag_search]
-        return hydrated_tag, hydrated_aliases, tag_proper, alias_proper
-
-    async def resolve_trigger(self, ctx: commands.Context, trigger: str, on_resolve, fail_resolve):
-        search_tag = trigger
-        alias = None
-        trigger_is_alias = False
-        async with self.config.guild(ctx.guild).aliases() as aliases:
-            if search_tag in aliases:
-                alias = aliases[search_tag]
-                search_tag = alias["tag"]
-                trigger_is_alias = True
-            async with self.config.guild(ctx.guild).tags() as tags:
-                if search_tag in tags:
-                    tag = tags[search_tag]
-                    if on_resolve is not None:
-                        await on_resolve(trigger, tag, alias, trigger_is_alias)
-                else:
-                    if fail_resolve is not None:
-                        await fail_resolve(trigger, trigger_is_alias)
-
-    def make_tag_info_embed(self, tag, aliases) -> discord.Embed:
-        """Construct the Tag information embed to be sent."""
-        transfers = []
-        for xfer in tag['transfers']:
-            transfers.append(f"<@{xfer['from']}>")
-
-        alias_list = []
-        for alias in aliases.keys():
-            alias_list.append(alias)
-
-        result = (
-            discord.Embed(
-                colour=discord.Colour.blue(),
-            )
-            .add_field(name="Creator", value=f"<@{tag['creator']}>")
-            .add_field(name="Owner", value=f"<@{tag['owner']}>")
-            .add_field(name="Created", value=f"<t:{tag['created']}:F>")
-            .add_field(name="Usage", value=len(tag['uses']))
-        )
-        if len(aliases) > 0:
-            result.add_field(name="Aliases", value=', '.join(alias_list))
-        if len(transfers) > 0:
-            result.add_field(name="Prior Owners", value=', '.join(transfers))
-
-        return result
+                await ctx.send("You can't delete that alias. Only the creator or mods can do that, and you're neither!")

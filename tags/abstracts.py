@@ -155,6 +155,14 @@ class TagConfigHelperABC(ABC):
         """Creates, saves, and returns a new Tag."""
         pass
 
+    async def edit_tag(self, ctx: commands.Context, tag: str, content: str) -> TagABC:
+        """Updates and saves the content of an existing tag."""
+        pass
+
+    async def transfer_tag(self, ctx: commands.Context, trigger: str, to: int, reason: str, time: int):
+        """Transfers the specified tag ownership to the new specified owner and makes the transfer entry."""
+        pass
+
     async def get_tag(self, ctx: commands.Context, tag: str) -> TagABC:
         """Returns the tag, if any, for the given key."""
         pass
@@ -174,6 +182,14 @@ class TagConfigHelperABC(ABC):
 
     async def add_tag_use(self, ctx: commands.Context, tag: TagABC, user: int, time: int):
         """Adds and saves a usage entry for the specified tag."""
+        pass
+
+    async def create_alias(self, ctx: commands.Context, alias: str, tag: str, creator: int, created: int):
+        """Creates and saves the specified alias for the tag."""
+        pass
+
+    async def delete_alias(self, ctx: commands.Context, alias: str):
+        """Deletes the specified alias and related data."""
         pass
 
     async def get_alias(self, ctx: commands.Context, alias: str) -> AliasABC:

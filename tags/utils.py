@@ -145,6 +145,27 @@ class TagConfigHelper(TagConfigHelperABC):
             tags[trigger] = tag.to_dict()
         return tag
 
+    async def edit_tag(self, ctx: commands.Context, trigger: str, content: str) -> Tag:
+        tag = await self.get_tag(ctx, trigger)
+        if tag is not None:
+            tag.content = content
+            async with self.config.guild(ctx.guild).tags() as tags:
+                tags[trigger] = tag.to_dict()
+        return tag
+
+    async def transfer_tag(self, ctx: commands.Context, trigger: str, to: int, reason: str, time: int):
+        tag = await self.get_tag(ctx, trigger)
+        if tag is not None:
+            transfers = tag.transfers
+            transfers.append(Transfer.new(ctx, tag.owner, reason, to, time))
+            tag.transfers = transfers
+            async with self.config.guild(ctx.guild).tags() as tags:
+                tags[trigger] = tag.to_dict()
+
+    async def delete_tag(self, ctx: commands.Context, tag: str):
+        async with self.config.guild(ctx.guild).tags() as tags:
+            del tags[tag]
+
     async def get_tag(self, ctx: commands.Context, trigger: str) -> Tag:
         tag = None
         async with self.config.guild(ctx.guild).tags() as tags:
@@ -177,6 +198,15 @@ class TagConfigHelper(TagConfigHelperABC):
         async with self.config.guild(ctx.guild).tags() as tags:
             if tag.tag in tags:
                 tags[tag].uses().append(use)
+
+    async def create_alias(self, ctx: commands.Context, alias: str, tag: str, creator: int, created: int):
+        new_alias = Alias.new(ctx, alias, creator, created, tag, [])
+        async with self.config.guild(ctx.guild).aliases() as aliases:
+            aliases.append(new_alias)
+
+    async def delete_alias(self, ctx: commands.Context, alias: str):
+        async with self.config.guild(ctx.guild).aliases() as aliases:
+            del aliases[alias]
 
     async def get_alias(self, ctx: commands.Context, trigger: str) -> Alias:
         alias = None
