@@ -92,11 +92,13 @@ class Tag(TagABC):
     @classmethod
     def new(cls, ctx: commands.Context, creator: int, owner: int, created: int, tag: str, content: str):
         return cls(
+            tag=tag,
             creator=creator,
             owner=owner,
             created=created,
-            tag=tag,
-            content=content
+            content=content,
+            transfers=[],
+            uses=[]
         )
 
     @classmethod

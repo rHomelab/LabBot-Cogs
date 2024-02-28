@@ -109,7 +109,6 @@ class TagABC(BaseABC):
     content: str
     transfers: List[TransferABC]
     uses: List[UseABC]
-    _guild: discord.Guild
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
