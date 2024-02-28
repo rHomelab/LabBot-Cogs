@@ -7,16 +7,7 @@ import discord
 from redbot.core import Config, commands
 
 
-class TransferABC(ABC):
-    prior: int
-    reason: str
-    to: int
-    time: int
-
-
-class UseABC(ABC):
-    user: int
-    time: int
+class BaseABC(ABC):
 
     def __init__(self, **kwargs):
         if kwargs.keys() != self.__annotations__.keys():
@@ -28,6 +19,41 @@ class UseABC(ABC):
                 raise TypeError(f"Expected type {expected_type} for kwarg {key!r}, got type {type(val)} instead")
 
             setattr(self, key, val)
+
+
+class TransferABC(BaseABC):
+    prior: int
+    reason: str
+    to: int
+    time: int
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    @classmethod
+    @abstractmethod
+    def new(cls, ctx: commands.Context, prior: int, reason: str, to: int, time: int):
+        """Initialise the class in a command context"""
+        pass
+
+    @classmethod
+    @abstractmethod
+    def from_storage(cls, ctx: commands.Context, data: dict):
+        """Initialise the class from a config record"""
+        pass
+
+    @abstractmethod
+    def to_dict(self) -> dict:
+        """Returns a dictionary representation of the class, suitable for storing in config"""
+        pass
+
+
+class UseABC(BaseABC):
+    user: int
+    time: int
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     @classmethod
     @abstractmethod
@@ -47,16 +73,35 @@ class UseABC(ABC):
         pass
 
 
-class AliasABC(ABC):
+class AliasABC(BaseABC):
     alias: str
     creator: int
     created: int
     tag: str
     uses: List[UseABC]
-    _guild: discord.Guild
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    @classmethod
+    @abstractmethod
+    def new(cls, ctx: commands.Context, alias: str, creator: int, created: int, tag: str, uses: List[UseABC]):
+        """Initialise the class in a command context"""
+        pass
+
+    @classmethod
+    @abstractmethod
+    def from_storage(cls, ctx: commands.Context, data: dict):
+        """Initialise the class from a config record"""
+        pass
+
+    @abstractmethod
+    def to_dict(self) -> dict:
+        """Returns a dictionary representation of the class, suitable for storing in config"""
+        pass
 
 
-class TagABC(ABC):
+class TagABC(BaseABC):
     tag: str
     creator: int
     owner: int
@@ -65,6 +110,9 @@ class TagABC(ABC):
     transfers: List[TransferABC]
     uses: List[UseABC]
     _guild: discord.Guild
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     @classmethod
     @abstractmethod
@@ -81,11 +129,6 @@ class TagABC(ABC):
     @abstractmethod
     def to_dict(self) -> dict:
         """Returns a dictionary representation of the class, suitable for storing in config"""
-        pass
-
-    @abstractmethod
-    def __str__(self) -> str:
-        """The string representation of the class. Used primarily in message embeds"""
         pass
 
 
