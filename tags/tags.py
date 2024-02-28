@@ -106,7 +106,7 @@ class TagCog(commands.Cog):
         if maybe_tag is None:
             await ctx.send("That's not a known tag or alias!")
         else:
-            embed = make_tag_info_embed(maybe_tag, await self.config.get_aliases_by_tag(ctx, maybe_tag))
+            embed = await make_tag_info_embed(maybe_tag, await self.config.get_aliases_by_tag(ctx, maybe_tag))
             await ctx.send(embed=embed)
 
     @_tag.command(name="edit")
