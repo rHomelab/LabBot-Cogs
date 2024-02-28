@@ -1,8 +1,7 @@
 from datetime import datetime
 from typing import List
 
-from redbot.core import Config
-from redbot.core.commands import commands
+from redbot.core import Config, commands
 
 from tags.abstracts import TagConfigHelperABC, TagABC, AliasABC, UseABC, TransferABC
 
