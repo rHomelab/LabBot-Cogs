@@ -16,7 +16,7 @@ async def make_tag_info_embed(tag: Tag, aliases: [Alias]) -> discord.Embed:
         transfers.append(f"<@{xfer.prior}>")
 
     alias_list = []
-    print(len(alias_list))
+    print(len(aliases))
     for alias in aliases:
         print(alias)
         alias_list.append(alias.alias)
