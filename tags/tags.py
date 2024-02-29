@@ -207,6 +207,9 @@ class TagCog(commands.Cog):
             await ctx.send("You can't alias to another alias! That gets messy.")
             return
 
+        await self.config.create_alias(ctx, alias, tag, ctx.author.id, int(datetime.utcnow().timestamp()))
+        await ctx.send("Alias created!")
+
     @_alias.command("delete")
     async def _alias_delete(self, ctx: commands.Context, trigger: str):
         """Delete the specified alias."""
