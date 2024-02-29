@@ -61,9 +61,10 @@ class TagCog(commands.Cog):
 
         if tag is not None:
             await ctx.send(tag.content)
-            await self.config.add_tag_use(ctx, tag, ctx.author.id, time)
         if alias is not None:
-            await self.config.add_alias_use(ctx, alias, ctx.author.id, time)
+            await self.config.add_alias_use(ctx, alias, ctx.author.id, time)  # Adding an alias use adds the tag use
+        else:
+            await self.config.add_tag_use(ctx, tag, ctx.author.id, time)
 
     # @_tag.command(name="search")
     # async def _search(self, ctx: commands.Context, query: str):
@@ -199,7 +200,7 @@ class TagCog(commands.Cog):
             await ctx.send("Sorry, that alias already exists as an alias! Silly you!")
             return
 
-        if tag_search_tag is not None:
+        if tag_search_tag is None:
             await ctx.send("Sorry, that tag doesn't exist so you can't alias it. You can create it though!")
             return
         if tag_search_aliases is not None and len(tag_search_aliases) > 0:
