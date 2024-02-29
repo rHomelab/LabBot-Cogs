@@ -226,7 +226,7 @@ class TagConfigHelper(TagConfigHelperABC):
             for alias_dict in aliases:
                 alias = Alias.from_storage(ctx, alias_dict)
                 if alias.tag == tag.tag:
-                    alias_list.append(Alias.from_storage(ctx, aliases[alias]))
+                    alias_list.append(alias)
         return alias_list
 
     async def get_aliases_by_owner(self, ctx: commands.Context, owner_id: int) -> List[Alias]:
