@@ -207,7 +207,7 @@ class TagConfigHelper(TagConfigHelperABC):
     async def create_alias(self, ctx: commands.Context, alias: str, tag: str, creator: int, created: int):
         new_alias = Alias.new(ctx, alias, creator, created, tag, [])
         async with self.config.guild(ctx.guild).aliases() as aliases:
-            aliases.append(new_alias)
+            aliases[alias] = new_alias.to_dict()
 
     async def delete_alias(self, ctx: commands.Context, alias: str):
         async with self.config.guild(ctx.guild).aliases() as aliases:
