@@ -231,7 +231,7 @@ class TagConfigHelper(TagConfigHelperABC):
         return alias_list
 
     async def get_aliases_by_owner(self, ctx: commands.Context, owner_id: int) -> List[Alias]:
-        filtered_aliases = [Alias]
+        filtered_aliases = []
         async with self.config.guild(ctx.guild).aliases() as aliases:
             for alias in aliases:
                 if alias.owner == owner_id:
