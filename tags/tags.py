@@ -56,14 +56,18 @@ class TagCog(commands.Cog):
             await ctx.send("That's not a valid tag or alias!")
             return
         if tag is None and alias is not None:
-            await ctx.send("That alias' tag doesn't exist!")
-            return
+            tag = await self.config.get_tag_by_alias(ctx, alias)
+            if tag is None:
+                await ctx.send("That alias' tag doesn't exist!")
+                return
 
-        if tag is not None:
-            await ctx.send(tag.content)
-        if alias is not None:
+        # Deploy the tag
+        await ctx.send(tag.content)
+
+        # Log statistics
+        if alias is not None:  # Alias was used
             await self.config.add_alias_use(ctx, alias, ctx.author.id, time)  # Adding an alias use adds the tag use
-        else:
+        else:  # Alias was not used
             await self.config.add_tag_use(ctx, tag, ctx.author.id, time)
 
     # @_tag.command(name="search")
