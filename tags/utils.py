@@ -224,6 +224,7 @@ class TagConfigHelper(TagConfigHelperABC):
         alias_list = [Alias]
         async with self.config.guild(ctx.guild).aliases() as aliases:
             for alias_dict in aliases:
+                print(alias_dict)
                 alias = Alias.from_storage(ctx, alias_dict)
                 if alias.tag == tag.tag:
                     alias_list.append(alias)
