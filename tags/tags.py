@@ -190,6 +190,7 @@ class TagCog(commands.Cog):
 
     @_tag.command("list")
     async def _list(self, ctx: commands.Context, user: Optional[discord.User]):
+        """List all tags and aliases, or just those owned by the user if specified."""
         # TODO Paginate and format this better.
         results = ["**__Tags__**"]
         for tag in await self.config.get_tags(ctx, user):
