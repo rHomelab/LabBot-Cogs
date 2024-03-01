@@ -170,6 +170,10 @@ class TagConfigHelperABC(ABC):
         """Returns the associated tag for the given alias."""
         pass
 
+    async def get_tags(self, ctx: commands.Context, creator: Optional[discord.User]) -> List[TagABC]:
+        """Returns a list of all tags, or those created by the specified user if provided."""
+        pass
+
     async def get_tags_by_owner(self, ctx: commands.Context, owner_id: int) -> List[TagABC]:
         """Returns a list of tags owned by the provided owner."""
         pass

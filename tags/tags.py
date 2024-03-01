@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 import discord
 from discord import Guild
@@ -28,6 +29,7 @@ async def make_tag_info_embed(tag: Tag, aliases: [Alias]) -> discord.Embed:
         .add_field(name="Owner", value=f"<@{tag.owner}>")
         .add_field(name="Created", value=f"<t:{tag.created}:F>")
         .add_field(name="Usage", value=len(tag.uses))
+        .add_field(name="Transfers", value=len(tag.transfers))
     )
     if len(aliases) > 0:
         result.add_field(name="Aliases", value=f"`{', '.join(alias_list)}`")
@@ -185,6 +187,19 @@ class TagCog(commands.Cog):
                 await ctx.send("You can't transfer that tag. Ask the owner if they want to transfer it to you.")
         else:
             await ctx.send("That's not a tag! Good news, you can create now!")
+
+    @_tag.command("list")
+    async def _list(self, ctx: commands.Context, user: Optional[discord.User]):
+        # TODO Paginate and format this better.
+        results = ["**__Tags__**"]
+        for tag in await self.config.get_tags(ctx, user):
+            results.append(f"{tag.tag}")
+
+        results.append("**__Aliases__**")
+        for alias in await self.config.get_aliases(ctx, user):
+            results.append(f"{alias.alias}:{alias.tag}")
+
+        await ctx.send("\n".join(results))
 
     @_tag.group(name="alias")
     async def _alias(self, ctx: commands.Context):
