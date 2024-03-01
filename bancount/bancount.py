@@ -1,6 +1,6 @@
 import random
 
-from redbot.core import commands, Config, checks
+from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
 
 
