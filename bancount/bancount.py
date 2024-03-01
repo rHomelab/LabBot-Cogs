@@ -31,7 +31,7 @@ class BanCountCog(commands.Cog):
                 await ctx.send("Error: guild has no configured messages. Use `[p]bancount add <message>`.")
                 return
             message = random.choice(messages)
-            message = message.replace(self.REPLACER, int(len([entry async for entry in ctx.guild.bans()])))
+            message = message.replace(self.REPLACER, str(len([entry async for entry in ctx.guild.bans()])))
             await ctx.send(message)
 
     @checks.mod()
