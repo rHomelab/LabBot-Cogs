@@ -36,7 +36,7 @@ class BanCountCog(commands.Cog):
 
     @checks.mod()
     @_bancount.command(name="add")
-    async def _bancount_add(self, ctx: commands.Context, message: str):
+    async def _bancount_add(self, ctx: commands.Context, *, message: str):
         """Add a message to the message list."""
         if self.REPLACER not in message:
             await ctx.send(
