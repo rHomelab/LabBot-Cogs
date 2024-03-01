@@ -342,6 +342,7 @@ searching have not yet been implemented.
 - `[p]tag delete <tag>` - Deletes the specified tag.
 - `[p]tag claim <tag>` - Allows the runner to claim ownership of the tag if the current owner is not in the guild.
 - `[p]tag transfer <tag> <user>` - Transfers ownership of the specified tag to the specified user.
+- `[p]tag list [user]` - Lists all tags and aliases, or just those for the specified user.
 - `[p]tag alias create <alias> <tag>` - Creates the specified alias to the specified tag.
 - `[p]tag alias delete <alias>` - Deletes the specified alias.
 - (struck commands are disabled, pending feature review.)
