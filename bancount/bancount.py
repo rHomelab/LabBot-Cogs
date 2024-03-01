@@ -51,7 +51,7 @@ class BanCountCog(commands.Cog):
     async def _bancount_list(self, ctx: commands.Context):
         """Lists the message list."""
         async with self.config.guild(ctx.guild).messages() as messages:
-            message_list = [f"`{i}) {message}`" async for i, message in messages]
+            message_list = [f"`{i}) {message}`" for i, message in messages]
         await ctx.send("\n".join(message_list))
 
     @checks.mod()
