@@ -189,13 +189,13 @@ class TagConfigHelper(TagConfigHelperABC):
                     tag = Tag.from_storage(ctx, tags[search])
         return tag
 
-    async def get_tags(self, ctx: commands.Context, creator: Optional[discord.User]) -> List[TagABC]:
+    async def get_tags(self, ctx: commands.Context, owner: Optional[discord.User]) -> List[TagABC]:
         tag_list = []
         async with self.config.guild(ctx.guild).tags() as tags:
             for tag_key in tags.keys():
                 tag = Tag.from_storage(ctx, tags[tag_key])
-                if creator is not None:
-                    if not tag.owner == creator:
+                if owner is not None:
+                    if not tag.owner == owner.id:
                         continue
                 tag_list.append(tag)
         return tag_list
@@ -239,7 +239,7 @@ class TagConfigHelper(TagConfigHelperABC):
             for alias_key in aliases.keys():
                 alias = Alias.from_storage(ctx, aliases[alias_key])
                 if creator is not None:
-                    if not alias.creator == creator:
+                    if not alias.creator == creator.id:
                         continue
                 alias_list.append(alias)
         return alias_list
