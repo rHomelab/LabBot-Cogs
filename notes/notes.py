@@ -50,8 +50,8 @@ class NotesCog(commands.Cog):
         message: str,
     ):
         """Log a note against a user."""
-        await self.config.add_note(ctx, user, message, is_warning=False)
-        await ctx.send("Note added.")
+        note = await self.config.add_note(ctx, user, message, is_warning=False)
+        await ctx.send(f"Note added (ID: {note.note_id}).")
 
     @_notes.command("delete")
     async def notes_delete(self, ctx: commands.Context, note_id: int):
@@ -82,8 +82,8 @@ class NotesCog(commands.Cog):
         message: str,
     ):
         """Log a warning against a user."""
-        await self.config.add_note(ctx, user, message, is_warning=True)
-        await ctx.send("Warning added.")
+        note = await self.config.add_note(ctx, user, message, is_warning=True)
+        await ctx.send(f"Warning added (ID: {note.note_id}).")
 
     @_warnings.command("delete")
     async def warning_delete(self, ctx: commands.Context, note_id: int):

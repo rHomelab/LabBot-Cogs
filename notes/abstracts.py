@@ -93,7 +93,7 @@ class ConfigHelperABC(ABC):
         pass
 
     @abstractmethod
-    async def add_note(self, ctx: commands.Context, member_id: int, message: str, *, is_warning: bool):
+    async def add_note(self, ctx: commands.Context, member_id: int, message: str, *, is_warning: bool) -> NoteABC:
         pass
 
     @abstractmethod
