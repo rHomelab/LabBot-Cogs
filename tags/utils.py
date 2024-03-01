@@ -164,6 +164,7 @@ class TagConfigHelper(TagConfigHelperABC):
             transfers = tag.transfers
             transfers.append(Transfer.new(ctx, tag.owner, reason, to, time))
             tag.transfers = transfers
+            tag.owner = to
             async with self.config.guild(ctx.guild).tags() as tags:
                 tags[trigger] = tag.to_dict()
 

@@ -23,13 +23,14 @@ async def make_tag_info_embed(tag: Tag, aliases: [Alias]) -> discord.Embed:
         discord.Embed(
             colour=discord.Colour.blue(),
         )
+        .add_field(name="Tag", value=f"`{tag.tag}`")
         .add_field(name="Creator", value=f"<@{tag.creator}>")
         .add_field(name="Owner", value=f"<@{tag.owner}>")
         .add_field(name="Created", value=f"<t:{tag.created}:F>")
         .add_field(name="Usage", value=len(tag.uses))
     )
     if len(aliases) > 0:
-        result.add_field(name="Aliases", value=', '.join(alias_list))
+        result.add_field(name="Aliases", value=f"`{', '.join(alias_list)}`")
     if len(transfers) > 0:
         result.add_field(name="Prior Owners", value=', '.join(transfers))
 
@@ -109,7 +110,7 @@ class TagCog(commands.Cog):
         """Provide information about the specified tag/alias."""
         maybe_tag = await self.config.get_tag(ctx, tag)
         if maybe_tag is None:
-            await ctx.send("That's not a known tag or alias!")
+            await ctx.send("That's not a known tag!")
         else:
             embed = await make_tag_info_embed(maybe_tag, await self.config.get_aliases_by_tag(ctx, maybe_tag))
             await ctx.send(embed=embed)
@@ -150,7 +151,7 @@ class TagCog(commands.Cog):
         tag = await self.config.get_tag(ctx, trigger)
         if tag is not None:
             if tag.owner == ctx.author.id:
-                await ctx.send("You're already that tag owner!")
+                await ctx.send("You're already that tag's owner!")
             else:
                 curr_owner = ctx.guild.get_member(tag.owner)
                 if curr_owner is not None:
