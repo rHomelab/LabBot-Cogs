@@ -224,8 +224,8 @@ class TagConfigHelper(TagConfigHelperABC):
     async def get_aliases_by_tag(self, ctx: commands.Context, tag: Tag) -> List[Alias]:
         alias_list = []
         async with self.config.guild(ctx.guild).aliases() as aliases:
-            for alias_dict in aliases:
-                alias = Alias.from_storage(ctx, alias_dict)
+            for alias_key in aliases.keys():
+                alias = Alias.from_storage(ctx, aliases[alias_key])
                 if alias.tag == tag.tag:
                     alias_list.append(alias)
         return alias_list
