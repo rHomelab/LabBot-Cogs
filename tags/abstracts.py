@@ -1,7 +1,7 @@
 # Credit to the Notes cog author(s) for this structure
 
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Optional
 
 import discord
 from redbot.core import Config, commands
@@ -193,6 +193,10 @@ class TagConfigHelperABC(ABC):
 
     async def get_alias(self, ctx: commands.Context, alias: str) -> AliasABC:
         """Returns the alias, if any, for the given key."""
+        pass
+
+    async def get_aliases(self, ctx: commands.Context, creator: Optional[discord.User]) -> List[AliasABC]:
+        """Returns a list of all aliases, or those created by the specified user if provided."""
         pass
 
     async def get_aliases_by_tag(self, ctx: commands.Context, tag: TagABC) -> List[AliasABC]:

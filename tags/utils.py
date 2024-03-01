@@ -1,6 +1,7 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
+import discord
 from redbot.core import Config, commands
 
 from tags.abstracts import TagConfigHelperABC, TagABC, AliasABC, UseABC, TransferABC
@@ -221,6 +222,17 @@ class TagConfigHelper(TagConfigHelperABC):
                 alias = Alias.from_storage(ctx, aliases[trigger])
         return alias
 
+    async def get_aliases(self, ctx: commands.Context, creator: Optional[discord.User]) -> List[Alias]:
+        alias_list = []
+        async with self.config.guild(ctx.guild).aliases() as aliases:
+            for alias_key in aliases.keys():
+                alias = Alias.from_storage(ctx, aliases[alias_key])
+                if creator is not None:
+                    if not alias.creator == creator:
+                        continue
+                alias_list.append(alias)
+        return alias_list
+
     async def get_aliases_by_tag(self, ctx: commands.Context, tag: Tag) -> List[Alias]:
         alias_list = []
         async with self.config.guild(ctx.guild).aliases() as aliases:
@@ -233,9 +245,10 @@ class TagConfigHelper(TagConfigHelperABC):
     async def get_aliases_by_owner(self, ctx: commands.Context, owner_id: int) -> List[Alias]:
         filtered_aliases = []
         async with self.config.guild(ctx.guild).aliases() as aliases:
-            for alias in aliases:
-                if alias.owner == owner_id:
-                    filtered_aliases.append(Alias.from_storage(ctx, aliases))
+            for alias_key in aliases.keys():
+                alias = Alias.from_storage(ctx, aliases[alias_key])
+                if alias.creator == owner_id:
+                    filtered_aliases.append(alias)
         return filtered_aliases
 
     async def add_alias_use(self, ctx: commands.Context, alias: Alias, user: int, time: int):
