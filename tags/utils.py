@@ -4,7 +4,7 @@ from typing import List, Optional
 import discord
 from redbot.core import Config, commands
 
-from tags.abstracts import TagConfigHelperABC, TagABC, AliasABC, UseABC, TransferABC
+from tags.abstracts import AliasABC, TagABC, TagConfigHelperABC, TransferABC, UseABC
 
 
 class Transfer(TransferABC):

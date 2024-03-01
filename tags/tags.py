@@ -2,12 +2,11 @@ from datetime import datetime
 from typing import Optional
 
 import discord
-from discord import Guild
-from redbot.core import Config, commands
+from redbot.core import commands
 from redbot.core.bot import Red
 from redbot.core.utils.mod import is_mod_or_superior
 
-from tags.utils import TagConfigHelper, Alias, Tag
+from tags.utils import Alias, Tag, TagConfigHelper
 
 
 async def make_tag_info_embed(tag: Tag, aliases: [Alias]) -> discord.Embed:
