@@ -100,10 +100,10 @@ class JailConfigHelper(JailConfigHelperABC):
         self.config.register_guild()
 
     async def set_category(self, ctx: commands.Context, category: CategoryChannel):
-        await self.config.guild(ctx.guild).channels().category.set(category.id)
+        await self.config.guild(ctx.guild).category.set(category.id)
 
     async def get_category(self, ctx: commands.Context) -> CategoryChannel:
-        channel = ctx.guild.get_channel(await self.config.guild(ctx.guild).channels().category())
+        channel = ctx.guild.get_channel(await self.config.guild(ctx.guild).category())
         if channel is None:
             return None
         return channel
