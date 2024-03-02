@@ -1,0 +1,14 @@
+{
+    "author": [
+        "portalBlock"
+    ],
+    "short": "Utility to manage per-user timeouts (jails).",
+    "description": "Create individual jails for users when multiple users need to be timed out.",
+    "disabled": false,
+    "name": "jail",
+    "tags": [
+        "utility"
+    ],
+    "install_msg": "Usage: `[p]jail`. Please run `[p]jail setup <channel category ID> <template channel>`!!",
+    "min_bot_version": "3.5.1"
+}
