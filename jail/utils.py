@@ -175,5 +175,5 @@ class JailConfigHelper(JailConfigHelperABC):
         async with self.config.guild(ctx.guild).jails() as jails:
             if str(user.id) in jails.keys():
                 print("Jail found")
-                return Jail.from_storage(ctx, jails[user.id])
+                return Jail.from_storage(ctx, jails[str(user.id)])
         return None
