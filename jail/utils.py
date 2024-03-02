@@ -149,7 +149,7 @@ class JailConfigHelper(JailConfigHelperABC):
         await self.save_user_roles(ctx, jail, member)
         reason = "Jail: Timeout"
         for r in member.roles:
-            if r.name is not "@everyone":
+            if r.name != "@everyone":
                 await member.remove_roles(r, reason=reason)
 
         role = ctx.guild.get_role(jail.role_id)
