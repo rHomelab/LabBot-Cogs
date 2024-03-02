@@ -148,11 +148,9 @@ class JailConfigHelper(JailConfigHelperABC):
     async def jail_user(self, ctx: commands.Context, jail: Jail, member: discord.Member):
         await self.save_user_roles(ctx, jail, member)
         reason = "Jail: Timeout"
-
-        # First role is @everyone, can always ignore it, or it will error as an unknown role.
-        if len(member.roles) > 1:
-            for r in member.roles[:1]:
-                await member.remove_roles(r, reason=reason)
+        for r in member.roles:
+            print(f"{r.id} / {r.name}")
+            await member.remove_roles(r, reason=reason)
 
         role = ctx.guild.get_role(jail.role_id)
         if role is not None:
