@@ -1,7 +1,7 @@
 from typing import List
 
 import discord
-from discord import CategoryChannel
+from discord import CategoryChannel, NotFound
 from redbot.core import commands, Config
 
 from jail.abstracts import EditABC, MessageABC, JailABC, JailConfigHelperABC
@@ -141,9 +141,12 @@ class JailConfigHelper(JailConfigHelperABC):
 
     async def restore_user_roles(self, ctx: commands.Context, jail: Jail, member: discord.Member):
         for rid in jail.user_roles:
-            role = ctx.guild.get_role(rid)
-            if role is not None:
-                await member.add_roles(role, reason="Jail: Restore Roles")
+            try:
+                role = ctx.guild.get_role(rid)
+                if role is not None:
+                    await member.add_roles(role, reason="Jail: Restore Roles")
+            except NotFound:
+                pass
 
     async def jail_user(self, ctx: commands.Context, jail: Jail, member: discord.Member):
         await self.save_user_roles(ctx, jail, member)
