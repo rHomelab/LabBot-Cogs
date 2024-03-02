@@ -97,7 +97,7 @@ class JailConfigHelper(JailConfigHelperABC):
 
     def __init__(self):
         self.config = Config.get_conf(self, identifier=1289862744207523842002, cog_name="JailCog")
-        self.config.register_guild()
+        self.config.register_guild(jails={})
 
     async def set_category(self, ctx: commands.Context, category: CategoryChannel):
         await self.config.guild(ctx.guild).category.set(category.id)
@@ -114,7 +114,7 @@ class JailConfigHelper(JailConfigHelperABC):
             return None
         reason = f"Jail: {ctx.author.name} created a jail for: {member.name}"
         channel = await ctx.guild.create_text_channel(
-            name=f"{member.name}'s Timeout",
+            name=f"{member.name}-timeout",
             reason=reason,
             category=category,
             news=False,
