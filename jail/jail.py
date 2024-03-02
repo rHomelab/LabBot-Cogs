@@ -58,5 +58,6 @@ class JailCog(commands.Cog):
         jail = await self.config.get_jail_by_user(ctx, member)
         if jail is None or not jail.active:
             await ctx.send("That user isn't in jail!")
+            return
         await self.config.free_user(ctx, jail, member)
         # TODO: Deactivate the jail config, delete the channel, delete the role
