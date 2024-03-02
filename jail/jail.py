@@ -51,3 +51,12 @@ class JailCog(commands.Cog):
             return
         await self.config.set_category(ctx, channel)
         await ctx.send("Channel category set!")
+
+    @_jail.command("free")
+    async def _jail_setup(self, ctx: commands.Context, member: discord.Member):
+        """Frees the specified user from the jail."""
+        jail = await self.config.get_jail_by_user(ctx, member)
+        if jail is None or not jail.active:
+            await ctx.send("That user isn't in jail!")
+        await self.config.free_user(ctx, jail, member)
+        # TODO: Deactivate the jail config, delete the channel, delete the role
