@@ -156,7 +156,7 @@ class JailConfigHelper(JailConfigHelperABC):
         async with self.config.guild(ctx.guild).jails() as jails:
             jail = Jail.new(ctx, datetime, channel.id, role.id, True, ctx.author.id, member.id,
                             [r.id for r in member.roles], [])
-            jailset = JailSet.from_storage(ctx, jails[member.id])
+            jailset = JailSet.from_storage(ctx, jails[str(member.id)])
             jailset.add_jail(jail)
             jails[member.id] = jailset.to_list()
 
