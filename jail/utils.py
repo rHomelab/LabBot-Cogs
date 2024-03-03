@@ -103,7 +103,10 @@ class JailSet(JailSetABC):
 
     @classmethod
     def from_storage(cls, ctx: commands.Context, data: list):
-        return JailSet.new(ctx, [Jail.from_storage(ctx, j) for j in data])
+        jails = []
+        for j in data:
+            jails.append(Jail.from_storage(ctx, j))
+        return JailSet.new(ctx, jails)
 
     def to_list(self) -> list:
         return [j.to_dict() for j in self.jails]
