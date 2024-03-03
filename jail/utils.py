@@ -143,6 +143,16 @@ class JailConfigHelper(JailConfigHelperABC):
         if category is None:
             return None
         reason = f"Jail: {ctx.author.name} created a jail for: {member.name}"
+
+        role = await ctx.guild.create_role(
+            name=f"Jail:{member.name}",
+            mentionable=False,
+            reason=reason
+        )
+        overwrites = {
+            role: discord.PermissionOverwrite(view_channel=True, read_message_history=True,
+                                              read_messages=True, send_messages=True)
+        }
         channel = await ctx.guild.create_text_channel(
             name=f"{member.name}-timeout",
             reason=reason,
@@ -151,12 +161,7 @@ class JailConfigHelper(JailConfigHelperABC):
             topic=f"{member.display_name} was bad and now we're here. DO NOT LEAVE! Leaving is evading and will "
                   f"result in an immediate ban.",
             nsfw=False,
-        )
-        role = await ctx.guild.create_role(
-            name=f"Jail:{member.name}",
-            mentionable=False,
-            reason=reason,
-            # TODO Permissions
+            overwrites=overwrites
         )
         async with self.config.guild(ctx.guild).jails() as jails:
             jail = Jail.new(ctx, datetime, channel.id, role.id, True, ctx.author.id, member.id,
