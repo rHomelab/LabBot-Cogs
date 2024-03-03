@@ -30,9 +30,10 @@ class Edit(EditABC):
 class Message(MessageABC):
 
     @classmethod
-    def new(cls, ctx: commands.Context, datetime: int, author: int, deleted: bool, deleted_datetime: int, content: str,
-            edits: List[EditABC]):
+    def new(cls, ctx: commands.Context, message_id: int, datetime: int, author: int, deleted: bool, deleted_datetime:
+            int, content: str, edits: List[EditABC]):
         return cls(
+            message_id=message_id,
             datetime=datetime,
             author=author,
             deleted=deleted,
@@ -43,12 +44,13 @@ class Message(MessageABC):
 
     @classmethod
     def from_storage(cls, ctx: commands.Context, data: dict):
-        return Message.new(ctx, datetime=data['datetime'], author=data['author'], deleted=data['deleted'],
-                           deleted_datetime=data['deleted_datetime'], content=data['content'],
+        return Message.new(ctx, message_id=int(data['message_id']), datetime=data['datetime'], author=data['author'],
+                           deleted=data['deleted'], deleted_datetime=data['deleted_datetime'], content=data['content'],
                            edits=[Edit.from_storage(ctx, e) for e in data['edits']])
 
     def to_dict(self) -> dict:
         return {
+            "message_id": self.message_id,
             "datetime": self.datetime,
             "author": self.author,
             "deleted": self.deleted,
@@ -173,12 +175,6 @@ class JailConfigHelper(JailConfigHelperABC):
 
         return jail
 
-    async def save_user_roles(self, ctx: commands.Context, jail: Jail, member: discord.Member):
-        # TODO Rewrite all this with the proper multi-layer structure
-        # async with self.config.guild(ctx.guild).jails() as jails:
-        #     jails[jail.user] = jail.to_dict()
-        pass
-
     async def restore_user_roles(self, ctx: commands.Context, jail: JailABC, member: discord.Member):
         for rid in jail.user_roles:
             try:
@@ -189,7 +185,6 @@ class JailConfigHelper(JailConfigHelperABC):
                 pass
 
     async def jail_user(self, ctx: commands.Context, jail: Jail, member: discord.Member):
-        await self.save_user_roles(ctx, jail, member)
         reason = "Jail: Timeout"
         for r in member.roles:
             if r.name != "@everyone":
@@ -221,17 +216,22 @@ class JailConfigHelper(JailConfigHelperABC):
         except NotFound:
             pass
 
-    async def get_jail_by_channel(self, ctx: commands.Context, channel: discord.TextChannel) -> Jail:
-        # TODO Rewrite all this with the proper multi-layer structure
-        async with self.config.guild(ctx.guild).jails() as jails:
-            for jid in jails.keys():
-                jail = Jail.from_storage(ctx, jails[jid])
-                if channel.id == jail.channel_id:
-                    return jail
-        return None
-
-    async def get_jail_by_user(self, ctx: commands.Context, user: discord.Member) -> JailABC:
+    async def get_jail_by_user(self, ctx: commands.Context, user: discord.User) -> JailABC:
         async with self.config.guild(ctx.guild).jails() as jails:
             if str(user.id) in jails:
                 return JailSet.from_storage(ctx, jails[str(user.id)]).get_active_jail()
         return None
+
+    async def get_jailset_by_user(self, ctx: commands.Context, user: discord.User) -> JailSetABC:
+        async with self.config.guild(ctx.guild).jails() as jails:
+            if str(user.id) in jails:
+                return JailSet.from_storage(ctx, jails[str(user.id)])
+        return None
+
+    async def save_message_to_jail(self, ctx: commands.Context, jailset: JailSetABC, message: discord.Message,
+                                   time: int):
+        jail = jailset.get_active_jail()
+        if jail is not None:
+            jail.messages.append(Message.new(ctx, message.id, time, message.author.id, False, 0, message.content, []))
+            async with self.config.guild(ctx.guild).jails() as jails:
+                jails[str(jail.user)] = jailset.to_list()

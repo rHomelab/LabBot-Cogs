@@ -39,6 +39,7 @@ class EditABC(ABC):
 
 
 class MessageABC(ABC):
+    message_id: int
     datetime: int
     author: int
     deleted: bool
@@ -59,8 +60,8 @@ class MessageABC(ABC):
 
     @classmethod
     @abstractmethod
-    def new(cls, ctx: commands.Context, datetime: int, author: int, deleted: bool, deleted_datetime: int,
-            content: str, edits: List[EditABC]):
+    def new(cls, ctx: commands.Context, message_id: int, datetime: int, author: int, deleted: bool,
+            deleted_datetime: int, content: str, edits: List[EditABC]):
         """Initialise the class in a command context"""
         pass
 
