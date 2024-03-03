@@ -222,6 +222,15 @@ class JailConfigHelper(JailConfigHelperABC):
                 return JailSet.from_storage(ctx, jails[str(user.id)]).get_active_jail()
         return None
 
+    async def get_jailset_by_channel(self, ctx: commands.Context, channel: discord.TextChannel) -> JailSetABC:
+        async with self.config.guild(ctx.guild).jails() as jails:
+            for jailsetkey in jails:
+                jailset = JailSet.from_storage(ctx, jails[jailsetkey])
+                for jail in jailset.jails:
+                    if jail.channel_id == channel.id:
+                        return jailset
+        return None
+
     async def get_jailset_by_user(self, ctx: commands.Context, user: discord.User) -> JailSetABC:
         async with self.config.guild(ctx.guild).jails() as jails:
             if str(user.id) in jails:
