@@ -214,7 +214,7 @@ class JailConfigHelper(JailConfigHelperABC):
                 if str(jail.user) in jails:
                     jailset = JailSet.from_storage(ctx, jails[str(jail.user)])
                     jailset.deactivate_jail()
-                    jails[str(jail.user)] = jailset
+                    jails[str(jail.user)] = jailset.to_list()
         except NotFound:
             pass
 
