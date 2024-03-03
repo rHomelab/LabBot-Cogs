@@ -210,5 +210,5 @@ class JailConfigHelper(JailConfigHelperABC):
     async def get_jail_by_user(self, ctx: commands.Context, user: discord.Member) -> JailABC:
         async with self.config.guild(ctx.guild).jails() as jails:
             if str(user.id) in jails:
-                return JailSet.new(ctx, jails[str(user.id)]).get_active_jail()
+                return JailSet.from_storage(ctx, jails[str(user.id)]).get_active_jail()
         return None
