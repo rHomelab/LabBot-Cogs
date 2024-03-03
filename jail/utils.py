@@ -117,6 +117,11 @@ class JailSet(JailSetABC):
     def add_jail(self, jail: JailABC):
         self.jails.append(jail)
 
+    def deactivate_jail(self):
+        for jail in reversed(self.jails):
+            if jail.active:
+                jail.active = False
+
 
 class JailConfigHelper(JailConfigHelperABC):
 
@@ -197,6 +202,21 @@ class JailConfigHelper(JailConfigHelperABC):
         role = ctx.guild.get_role(jail.role_id)
         if role is not None:
             await member.remove_roles(role, reason="Jail: Free User")
+
+    async def cleanup_jail(self, ctx: commands.Context, jail: JailABC):
+        try:
+            role = ctx.guild.get_role(jail.role_id)
+            if role is not None:
+                await role.delete(reason="Jail: Jail deleted.")
+            channel = ctx.guild.get_channel(jail.channel_id)
+            await channel.delete(reason="Jail: Jail deleted.")
+            async with self.config.guild(ctx.guild).jails() as jails:
+                if str(jail.user) in jails:
+                    jailset = JailSet.from_storage(ctx, jails[str(jail.user)])
+                    jailset.deactivate_jail()
+                    jails[str(jail.user)] = jailset
+        except NotFound:
+            pass
 
     async def get_jail_by_channel(self, ctx: commands.Context, channel: discord.TextChannel) -> Jail:
         # TODO Rewrite all this with the proper multi-layer structure

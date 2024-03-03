@@ -60,4 +60,4 @@ class JailCog(commands.Cog):
             await ctx.send("That user isn't in jail!")
             return
         await self.config.free_user(ctx, jail, member)
-        # TODO: Deactivate the jail config, delete the channel, delete the role
+        await self.config.cleanup_jail(ctx, jail)
