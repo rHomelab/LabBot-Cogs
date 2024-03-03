@@ -41,28 +41,6 @@ class JailCog(commands.Cog):
                     print("Jailset pass")
                     await self.config.save_message_to_jail(ctx, jailset, message, int(datetime.utcnow().timestamp()))
 
-    @commands.Cog.listener()
-    async def on_message_edit(self, before: discord.Message, after: discord.Message):
-        if after.author.bot or not after.guild:
-            return
-
-        # This is sketch, there might be a better way to do this.
-        ctx: commands.Context = await self.bot.get_context(after)
-        if ctx is None:
-            print("CTX Error!")
-
-        if isinstance(after.channel, discord.TextChannel):
-            print("Edit: Is instance")
-            cat_channel = await self.config.get_category(after.guild)
-            if cat_channel is None:
-                return
-            print("Edit: Cat pass")
-            if after.channel.category_id == cat_channel.id:
-                jailset = await self.config.get_jailset_by_channel(ctx, after.channel)
-                if jailset is not None:
-                    print("Edit: Jailset pass")
-                    await self.config.edit_message(ctx, jailset, after, int(datetime.utcnow().timestamp()))
-
     @checks.mod()
     @commands.guild_only()
     @commands.group("jail", pass_context=True, invoke_without_command=True)
