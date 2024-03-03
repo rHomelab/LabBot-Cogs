@@ -149,10 +149,8 @@ class JailConfigHelper(JailConfigHelperABC):
             mentionable=False,
             reason=reason
         )
-        overwrites = {
-            role: discord.PermissionOverwrite(view_channel=True, read_message_history=True,
-                                              read_messages=True, send_messages=True)
-        }
+        perms = discord.PermissionOverwrite(view_channel=True, read_message_history=True, read_messages=True,
+                                            send_messages=True)
         channel = await ctx.guild.create_text_channel(
             name=f"{member.name}-timeout",
             reason=reason,
@@ -160,9 +158,9 @@ class JailConfigHelper(JailConfigHelperABC):
             news=False,
             topic=f"{member.display_name} was bad and now we're here. DO NOT LEAVE! Leaving is evading and will "
                   f"result in an immediate ban.",
-            nsfw=False,
-            overwrites=overwrites
+            nsfw=False
         )
+        await channel.set_permissions(role, overwrite=perms)
         async with self.config.guild(ctx.guild).jails() as jails:
             jail = Jail.new(ctx, datetime, channel.id, role.id, True, ctx.author.id, member.id,
                             [r.id for r in member.roles], [])
