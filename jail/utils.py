@@ -110,7 +110,6 @@ class JailSet(JailSetABC):
 
     def get_active_jail(self) -> JailABC:
         for jail in reversed(self.jails):
-            print(jail)
             if jail.active:
                 return jail
         return None
