@@ -244,3 +244,12 @@ class JailConfigHelper(JailConfigHelperABC):
             jail.messages.append(Message.new(ctx, message.id, time, message.author.id, False, 0, message.content, []))
             async with self.config.guild(ctx.guild).jails() as jails:
                 jails[str(jail.user)] = jailset.to_list()
+
+    async def edit_message(self, ctx: commands.Context, jailset: JailSetABC, edited: discord.Message, time: int):
+        jail = jailset.get_active_jail()
+        if jail is not None:
+            for message in jail.messages:
+                if message.message_id == edited.id:
+                    message.edits.append(Edit.new(ctx, time, edited.content))
+            async with self.config.guild(ctx.guild).jails() as jails:
+                jails[str(jail.user)] = jailset.to_list()
