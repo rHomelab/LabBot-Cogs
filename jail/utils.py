@@ -4,7 +4,7 @@ import discord
 from discord import CategoryChannel, NotFound
 from redbot.core import commands, Config
 
-from jail.abstracts import EditABC, MessageABC, JailABC, JailConfigHelperABC
+from jail.abstracts import EditABC, MessageABC, JailABC, JailConfigHelperABC, JailSetABC
 
 
 class Edit(EditABC):
@@ -93,6 +93,31 @@ class Jail(JailABC):
         }
 
 
+class JailSet(JailSetABC):
+
+    @classmethod
+    def new(cls, ctx: commands.Context, jails: List[JailABC]):
+        return cls(
+            jails=jails
+        )
+
+    @classmethod
+    def from_storage(cls, ctx: commands.Context, data: list):
+        return JailSet.new(ctx, [Jail.from_storage(ctx, j) for j in data])
+
+    def to_list(self) -> list:
+        return [j.to_dict() for j in self.jails]
+
+    def get_active_jail(self) -> JailABC:
+        for jail in reversed(self.jails):
+            if jail.active:
+                return jail
+        return None
+
+    def add_jail(self, jail: JailABC):
+        self.jails.append(jail)
+
+
 class JailConfigHelper(JailConfigHelperABC):
 
     def __init__(self):
@@ -129,17 +154,21 @@ class JailConfigHelper(JailConfigHelperABC):
             # TODO Permissions
         )
         async with self.config.guild(ctx.guild).jails() as jails:
-            jail = Jail.new(ctx, datetime, channel.id, role.id, True, ctx.author.id, member.id, [], [])
-            jails[member.id] = jail.to_dict()
+            jail = Jail.new(ctx, datetime, channel.id, role.id, True, ctx.author.id, member.id,
+                            [r.id for r in member.roles], [])
+            jailset = JailSet.from_storage(ctx, jails[member.id])
+            jailset.add_jail(jail)
+            jails[member.id] = jailset.to_list()
 
         return jail
 
     async def save_user_roles(self, ctx: commands.Context, jail: Jail, member: discord.Member):
-        jail.user_roles = [r.id for r in member.roles]
-        async with self.config.guild(ctx.guild).jails() as jails:
-            jails[jail.user] = jail.to_dict()
+        # TODO Rewrite all this with the proper multi-layer structure
+        # async with self.config.guild(ctx.guild).jails() as jails:
+        #     jails[jail.user] = jail.to_dict()
+        pass
 
-    async def restore_user_roles(self, ctx: commands.Context, jail: Jail, member: discord.Member):
+    async def restore_user_roles(self, ctx: commands.Context, jail: JailABC, member: discord.Member):
         for rid in jail.user_roles:
             try:
                 role = ctx.guild.get_role(rid)
@@ -159,7 +188,7 @@ class JailConfigHelper(JailConfigHelperABC):
         if role is not None:
             await member.add_roles(role, reason=reason)
 
-    async def free_user(self, ctx: commands.Context, jail: Jail, member: discord.Member):
+    async def free_user(self, ctx: commands.Context, jail: JailABC, member: discord.Member):
         await self.restore_user_roles(ctx, jail, member)
 
         role = ctx.guild.get_role(jail.role_id)
@@ -167,6 +196,7 @@ class JailConfigHelper(JailConfigHelperABC):
             await member.remove_roles(role, reason="Jail: Free User")
 
     async def get_jail_by_channel(self, ctx: commands.Context, channel: discord.TextChannel) -> Jail:
+        # TODO Rewrite all this with the proper multi-layer structure
         async with self.config.guild(ctx.guild).jails() as jails:
             for jid in jails.keys():
                 jail = Jail.from_storage(ctx, jails[jid])
@@ -174,9 +204,8 @@ class JailConfigHelper(JailConfigHelperABC):
                     return jail
         return None
 
-    async def get_jail_by_user(self, ctx: commands.Context, user: discord.Member) -> Jail:
+    async def get_jail_by_user(self, ctx: commands.Context, user: discord.Member) -> JailABC:
         async with self.config.guild(ctx.guild).jails() as jails:
-            if str(user.id) in jails.keys():
-                print("Jail found")
-                return Jail.from_storage(ctx, jails[str(user.id)])
+            if str(user.id) in jails:
+                return JailSet.new(ctx, jails[str(user.id)]).get_active_jail()
         return None

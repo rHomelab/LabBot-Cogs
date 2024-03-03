@@ -116,6 +116,48 @@ class JailABC(ABC):
         pass
 
 
+class JailSetABC(ABC):
+    jails: List[JailABC]
+
+    def __init__(self, **kwargs):
+        if kwargs.keys() != self.__annotations__.keys():
+            raise Exception("Invalid kwargs provided")
+
+        for key, val in kwargs.items():
+            # expected_type: type = self.__annotations__[key]
+            # if not isinstance(val, expected_type):
+                # raise TypeError(f"Expected type {expected_type} for kwarg {key!r}, got type {type(val)} instead")
+
+            setattr(self, key, val)
+
+    @classmethod
+    @abstractmethod
+    def new(cls, ctx: commands.Context, jails: List[JailABC]):
+        """Initialise the class in a command context"""
+        pass
+
+    @classmethod
+    @abstractmethod
+    def from_storage(cls, ctx: commands.Context, data: dict):
+        """Initialise the class from a config record"""
+        pass
+
+    @abstractmethod
+    def to_list(self) -> list:
+        """Returns a list representation of the class, suitable for storing in config"""
+        pass
+
+    @abstractmethod
+    def get_active_jail(self) -> JailABC:
+        """Gets the current active jail in the set."""
+        pass
+
+    @abstractmethod
+    def add_jail(self, jail: JailABC):
+        """Saves a jail to the set."""
+        pass
+
+
 class JailConfigHelperABC(ABC):
     config: Config
 
