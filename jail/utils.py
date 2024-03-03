@@ -103,10 +103,7 @@ class JailSet(JailSetABC):
 
     @classmethod
     def from_storage(cls, ctx: commands.Context, data: list):
-        jails = []
-        for j in data:
-            jails.append(Jail.from_storage(ctx, j))
-        return JailSet.new(ctx, jails)
+        return JailSet.new(ctx, [Jail.from_storage(ctx, j) for j in data])
 
     def to_list(self) -> list:
         return [j.to_dict() for j in self.jails]
@@ -165,7 +162,7 @@ class JailConfigHelper(JailConfigHelperABC):
             else:
                 jailset = JailSet.new(ctx, [])
             jailset.add_jail(jail)
-            jails[member.id] = jailset.to_list()
+            jails[str(member.id)] = jailset.to_list()
 
         return jail
 
