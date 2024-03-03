@@ -134,14 +134,14 @@ class JailConfigHelper(JailConfigHelperABC):
     async def set_category(self, ctx: commands.Context, category: CategoryChannel):
         await self.config.guild(ctx.guild).category.set(category.id)
 
-    async def get_category(self, ctx: commands.Context) -> CategoryChannel:
-        channel = ctx.guild.get_channel(await self.config.guild(ctx.guild).category())
+    async def get_category(self, guild: discord.Guild):
+        channel = guild.get_channel(await self.config.guild(guild).category())
         if channel is None:
             return None
         return channel
 
     async def create_jail(self, ctx: commands.Context, datetime: int, member: discord.Member) -> Jail:
-        category = await self.get_category(ctx)
+        category = await self.get_category(ctx.guild)
         if category is None:
             return None
         reason = f"Jail: {ctx.author.name} created a jail for: {member.name}"
