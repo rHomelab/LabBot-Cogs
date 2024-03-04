@@ -1,3 +1,4 @@
+import json
 from typing import List
 
 import discord
@@ -243,7 +244,6 @@ class JailConfigHelper(JailConfigHelperABC):
         if jail is not None:
             jail.messages.append(Message.new(ctx, message.id, time, message.author.id, False, 0, message.content, []))
             async with self.config.guild(ctx.guild).jails() as jails:
-                await ctx.send("Message saving")
                 jails[str(jail.user)] = jailset.to_list()
 
     async def edit_message(self, ctx: commands.Context, jailset: JailSetABC, edited: discord.Message, time: int):
@@ -251,7 +251,8 @@ class JailConfigHelper(JailConfigHelperABC):
         if jail is not None:
             for message in jail.messages:
                 if message.message_id == edited.id:
+                    await ctx.send("Before: " + json.dumps(message.to_dict()))
                     message.edits.append(Edit.new(ctx, time, edited.content))
+                    await ctx.send("After: " + json.dumps(message.to_dict()))
             async with self.config.guild(ctx.guild).jails() as jails:
                 jails[str(jail.user)] = jailset.to_list()
-                await ctx.send("Edit saving")

@@ -23,8 +23,6 @@ class JailCog(commands.Cog):
             return
         # This is sketch, there might be a better way to do this.
         ctx: commands.Context = await self.bot.get_context(message)
-        if ctx is None:
-            print("CTX Error!")
 
         if isinstance(message.channel, discord.TextChannel):
             cat_channel = await self.config.get_category(message.guild)
@@ -34,7 +32,6 @@ class JailCog(commands.Cog):
                 jailset = await self.config.get_jailset_by_channel(ctx, message.channel)
                 if jailset is not None:
                     await self.config.save_message_to_jail(ctx, jailset, message, int(datetime.utcnow().timestamp()))
-                    await ctx.send("\n".join([m.content for m in jailset.get_active_jail().messages]))
 
     @commands.Cog.listener()
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
@@ -43,15 +40,13 @@ class JailCog(commands.Cog):
 
         # This is sketch, there might be a better way to do this.
         ctx: commands.Context = await self.bot.get_context(after)
-        if ctx is None:
-            print("CTX Error!")
 
         if isinstance(after.channel, discord.TextChannel):
             cat_channel = await self.config.get_category(after.guild)
             if cat_channel is None:
                 return
             if after.channel.category_id == cat_channel.id:
-                jailset = await self.config.get_jailset_by_channel(ctx, before.channel)
+                jailset = await self.config.get_jailset_by_channel(ctx, after.channel)
                 if jailset is not None:
                     await self.config.edit_message(ctx, jailset, after, int(datetime.utcnow().timestamp()))
 
