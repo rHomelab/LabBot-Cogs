@@ -44,16 +44,11 @@ class JailCog(commands.Cog):
         if isinstance(after.channel, discord.TextChannel):
             cat_channel = await self.config.get_category(after.guild)
             if cat_channel is None:
-                await ctx.send("Cat channel missing.")
                 return
             if after.channel.category_id == cat_channel.id:
                 jailset = await self.config.get_jailset_by_channel(ctx, after.channel)
                 if jailset is not None:
                     await self.config.edit_message(ctx, jailset, after, int(datetime.utcnow().timestamp()))
-                else:
-                    await ctx.send("No jail found.")
-            else:
-                await ctx.send("CID Mismatch.")
 
     @checks.mod()
     @commands.guild_only()
