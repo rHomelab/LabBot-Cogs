@@ -250,9 +250,14 @@ class JailConfigHelper(JailConfigHelperABC):
         jail = jailset.get_active_jail()
         if jail is not None:
             for message in jail.messages:
+                await ctx.send("Checking message: " + json.dumps(message.to_dict()))
                 if message.message_id == edited.id:
                     await ctx.send("Before: " + json.dumps(message.to_dict()))
                     message.edits.append(Edit.new(ctx, time, edited.content))
                     await ctx.send("After: " + json.dumps(message.to_dict()))
+                else:
+                    await ctx.send("MID Mismatch")
             async with self.config.guild(ctx.guild).jails() as jails:
                 jails[str(jail.user)] = jailset.to_list()
+        else:
+            await ctx.send("Jail is none!")
