@@ -82,14 +82,9 @@ class ConfigHelperABC(ABC):
     def filter_match_user_id(user_id: int) -> Callable[[NoteABC], bool]:
         pass
 
-    @staticmethod
-    @abstractmethod
-    def sort_by_date_and_warning(note: NoteABC) -> float:
-        pass
-
     @abstractmethod
     def sorted_notes(self, notes: Iterable[NoteABC]) -> List[NoteABC]:
-        """Sorts notes by date and then sorts notes into buckets by whether they're classed as a warning or not"""
+        """Sorts notes by creation date"""
         pass
 
     @abstractmethod
