@@ -1,5 +1,6 @@
 import random
 
+import discord.errors
 from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
 
@@ -31,7 +32,12 @@ class BanCountCog(commands.Cog):
                 await ctx.send("Error: guild has no configured messages. Use `[p]bancount add <message>`.")
                 return
             message = random.choice(messages)
-            message = message.replace(self.REPLACER, str(len([entry async for entry in ctx.guild.bans()])))
+            try:
+                async with ctx.channel.typing():
+                    message = message.replace(self.REPLACER, str(len([entry async for entry in ctx.guild.bans()])))
+            except discord.errors.Forbidden:
+                await ctx.send("I don't have permission to retrieve banned users.")
+                return
             await ctx.send(message)
 
     @checks.mod()
