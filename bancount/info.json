@@ -1,0 +1,15 @@
+{
+    "author": [
+        "portalBlock"
+    ],
+    "short": "Utility for displaying ban count.",
+    "description": "Randomly selects a message from the guild-generated list to use to display the total ban count.",
+    "disabled": false,
+    "name": "bancount",
+    "tags": [
+        "utility",
+        "fun"
+    ],
+    "install_msg": "Usage: `[p]bancount`",
+    "min_bot_version": "3.5.1"
+}

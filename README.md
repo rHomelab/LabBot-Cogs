@@ -20,6 +20,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
   - [Cog Documentation](#cog-documentation)
     - [AutoReact](#autoreact)
     - [AutoReply](#autoreply)
+    - [BanCount](#bancount)
     - [BetterPing](#betterping)
     - [Convert](#convert)
     - [Custom-msg](#custom-msg)
@@ -119,6 +120,15 @@ This cog allows mods to add auto reactions to certain phrases.
 This cog automatically responds to messages that match specific trigger phrases, set by admins.
 
 `[p]autoreact`
+
+### BanCount
+
+This cog displays the number of users banned in the guild with a random selection from a list of messages.
+
+- `[p]bancount` - Displays the total ban count using a randomly selected message.
+- `[p]bancount list` - Lists all the messages that can be used in the guild.
+- `[p]bancount add <message>` - Add a message to the guild list. Use `$ban` to insert the ban count in the message.
+- `[p]bancount remove <message index>` - Deletes (by index, from the list command) the message from the guild list. 
 
 ### BetterPing
 
