@@ -34,7 +34,7 @@ class BanCountCog(commands.Cog):
             message = random.choice(messages)
             try:
                 async with ctx.channel.typing():
-                    message = message.replace(self.REPLACER, str(len([entry async for entry in ctx.guild.bans()])))
+                    message = message.replace(self.REPLACER, str(len([entry async for entry in ctx.guild.bans(limit=None)])))
             except discord.errors.Forbidden:
                 await ctx.send("I don't have permission to retrieve banned users.")
                 return
