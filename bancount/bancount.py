@@ -70,7 +70,7 @@ class BanCountCog(commands.Cog):
                 for index, page in enumerate(pages, start=1)
             ]
             if len(embeds) == 1:
-                await ctx.send(embeds=embeds[0])
+                await ctx.send(embed=embeds[0])
             else:
                 ctx.bot.loop.create_task(
                     menu(ctx=ctx, pages=embeds, controls={"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page},
