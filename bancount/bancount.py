@@ -3,6 +3,8 @@ import random
 import discord.errors
 from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
+from redbot.core.utils.chat_formatting import pagify
+from redbot.core.utils.menus import close_menu, menu, next_page, prev_page
 
 
 class BanCountCog(commands.Cog):
@@ -57,8 +59,23 @@ class BanCountCog(commands.Cog):
     async def _bancount_list(self, ctx: commands.Context):
         """Lists the message list."""
         async with self.config.guild(ctx.guild).messages() as messages:
-            message_list = [f"`{i}) {message}`" for i, message in enumerate(messages)]
-        await ctx.send("\n".join(message_list))
+            # Credit to the Notes cog author(s) for this pagify structure
+            pages = list(pagify("\n".join(f"`{i}) {message}`" for i, message in enumerate(messages))))
+            embed_opts = {
+                "title": "Guild's BanCount Message List",
+                "colour": await ctx.embed_colour()
+            }
+            embeds = [
+                discord.Embed(**embed_opts, description=page).set_footer(text=f"Page {index} of {len(pages)}")
+                for index, page in enumerate(pages, start=1)
+            ]
+            if len(embeds) == 1:
+                await ctx.send(embed=embeds[0])
+            else:
+                ctx.bot.loop.create_task(
+                    menu(ctx=ctx, pages=embeds, controls={"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page},
+                         timeout=180.0)
+                )
 
     @checks.mod()
     @_bancount.command(name="remove")
