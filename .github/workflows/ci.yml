@@ -47,9 +47,6 @@ jobs:
       - name: Lint with isort
         run: isort --check --diff .
 
-
-
-
   check-json:
     runs-on: ubuntu-latest
     steps:
