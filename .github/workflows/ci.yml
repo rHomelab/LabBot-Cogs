@@ -17,16 +17,6 @@ jobs:
           # exit-zero treats all errors as warnings
           flake8 . --format="::warning file=%(path)s,line=%(row)d,col=%(col)d::%(text)s" --exit-zero --max-complexity=10
 
-  lint-black:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the repository at the current branch
-        uses: actions/checkout@v2
-      - name: Install dependencies
-        uses: ./.github/actions/setup
-      - name: Lint with black
-        run: black --diff .
-
   lint-pylint:
     runs-on: ubuntu-latest
     steps:
@@ -37,6 +27,16 @@ jobs:
       - name: Lint with pylint
         run: pylint --msg-template='::warning file={path},line={line},col={column}::{msg}' */ || exit 0
 
+  lint-autopep8:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository at the current branch
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        uses: ./.github/actions/setup
+      - name: Lint with autopep8
+        run: autopep8 --recursive --diff --exclude ".venv/**" .
+
   lint-isort:
     runs-on: ubuntu-latest
     steps:
@@ -46,6 +46,9 @@ jobs:
         uses: ./.github/actions/setup
       - name: Lint with isort
         run: isort --check --diff .
+
+
+
 
   check-json:
     runs-on: ubuntu-latest
