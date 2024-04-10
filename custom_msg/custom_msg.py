@@ -29,7 +29,7 @@ class CustomMsgCog(commands.Cog):
         message = await channel.send(**payload)
         await ctx.send("Message sent. " +
                        "For future reference, the message is here: " +
-                       f"https://discord.com/channels/184315303323238400/{message.channel.id}/{message.id} (ID: {message.id})")
+                       f"https://discord.com/channels/{ctx.guild.id}/{message.channel.id}/{message.id} (ID: {message.id})")
 
     @msg_cmd.command(name="edit")
     async def msg_edit(self, ctx: commands.Context, message: discord.Message):
