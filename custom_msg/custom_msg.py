@@ -27,7 +27,9 @@ class CustomMsgCog(commands.Cog):
             return await ctx.send("Exiting...")
 
         message = await channel.send(**payload)
-        await ctx.send(f"Message sent.\nFor future reference, the message ID is {message.channel.id}-{message.id}")
+        await ctx.send("Message sent. " +
+                       "For future reference, the message is here: " +
+                       f"https://discord.com/channels/{ctx.guild.id}/{message.channel.id}/{message.id} (ID: {message.id})")
 
     @msg_cmd.command(name="edit")
     async def msg_edit(self, ctx: commands.Context, message: discord.Message):
@@ -45,13 +47,15 @@ class CustomMsgCog(commands.Cog):
 
         if not payload.get("content") and message.content:
             if not await InteractiveSession(ctx).get_boolean_answer(
-                "The original message has message content, but you have not specified any. Would you like to keep the original content?"
+                "The original message has message content, but you have not specified any. " +
+                "Would you like to keep the original content?"
             ):
                 payload.update({"content": ""})
 
         if not payload.get("embed") and message.embeds:
             if not await InteractiveSession(ctx).get_boolean_answer(
-                "The original message has an embed, but you have not specified one. Would you like to keep the original embed?"
+                "The original message has an embed, but you have not specified one. " +
+                "Would you like to keep the original embed?"
             ):
                 payload.update({"embed": None})
 
