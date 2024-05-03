@@ -426,7 +426,8 @@ pre-commit install
 pre-commit run --all-files
 ```
 
-If you use [VSCode](https://code.visualstudio.com/) you can use this [extention](https://marketplace.visualstudio.com/items?itemName=MarkLarah.pre-commit-vscode) to auto generate tasks for the pre-commit hooks
+If you use [VSCode](https://code.visualstudio.com/) you can use the [pre-commit-vscode](https://marketplace.visualstudio.com/items?itemName=MarkLarah.pre-commit-vscode) extension to auto generate tasks for the pre-commit hooks
+
 ### Making changes
 
 When suggesting changes, please [open an issue](https://github.com/rHomelab/LabBot-Cogs/issues/new/choose) so it can be reviewed by the team who can then suggest how and if the idea is to be implemented.
