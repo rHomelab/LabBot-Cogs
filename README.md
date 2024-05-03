@@ -482,9 +482,10 @@ The CI will fail unless your code is [PEP8](https://www.python.org/dev/peps/pep-
 ```bash
 pip install -r requirements-dev.txt -r requirements.txt
 pre-commit install
-pre-commit run --all-file
+pre-commit run --all-files
 ```
 
+If you use [VSCode](https://code.visualstudio.com/) you can [use](https://marketplace.visualstudio.com/items?itemName=MarkLarah.pre-commit-vscode) to auto generate tasks for the pre-commit hooks
 ### Making changes
 
 When suggesting changes, please [open an issue](https://github.com/rHomelab/LabBot-Cogs/issues/new/choose) so it can be reviewed by the team who can then suggest how and if the idea is to be implemented.
