@@ -128,7 +128,7 @@ This cog displays the number of users banned in the guild with a random selectio
 - `[p]bancount` - Displays the total ban count using a randomly selected message.
 - `[p]bancount list` - Lists all the messages that can be used in the guild.
 - `[p]bancount add <message>` - Add a message to the guild list. Use `$ban` to insert the ban count in the message.
-- `[p]bancount remove <message index>` - Deletes (by index, from the list command) the message from the guild list. 
+- `[p]bancount remove <message index>` - Deletes (by index, from the list command) the message from the guild list.
 
 ### BetterPing
 
@@ -421,13 +421,10 @@ Copyright (c) 2018-2023 tigattack, contributors and original authors.
 The CI will fail unless your code is [PEP8](https://www.python.org/dev/peps/pep-0008/) compliant.
 
 ```bash
-pip install -r requirements-ci.txt
-isort . # This will fix the order of imports
-black . # This will auto-format and fix a lot of common mistakes
-pylint * # This will show general pep8-violations
+pip install -r requirements-dev.txt -r requirements.txt
+pre-commit install
+pre-commit run --all-file
 ```
-
-If you use [VSCode](https://code.visualstudio.com/) you can use the tasks integrated into the repo to locally run the same tasks as our CI
 
 ### Making changes
 
