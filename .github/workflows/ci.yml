@@ -27,15 +27,15 @@ jobs:
       - name: Lint with pylint
         run: find . -type f -name "*.py" -not -path "*.venv/*"  | xargs pylint --msg-template='::({category}) file={path},line={line},col={column}::{msg}'; if [ $(( $? & 2 )) -eq 2 ] || [ $(( $? & 1 )) -eq 1 ] ; then exit 1; else exit 0; fi
 
-  lint-autopep8:
+  lint-black:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository at the current branch
         uses: actions/checkout@v2
       - name: Install dependencies
         uses: ./.github/actions/setup
-      - name: Lint with autopep8
-        run: autopep8 --recursive --diff --exclude ".venv/**" .
+      - name: Lint with black
+        run: black --diff . 
 
   lint-isort:
     runs-on: ubuntu-latest
