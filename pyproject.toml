@@ -33,5 +33,8 @@
 	# Ignore imports when computing similarities.
 	ignore-imports = "yes"
 
+[tool.pylint.main]
+load-plugins = "pylint_actions"
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
