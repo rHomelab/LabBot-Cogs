@@ -1,8 +1,8 @@
-autopep8==2.1.0
+black==24.4.2
 flake8==7.0.0
 pylint==3.1.0
 isort==5.13.2
 fastjsonschema==2.19.1
 pytest==8.2.0
 pytest-asyncio==0.23.6
-pytest-aiohttp==1.0.5 
+pytest-aiohttp==1.0.5
