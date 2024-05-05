@@ -35,7 +35,7 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/setup
       - name: Lint with black
-        run: black --diff .
+        uses: psf/black@stable
 
   lint-isort:
     runs-on: ubuntu-latest
@@ -45,7 +45,7 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/setup
       - name: Lint with isort
-        run: isort --check --diff .
+        uses: isort/isort-action@master
 
   check-json:
     runs-on: ubuntu-latest
