@@ -12,7 +12,7 @@ runs:
       run: pip install --quiet --upgrade --requirement requirements.txt
     - name: Install CI dependencies
       shell: bash
-      run: pip install --quiet --upgrade --requirement requirements-ci.txt
+      run: pip install --quiet --upgrade --requirement .github/requirements-ci.txt
     - name: Install cog dependencies
       shell: bash
       run: |
