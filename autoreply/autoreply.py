@@ -1,4 +1,5 @@
 """discord red-bot autoreply"""
+
 import asyncio
 from typing import Optional
 

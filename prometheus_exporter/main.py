@@ -24,11 +24,7 @@ class PromExporter(commands.Cog):
 
         self.config = Config.get_conf(self, identifier=19283750192891838)
 
-        default_global= {
-            "address": "0.0.0.0",
-            "port": 9900,
-            "poll_interval": 1
-        }
+        default_global = {"address": "0.0.0.0", "port": 9900, "poll_interval": 1}
         self.config.register_global(**default_global)
 
         self.prom_server = None
