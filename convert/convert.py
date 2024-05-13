@@ -34,9 +34,7 @@ class Convert(commands.Cog):
         arg1 = f"{amount} {unit}"
 
         try:
-            result = await ctx.bot.loop.run_in_executor(
-                None, subprocess.check_output, ["units", arg1, end_unit]
-            )
+            result = await ctx.bot.loop.run_in_executor(None, subprocess.check_output, ["units", arg1, end_unit])
         except subprocess.CalledProcessError as e:
             error = e.output.decode("utf-8")
             # grab the first line for the error type

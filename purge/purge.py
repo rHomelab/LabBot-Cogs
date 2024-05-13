@@ -1,4 +1,5 @@
 """discord red-bot purge"""
+
 import asyncio
 from datetime import datetime, timedelta
 
@@ -103,10 +104,7 @@ class PurgeCog(commands.Cog):
                 break
             users_kicked = new_list
 
-        data = discord.Embed(
-            colour=discord.Colour.orange(),
-            timestamp=datetime.utcnow()
-        )
+        data = discord.Embed(colour=discord.Colour.orange(), timestamp=datetime.utcnow())
         data.title = f"{title} Purge - Purged {len(users)}"
         data.description = users_kicked
 

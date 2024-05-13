@@ -1,4 +1,5 @@
 """discord red-bot quotes"""
+
 import asyncio
 from typing import List, Optional, Tuple
 
