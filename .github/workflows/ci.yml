@@ -47,6 +47,16 @@ jobs:
       - name: Lint with isort
         uses: isort/isort-action@master
 
+  lint-mypy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository at the current branch
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        uses: ./.github/actions/setup
+      - name: Lint with mypy
+        run: mypy --strict .
+
   check-json:
     runs-on: ubuntu-latest
     steps:
