@@ -8,3 +8,4 @@ pytest-asyncio==0.23.6
 pytest-aiohttp==1.0.5
 autopep8==2.1.0
 pylint-actions==0.5.0
+mypy==1.10.0
