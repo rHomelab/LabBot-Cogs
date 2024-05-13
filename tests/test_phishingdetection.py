@@ -7,14 +7,7 @@ from phishingdetection import phishingdetection
 
 
 def mutate_url(url: str) -> List[str]:
-    return [
-        url,
-        f"http://{url}",
-        f"https://{url}",
-        f"https://www.{url}",
-        f"https://www.{url}/foobar",
-        f"https://{url}/foobar"
-    ]
+    return [url, f"http://{url}", f"https://{url}", f"https://www.{url}", f"https://www.{url}/foobar", f"https://{url}/foobar"]
 
 
 @pytest.fixture
@@ -31,14 +24,7 @@ async def urls(session: aiohttp.ClientSession) -> Set[str]:
 
 @pytest.fixture
 def legitimate_urls() -> Set[str]:
-    return {
-        "discord.com",
-        "discordapp.com",
-        "twitch.tv",
-        "twitter.com",
-        "tenor.com",
-        "giphy.com"
-    }
+    return {"discord.com", "discordapp.com", "twitch.tv", "twitter.com", "tenor.com", "giphy.com"}
 
 
 async def test_fetch_urls(session: aiohttp.ClientSession):

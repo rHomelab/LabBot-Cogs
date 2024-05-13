@@ -1,7 +1,6 @@
 import re
 from typing import Optional
 
-import discord
 from redbot.core import commands
 
 # Define numbers -> emotes tuple

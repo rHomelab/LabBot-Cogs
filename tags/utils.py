@@ -10,108 +10,57 @@ from tags.abstracts import AliasABC, TagABC, TagConfigHelperABC, TransferABC, Us
 class Transfer(TransferABC):
     @classmethod
     def new(cls, ctx: commands.Context, prior: int, reason: str, to: int, time: int):
-        return cls(
-            prior=prior,
-            reason=reason,
-            to=to,
-            time=time
-        )
+        return cls(prior=prior, reason=reason, to=to, time=time)
 
     @classmethod
     def from_storage(cls, ctx: commands.Context, data: dict):
-        return cls(
-            prior=data['prior'],
-            reason=data['reason'],
-            to=data['to'],
-            time=data['time']
-        )
+        return cls(prior=data["prior"], reason=data["reason"], to=data["to"], time=data["time"])
 
     def to_dict(self) -> dict:
-        return {
-            "prior": self.prior,
-            "reason": self.reason,
-            "to": self.to,
-            "time": self.time
-        }
+        return {"prior": self.prior, "reason": self.reason, "to": self.to, "time": self.time}
 
 
 class Use(UseABC):
-
     @classmethod
     def new(cls, ctx: commands.Context, user: int, time: int):
-        return cls(
-            user=user,
-            time=time
-        )
+        return cls(user=user, time=time)
 
     @classmethod
     def from_storage(cls, ctx: commands.Context, data: dict):
-        return cls(
-            user=data['user'],
-            time=data['time']
-        )
+        return cls(user=data["user"], time=data["time"])
 
     def to_dict(self) -> dict:
-        return {
-            "user": self.user,
-            "time": self.time
-        }
+        return {"user": self.user, "time": self.time}
 
 
 class Alias(AliasABC):
     @classmethod
     def new(cls, ctx: commands.Context, alias: str, creator: int, created: int, tag: str, uses: List[UseABC]):
-        return cls(
-            alias=alias,
-            creator=creator,
-            created=created,
-            tag=tag,
-            uses=uses
-        )
+        return cls(alias=alias, creator=creator, created=created, tag=tag, uses=uses)
 
     @classmethod
     def from_storage(cls, ctx: commands.Context, data: dict):
-        return cls(
-            alias=data['alias'],
-            creator=data['creator'],
-            created=data['created'],
-            tag=data['tag'],
-            uses=data['uses']
-        )
+        return cls(alias=data["alias"], creator=data["creator"], created=data["created"], tag=data["tag"], uses=data["uses"])
 
     def to_dict(self) -> dict:
-        return {
-            "alias": self.alias,
-            "creator": self.creator,
-            "created": self.created,
-            "tag": self.tag,
-            "uses": self.uses
-        }
+        return {"alias": self.alias, "creator": self.creator, "created": self.created, "tag": self.tag, "uses": self.uses}
 
 
 class Tag(TagABC):
     @classmethod
     def new(cls, ctx: commands.Context, creator: int, owner: int, created: int, tag: str, content: str):
-        return cls(
-            tag=tag,
-            creator=creator,
-            owner=owner,
-            created=created,
-            content=content,
-            transfers=[],
-            uses=[]
-        )
+        return cls(tag=tag, creator=creator, owner=owner, created=created, content=content, transfers=[], uses=[])
 
     @classmethod
     def from_storage(cls, ctx: commands.Context, data: dict):
         return cls(
-            tag=data['tag'],
-            creator=data['creator'],
-            owner=data['owner'],
-            created=data['created'],
-            content=data['content'],
-            transfers=data['transfers'],
-            uses=['uses']
+            tag=data["tag"],
+            creator=data["creator"],
+            owner=data["owner"],
+            created=data["created"],
+            content=data["content"],
+            transfers=data["transfers"],
+            uses=["uses"],
         )
 
     def to_dict(self) -> dict:
@@ -122,12 +71,11 @@ class Tag(TagABC):
             "created": self.created,
             "content": self.content,
             "transfers": [],
-            "uses": []
+            "uses": [],
         }
 
 
 class TagConfigHelper(TagConfigHelperABC):
-
     def __init__(self):
         self.config = Config.get_conf(None, identifier=128986274420752384002, cog_name="TagCog")
         self.config.register_guild(log={}, tags={}, aliases={})
@@ -215,7 +163,7 @@ class TagConfigHelper(TagConfigHelperABC):
         use = Use.new(ctx, user, time)
         async with self.config.guild(ctx.guild).tags() as tags:
             if tag.tag in tags:
-                tags[tag.tag]['uses'].append(use.to_dict())
+                tags[tag.tag]["uses"].append(use.to_dict())
 
     async def create_alias(self, ctx: commands.Context, alias: str, tag: str, creator: int, created: int):
         new_alias = Alias.new(ctx, alias, creator, created, tag, [])
@@ -266,7 +214,7 @@ class TagConfigHelper(TagConfigHelperABC):
         use = Use.new(ctx, user, time)
         async with self.config.guild(ctx.guild).aliases() as aliases:
             if alias.alias in aliases:
-                aliases[alias.alias]['uses'].append(use.to_dict())
+                aliases[alias.alias]["uses"].append(use.to_dict())
         tag = await self.get_tag_by_alias(ctx, alias)
         if tag is not None:
             await self.add_tag_use(ctx, tag, user, time)

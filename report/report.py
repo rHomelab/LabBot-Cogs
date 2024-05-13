@@ -1,4 +1,5 @@
 """discord red-bot report cog"""
+
 from distutils.util import strtobool
 
 import discord

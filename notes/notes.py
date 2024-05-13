@@ -1,4 +1,5 @@
 """discord red-bot notes"""
+
 from __future__ import annotations
 
 from typing import Optional
@@ -138,8 +139,7 @@ class NotesCog(commands.Cog):
             await ctx.send(embed=embeds[0])
         else:
             ctx.bot.loop.create_task(
-                menu(ctx=ctx, pages=embeds, controls={"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page},
-                     timeout=180.0)
+                menu(ctx=ctx, pages=embeds, controls={"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}, timeout=180.0)
             )
 
     @checks.bot_has_permissions(embed_links=True)
@@ -154,7 +154,7 @@ class NotesCog(commands.Cog):
         await ctx.send(
             embed=(
                 discord.Embed(title="Notes Status", colour=await ctx.embed_colour())
-                    .add_field(name="Notes", value=str(len([n for n in all_notes if not n.is_warning])))
-                    .add_field(name="Warnings", value=str(len([n for n in all_notes if n.is_warning])))
+                .add_field(name="Notes", value=str(len([n for n in all_notes if not n.is_warning])))
+                .add_field(name="Warnings", value=str(len([n for n in all_notes if n.is_warning])))
             )
         )

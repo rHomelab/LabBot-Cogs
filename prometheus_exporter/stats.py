@@ -19,11 +19,9 @@ class statApi(Protocol):
     def __init__(self, prefix: str, poll_frequency: int, bot: Red, server: "PrometheusMetricsServer"):
         ...
 
-    def start(self) -> None:
-        ...
+    def start(self) -> None: ...
 
-    def stop(self) -> None:
-        ...
+    def stop(self) -> None: ...
 
 
 class Poller(statApi):
@@ -33,23 +31,14 @@ class Poller(statApi):
         self.poll_frequency = poll_frequency
         self.poll_task: Optional[asyncio.Task] = None
 
-        self.bot_latency_gauge = Gauge(
-            f"{prefix}_bot_latency_seconds",
-            "the latency to discord",
-            registry=self.registry
-        )
+        self.bot_latency_gauge = Gauge(f"{prefix}_bot_latency_seconds", "the latency to discord", registry=self.registry)
 
         self.total_guild_gauge = Gauge(
-            f"{prefix}_total_guilds_count",
-            "the total number of guilds this bot is in",
-            registry=self.registry
+            f"{prefix}_total_guilds_count", "the total number of guilds this bot is in", registry=self.registry
         )
 
         self.guild_stats_gauge = Gauge(
-            f"{prefix}_guild_stats_count",
-            "counter stats for each guild",
-            ["server_id", "stat_type"],
-            registry=self.registry
+            f"{prefix}_guild_stats_count", "counter stats for each guild", ["server_id", "stat_type"], registry=self.registry
         )
 
         self.guild_user_status_gauge = Gauge(
@@ -140,9 +129,7 @@ class Poller(statApi):
         logger.debug("voice channel count: %d", len(guild.voice_channels))
 
         for vc in guild.voice_channels:
-            data_types = {
-                "capacity": len(vc.members)
-            }
+            data_types = {"capacity": len(vc.members)}
 
             for data_type, data in data_types.items():
                 logger.debug(

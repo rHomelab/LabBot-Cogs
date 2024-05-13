@@ -8,7 +8,6 @@ from redbot.core import Config, commands
 
 
 class BaseABC(ABC):
-
     def __init__(self, **kwargs):
         if kwargs.keys() != self.__annotations__.keys():
             raise Exception("Invalid kwargs provided")

@@ -1,4 +1,5 @@
 """discord red-bot enforcer"""
+
 import asyncio
 from typing import Union
 

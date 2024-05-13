@@ -1,4 +1,5 @@
 """discord red-bot verify"""
+
 from datetime import timedelta
 
 import discord
@@ -27,7 +28,7 @@ class VerifyCog(commands.Cog):
             "welcomechannel": None,
             "welcomemsg": "",
             "wrongmsg": "",
-            "welcome_ignore_roles": []
+            "welcome_ignore_roles": [],
         }
 
         self.config.register_guild(**default_guild_settings, force_registration=True)
@@ -506,7 +507,7 @@ class VerifyCog(commands.Cog):
                 discord_role = ctx.guild.get_role(role)
                 embed.add_field(name="Role Name", value=discord_role.name, inline=True)
                 embed.add_field(name="Role ID", value=discord_role.id, inline=True)
-                embed.add_field(name="​", value="​", inline=True)  # ZWJ field
+                embed.add_field(name="\u200b", value="\u200b", inline=True)  # ZWJ field
             await ctx.send(embed=embed)
 
         else:
