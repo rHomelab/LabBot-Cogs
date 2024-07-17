@@ -73,6 +73,7 @@ class Poller(statApi):
         )
 
     async def gather_guild_count_stats(self, guild: discord.Guild):
+        logger.debug("gathering guild count stats")
         emoji_types = [emote.animated for emote in guild.emojis]
         data_types = {
             "members": len(guild.members),
@@ -87,9 +88,11 @@ class Poller(statApi):
             "static_emojis": emoji_types.count(False),
         }
         for data_type, data in data_types.items():
+            logger.debug("setting guild stats gauge server_id:%d, stat_type:%s, data:%s", guild.id, data_type, data)
             self.guild_stats_gauge.labels(server_id=guild.id, stat_type=data_type).set(data)
 
     async def gather_user_status_stats(self, guild: discord.Guild):
+        logger.debug("gathering user status count")
         data_types = {
             "web": {value: 0 for value in discord.Status},
             "mobile": {value: 0 for value in discord.Status},
@@ -105,27 +108,47 @@ class Poller(statApi):
 
         for client_type, statuses in data_types.items():
             for status, count in statuses.items():
+                logger.debug("setting user status gauge server_id:%d, client_type:%s, status:%s, data:%d", guild.id, client_type, status, count)
                 self.guild_user_status_gauge.labels(server_id=guild.id, client_type=client_type, status=status).set(count)
 
     async def gather_user_activity_stats(self, guild: discord.Guild):
+        logger.debug("gathering user activity stats")
         data_types = {value.name: 0 for value in discord.ActivityType}
+
         for member in guild.members:
             if member.activity is not None:
                 data_types[member.activity.type.name] += 1
 
         for data_type, data in data_types.items():
+            logger.debug(
+                "setting user activity gauge server_id:%d, activity:%s, data:%d",
+                guild.id,
+                data_type,
+                data,
+            )
             self.guild_user_activity_gauge.labels(server_id=guild.id, activity=data_type).set(data)
 
     async def gather_voice_stats(self, guild: discord.Guild):
+        logger.debug("gathering voice stats")
+        logger.debug("voice channel count: %d", len(guild.voice_channels))
+
         for vc in guild.voice_channels:
             data_types = {
                 "capacity": len(vc.members)
             }
 
             for data_type, data in data_types.items():
+                logger.debug(
+                    "setting voice stats gauge server_id:%d, channel_id:%s, stat_type:%s, data:%d",
+                    guild.id,
+                    vc.id,
+                    data_type,
+                    data,
+                )
                 self.guild_voice_stats_gauge.labels(server_id=guild.id, channel_id=vc.id, stat_type=data_type).set(data)
 
     async def poll_per_guild_stats(self):
+
         for guild in self.bot.guilds:
             await self.gather_guild_count_stats(guild)
             await self.gather_user_status_stats(guild)
@@ -133,12 +156,16 @@ class Poller(statApi):
             await self.gather_voice_stats(guild)
 
     async def poll_latency(self):
+        logger.debug("setting bot latency guage: %d", self.bot.latency)
         self.bot_latency_gauge.set(self.bot.latency)
 
     async def poll_total_guilds(self):
+        logger.debug("setting total guild guage: %d", len(self.bot.guilds))
+
         self.total_guild_gauge.set(len(self.bot.guilds))
 
     async def poll(self):
+        logger.debug("running polling run")
         await self.poll_latency()
         await self.poll_total_guilds()
         await self.poll_per_guild_stats()
@@ -148,9 +175,13 @@ class Poller(statApi):
             while True:
                 await self.poll()
                 await asyncio.sleep(self.poll_frequency)
+        logger.debug("creating polling loop")
 
         self.poll_task = self.bot.loop.create_task(poll_loop())
 
     def stop(self):
+        logger.debug("tearing down polling loop")
         if self.poll_task is not None:
+            logger.debug("cancelling polling loop")
+
             self.poll_task.cancel()
