@@ -8,6 +8,9 @@ from wsgiref.simple_server import WSGIRequestHandler, make_server
 from prometheus_client import CollectorRegistry, make_wsgi_app
 
 
+logger = logging.getLogger("red.rhomelab.prom.server")
+
+
 class _SilentHandler(WSGIRequestHandler):
     """WSGI handler that does not log requests."""
 
@@ -36,7 +39,6 @@ class promServer(PrometheusMetricsServer):
 
         self.server_thread = None
         self.server = None
-        self.logger = logging.getLogger("red.rhomelab.prom.server")
         self._registry = self._create_registry()
 
     def _create_registry(self) -> CollectorRegistry:

@@ -7,6 +7,9 @@ import discord
 from prometheus_client import Gauge
 from redbot.core.bot import Red
 
+
+logger = logging.getLogger("red.rhomelab.prom.stats")
+
 if typing.TYPE_CHECKING:
     from .prom_server import PrometheusMetricsServer
 
@@ -25,7 +28,6 @@ class statApi(Protocol):
 class Poller(statApi):
     def __init__(self, prefix: str, poll_frequency: int, bot: Red, server: "PrometheusMetricsServer"):
         self.bot = bot
-        self.logger = logging.getLogger("red.rhomelab.prom.stats")
         self.registry = server.registry
         self.poll_frequency = poll_frequency
         self.poll_task: Optional[asyncio.Task] = None
