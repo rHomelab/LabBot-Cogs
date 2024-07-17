@@ -58,7 +58,7 @@ class promServer(PrometheusMetricsServer):
         """Starts a WSGI server for prometheus metrics as a daemon thread."""
         logger.debug("deploying prometheus server")
         app = make_wsgi_app(self._registry)
-        self.logger.info(f"starting server on {self.addr}:{self.port}")
+        logger.info(f"starting server on {self.addr}:{self.port}")
         self.server = make_server(self.addr, self.port, app, handler_class=_SilentHandler)
         self.server_thread = threading.Thread(target=partial(self.server.serve_forever, 0.5))
         self.server_thread.daemon = True

@@ -6,6 +6,7 @@ from typing import Optional, Protocol
 import discord
 from prometheus_client import Gauge
 from redbot.core.bot import Red
+from .utils import timeout
 
 
 logger = logging.getLogger("red.rhomelab.prom.stats")
@@ -72,6 +73,7 @@ class Poller(statApi):
             registry=self.registry,
         )
 
+    @timeout
     async def gather_guild_count_stats(self, guild: discord.Guild):
         logger.debug("gathering guild count stats")
         emoji_types = [emote.animated for emote in guild.emojis]
@@ -91,6 +93,7 @@ class Poller(statApi):
             logger.debug("setting guild stats gauge server_id:%d, stat_type:%s, data:%s", guild.id, data_type, data)
             self.guild_stats_gauge.labels(server_id=guild.id, stat_type=data_type).set(data)
 
+    @timeout
     async def gather_user_status_stats(self, guild: discord.Guild):
         logger.debug("gathering user status count")
         data_types = {
@@ -111,13 +114,17 @@ class Poller(statApi):
                 logger.debug("setting user status gauge server_id:%d, client_type:%s, status:%s, data:%d", guild.id, client_type, status, count)
                 self.guild_user_status_gauge.labels(server_id=guild.id, client_type=client_type, status=status).set(count)
 
+    @timeout
     async def gather_user_activity_stats(self, guild: discord.Guild):
         logger.debug("gathering user activity stats")
-        data_types = {value.name: 0 for value in discord.ActivityType}
+        data_types = {value.name: 0 for value in discord.ActivityType if  "unknown" not in value.name }
 
         for member in guild.members:
-            if member.activity is not None:
-                data_types[member.activity.type.name] += 1
+            logger.debug(member)
+
+            if member.activity is not None and "unknown" not in member.activity.type.name:
+                logger.debug("post user activity stats collection")
+
 
         for data_type, data in data_types.items():
             logger.debug(
@@ -128,6 +135,7 @@ class Poller(statApi):
             )
             self.guild_user_activity_gauge.labels(server_id=guild.id, activity=data_type).set(data)
 
+    @timeout
     async def gather_voice_stats(self, guild: discord.Guild):
         logger.debug("gathering voice stats")
         logger.debug("voice channel count: %d", len(guild.voice_channels))
@@ -148,17 +156,18 @@ class Poller(statApi):
                 self.guild_voice_stats_gauge.labels(server_id=guild.id, channel_id=vc.id, stat_type=data_type).set(data)
 
     async def poll_per_guild_stats(self):
-
         for guild in self.bot.guilds:
             await self.gather_guild_count_stats(guild)
             await self.gather_user_status_stats(guild)
             await self.gather_user_activity_stats(guild)
             await self.gather_voice_stats(guild)
 
+    @timeout
     async def poll_latency(self):
         logger.debug("setting bot latency guage: %d", self.bot.latency)
         self.bot_latency_gauge.set(self.bot.latency)
 
+    @timeout
     async def poll_total_guilds(self):
         logger.debug("setting total guild guage: %d", len(self.bot.guilds))
 
