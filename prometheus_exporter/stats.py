@@ -120,7 +120,7 @@ class Poller(statApi):
         data_types = {value.name: 0 for value in discord.ActivityType if  "unknown" not in value.name }
 
         for member in guild.members:
-            if member.activity is not None and "unknown" not in member.activity.type.name:
+            if member.activity is not None and member.activity.type.name in data_types:
                 data_types[member.activity.type.name] += 1
                 logger.debug("post user activity stats collection")
 
