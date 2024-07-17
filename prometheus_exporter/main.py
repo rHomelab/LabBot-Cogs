@@ -37,7 +37,8 @@ class PromExporter(commands.Cog):
     async def init(self):
         self.address = await self.config.address()
         self.port = await self.config.port()
-        self.poll_frequency = await self.config.poll_interval()
+        # we cast the interval to integer to avoid f25e678 from being a breaking change :3
+        self.poll_frequency = int(await self.config.poll_interval())
         self.start()
 
     @staticmethod
