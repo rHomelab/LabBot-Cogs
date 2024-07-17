@@ -8,7 +8,6 @@ from .prom_server import PrometheusMetricsServer, promServer
 from .stats import Poller, statApi
 
 logger = logging.getLogger("red.rhomelab.prom")
-logger.setLevel(logging.DEBUG)
 
 
 class PromExporter(commands.Cog):
