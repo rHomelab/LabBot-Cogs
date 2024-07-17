@@ -12,7 +12,7 @@ if typing.TYPE_CHECKING:
 
 
 class statApi(Protocol):
-    def __init__(self, prefix: str, poll_frequency: float, bot: Red, server: "PrometheusMetricsServer"):
+    def __init__(self, prefix: str, poll_frequency: int, bot: Red, server: "PrometheusMetricsServer"):
         ...
 
     def start(self) -> None:
@@ -23,7 +23,7 @@ class statApi(Protocol):
 
 
 class Poller(statApi):
-    def __init__(self, prefix: str, poll_frequency: float, bot: Red, server: "PrometheusMetricsServer"):
+    def __init__(self, prefix: str, poll_frequency: int, bot: Red, server: "PrometheusMetricsServer"):
         self.bot = bot
         self.logger = logging.getLogger("red.rhomelab.prom.stats")
         self.registry = server.registry

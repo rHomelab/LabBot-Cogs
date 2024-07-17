@@ -45,7 +45,7 @@ class PromExporter(commands.Cog):
         return promServer(address, port)
 
     @staticmethod
-    def create_stat_api(prefix: str, poll_frequency: float, bot: Red, server: PrometheusMetricsServer) -> statApi:
+    def create_stat_api(prefix: str, poll_frequency: int, bot: Red, server: PrometheusMetricsServer) -> statApi:
         return Poller(prefix, poll_frequency, bot, server)
 
     @commands.group()
@@ -76,7 +76,7 @@ class PromExporter(commands.Cog):
 
     @checks.is_owner()
     @prom_export.command()
-    async def set_poll_interval(self, ctx: commands.Context, poll_interval: float):
+    async def set_poll_interval(self, ctx: commands.Context, poll_interval: int):
         """Set the metrics poll interval (seconds)"""
 
         self.logger.info(f"changing poll interval to {poll_interval}")
