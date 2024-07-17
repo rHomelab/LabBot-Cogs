@@ -17,7 +17,7 @@ class PromExporter(commands.Cog):
     def __init__(self, bot: Red):
         self.bot = bot
         self.logger = logging.getLogger("red.rhomelab.prom")
-        self.logger.info("initalising")
+        self.logger.info("initialising")
         self.address = "0.0.0.0"
         self.port = 9000
         self.poll_frequency = 1
