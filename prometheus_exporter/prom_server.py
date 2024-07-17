@@ -8,6 +8,9 @@ from wsgiref.simple_server import WSGIRequestHandler, make_server
 from prometheus_client import CollectorRegistry, make_wsgi_app
 
 
+logger = logging.getLogger("red.rhomelab.prom.server")
+
+
 class _SilentHandler(WSGIRequestHandler):
     """WSGI handler that does not log requests."""
 
@@ -36,7 +39,6 @@ class promServer(PrometheusMetricsServer):
 
         self.server_thread = None
         self.server = None
-        self.logger = logging.getLogger("red.rhomelab.prom.server")
         self._registry = self._create_registry()
 
     def _create_registry(self) -> CollectorRegistry:
@@ -54,20 +56,22 @@ class promServer(PrometheusMetricsServer):
 
     def serve(self) -> None:
         """Starts a WSGI server for prometheus metrics as a daemon thread."""
-
+        logger.debug("deploying prometheus server")
         app = make_wsgi_app(self._registry)
-        self.logger.info(f"starting server on {self.addr}:{self.port}")
+        logger.info(f"starting server on {self.addr}:{self.port}")
         self.server = make_server(self.addr, self.port, app, handler_class=_SilentHandler)
         self.server_thread = threading.Thread(target=partial(self.server.serve_forever, 0.5))
         self.server_thread.daemon = True
         self.server_thread.start()
+        logger.debug("server thread started")
 
     def stop(self) -> None:
+        logger.debug("shutting down prom server")
+        logger.debug("server thread exists: %s, server exists: %s", self.server_thread is not None, self.server is not None)
         if self.server_thread is not None and self.server is not None:
-            self.logger.info("shutting down prom server")
+            logger.debug("prom server running, stopping...")
             self.server.shutdown()
             self.server.server_close()
             self.server_thread.join()
+            logger.debug("prom server thread joined")
 
-        else:
-            self.logger.info("prom server not running, not stopping")
