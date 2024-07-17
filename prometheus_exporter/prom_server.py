@@ -7,7 +7,6 @@ from wsgiref.simple_server import WSGIRequestHandler, make_server
 
 from prometheus_client import CollectorRegistry, make_wsgi_app
 
-
 logger = logging.getLogger("red.rhomelab.prom.server")
 
 

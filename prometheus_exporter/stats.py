@@ -6,8 +6,8 @@ from typing import Optional, Protocol
 import discord
 from prometheus_client import Gauge
 from redbot.core.bot import Red
-from .utils import timeout
 
+from .utils import timeout
 
 logger = logging.getLogger("red.rhomelab.prom.stats")
 

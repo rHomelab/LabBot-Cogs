@@ -1,7 +1,7 @@
-from functools import wraps
-from typing import Awaitable, TYPE_CHECKING, Self
 import asyncio
 import logging
+from functools import wraps
+from typing import TYPE_CHECKING, Awaitable, Self
 
 if TYPE_CHECKING:
     from stats import Poller
