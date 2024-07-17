@@ -121,6 +121,7 @@ class Poller(statApi):
 
         for member in guild.members:
             if member.activity is not None and "unknown" not in member.activity.type.name:
+                data_types[member.activity.type.name] += 1
                 logger.debug("post user activity stats collection")
 
 
