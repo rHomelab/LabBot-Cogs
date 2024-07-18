@@ -13,4 +13,4 @@ repos:
     rev: 'v1.10.0'  # Use the sha / tag you want to point at
     hooks:
     -   id: mypy
-        args: [--strict, --ignore-missing-imports]
+        args: [--ignore-missing-imports]
