@@ -40,9 +40,7 @@ class PromExporter(commands.Cog):
         return promServer(address, port)
 
     @staticmethod
-    def create_stat_api(
-        prefix: str, poll_frequency: int, bot: Red, server: PrometheusMetricsServer
-    ) -> statApi:
+    def create_stat_api(prefix: str, poll_frequency: int, bot: Red, server: PrometheusMetricsServer) -> statApi:
         return Poller(prefix, poll_frequency, bot, server)
 
     @commands.group()
@@ -96,9 +94,7 @@ class PromExporter(commands.Cog):
 
     def start(self):
         self.prom_server = self.create_server(self.address, self.port)
-        self.stat_api = self.create_stat_api(
-            "discord_metrics", self.poll_frequency, self.bot, self.prom_server
-        )
+        self.stat_api = self.create_stat_api("discord_metrics", self.poll_frequency, self.bot, self.prom_server)
 
         self.prom_server.serve()
         self.stat_api.start()

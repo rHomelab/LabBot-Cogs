@@ -16,8 +16,7 @@ if typing.TYPE_CHECKING:
 
 
 class statApi(Protocol):
-    def __init__(self, prefix: str, poll_frequency: int, bot: Red, server: "PrometheusMetricsServer"):
-        ...
+    def __init__(self, prefix: str, poll_frequency: int, bot: Red, server: "PrometheusMetricsServer"): ...
 
     def start(self) -> None: ...
 
@@ -100,19 +99,24 @@ class Poller(statApi):
 
         for client_type, statuses in data_types.items():
             for status, count in statuses.items():
-                logger.debug("setting user status gauge server_id:%d, client_type:%s, status:%s, data:%d", guild.id, client_type, status, count)
+                logger.debug(
+                    "setting user status gauge server_id:%d, client_type:%s, status:%s, data:%d",
+                    guild.id,
+                    client_type,
+                    status,
+                    count,
+                )
                 self.guild_user_status_gauge.labels(server_id=guild.id, client_type=client_type, status=status).set(count)
 
     @timeout
     async def gather_user_activity_stats(self, guild: discord.Guild):
         logger.debug("gathering user activity stats")
-        data_types = {value.name: 0 for value in discord.ActivityType if  "unknown" not in value.name }
+        data_types = {value.name: 0 for value in discord.ActivityType if "unknown" not in value.name}
 
         for member in guild.members:
             if member.activity is not None and member.activity.type.name in data_types:
                 data_types[member.activity.type.name] += 1
                 logger.debug("post user activity stats collection")
-
 
         for data_type, data in data_types.items():
             logger.debug(
@@ -170,6 +174,7 @@ class Poller(statApi):
             while True:
                 await self.poll()
                 await asyncio.sleep(self.poll_frequency)
+
         logger.debug("creating polling loop")
 
         self.poll_task = self.bot.loop.create_task(poll_loop())

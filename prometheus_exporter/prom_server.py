@@ -70,4 +70,3 @@ class promServer(PrometheusMetricsServer):
             self.server.server_close()
             self.server_thread.join()
             logger.debug("prom server thread joined")
-
