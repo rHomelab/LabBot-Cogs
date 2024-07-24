@@ -12,15 +12,9 @@ class Timeout(commands.Cog):
 
     def __init__(self):
         self.config = Config.get_conf(self, identifier=539343858187161140)
-        default_guild = {
-            "logchannel": "",
-            "report": "",
-            "timeoutrole": ""
-        }
+        default_guild = {"logchannel": "", "report": "", "timeoutrole": ""}
         self.config.register_guild(**default_guild)
-        self.config.register_member(
-            roles=[]
-        )
+        self.config.register_member(roles=[])
 
         self.actor: str = None
         self.target: str = None
@@ -36,39 +30,27 @@ class Timeout(commands.Cog):
 
         # Build embed
         embed = discord.Embed(
-            description=f"{user.mention} ({user.id})",
-            color=(await ctx.embed_colour()),
-            timestamp=datetime.datetime.utcnow()
+            description=f"{user.mention} ({user.id})", color=(await ctx.embed_colour()), timestamp=datetime.datetime.utcnow()
         )
-        embed.add_field(
-            name="Moderator",
-            value=ctx.author.mention,
-            inline=False
-        )
-        embed.add_field(
-            name="Reason",
-            value=action_info["reason"],
-            inline=False
-        )
+        embed.add_field(name="Moderator", value=ctx.author.mention, inline=False)
+        embed.add_field(name="Reason", value=action_info["reason"], inline=False)
 
         if user.display_avatar:
-            embed.set_author(
-                name=f"{user} {action_info['action']} timeout",
-                icon_url=user.display_avatar.url)
+            embed.set_author(name=f"{user} {action_info['action']} timeout", icon_url=user.display_avatar.url)
         else:
-            embed.set_author(
-                name=f"{user} {action_info['action']} timeout"
-            )
+            embed.set_author(name=f"{user} {action_info['action']} timeout")
 
         # Send embed
         await log_channel.send(embed=embed)
 
     async def timeout_add(
-            self, ctx: commands.Context,
-            user: discord.Member,
-            reason: str,
-            timeout_role: discord.Role,
-            timeout_roleset: list[discord.Role]):
+        self,
+        ctx: commands.Context,
+        user: discord.Member,
+        reason: str,
+        timeout_role: discord.Role,
+        timeout_roleset: list[discord.Role],
+    ):
         """Retrieve and save user's roles, then add user to timeout"""
         # Catch users already holding timeout role.
         # This could be caused by an error in this cog's logic or,
@@ -78,9 +60,9 @@ class Timeout(commands.Cog):
                 "Something went wrong! Is the user already in timeout? Please check the console for more information."
             )
             log.warning(
-                f"Something went wrong while trying to add user {self.target} to timeout.\n" +
-                f"Current roles: {user.roles}\n" +
-                f"Attempted new roles: {timeout_roleset}"
+                f"Something went wrong while trying to add user {self.target} to timeout.\n"
+                + f"Current roles: {user.roles}\n"
+                + f"Attempted new roles: {timeout_roleset}"
             )
             return
 
@@ -99,26 +81,25 @@ class Timeout(commands.Cog):
         except discord.Forbidden as error:
             await ctx.send("Whoops, looks like I don't have permission to do that.")
             log.exception(
-                f"Something went wrong while trying to add user {self.target} to timeout.\n" +
-                f"Current roles: {user.roles}\n" +
-                f"Attempted new roles: {timeout_roleset}", exc_info=error
+                f"Something went wrong while trying to add user {self.target} to timeout.\n"
+                + f"Current roles: {user.roles}\n"
+                + f"Attempted new roles: {timeout_roleset}",
+                exc_info=error,
             )
         except discord.HTTPException as error:
             await ctx.send("Something went wrong! Please check the console for more information.")
             log.exception(
-                f"Something went wrong while trying to add user {self.target} to timeout.\n" +
-                f"Current roles: {user.roles}\n" +
-                f"Attempted new roles: {timeout_roleset}", exc_info=error
+                f"Something went wrong while trying to add user {self.target} to timeout.\n"
+                + f"Current roles: {user.roles}\n"
+                + f"Attempted new roles: {timeout_roleset}",
+                exc_info=error,
             )
         else:
             await ctx.message.add_reaction("✅")
 
             # Send report to channel
             if await self.config.guild(ctx.guild).report():
-                action_info = {
-                    "reason": reason,
-                    "action": "added to"
-                }
+                action_info = {"reason": reason, "action": "added to"}
                 await self.report_handler(ctx, user, action_info)
 
     async def timeout_remove(self, ctx: commands.Context, user: discord.Member, reason: str):
@@ -135,16 +116,18 @@ class Timeout(commands.Cog):
         except discord.Forbidden as error:
             await ctx.send("Whoops, looks like I don't have permission to do that.")
             log.exception(
-                f"Something went wrong while trying to remove user {self.target} from timeout.\n" +
-                f"Current roles: {user.roles}\n" +
-                f"Attempted new roles: {user_roles}", exc_info=error
+                f"Something went wrong while trying to remove user {self.target} from timeout.\n"
+                + f"Current roles: {user.roles}\n"
+                + f"Attempted new roles: {user_roles}",
+                exc_info=error,
             )
         except discord.HTTPException as error:
             await ctx.send("Something went wrong! Please check the console for more information.")
             log.exception(
-                f"Something went wrong while trying to remove user {self.target} from timeout.\n" +
-                f"Current roles: {user.roles}\n" +
-                f"Attempted new roles: {user_roles}", exc_info=error
+                f"Something went wrong while trying to remove user {self.target} from timeout.\n"
+                + f"Current roles: {user.roles}\n"
+                + f"Attempted new roles: {user_roles}",
+                exc_info=error,
             )
         else:
             await ctx.message.add_reaction("✅")
@@ -154,10 +137,7 @@ class Timeout(commands.Cog):
 
             # Send report to channel
             if await self.config.guild(ctx.guild).report():
-                action_info = {
-                    "reason": reason,
-                    "action": "removed from"
-                }
+                action_info = {"reason": reason, "action": "removed from"}
                 await self.report_handler(ctx, user, action_info)
 
     # Commands
@@ -239,28 +219,11 @@ class Timeout(commands.Cog):
             report = "Unconfigured"
 
         # Build embed
-        embed = discord.Embed(
-            color=(await ctx.embed_colour())
-        )
-        embed.set_author(
-            name="Timeout Cog Settings",
-            icon_url=ctx.guild.me.display_avatar.url
-        )
-        embed.add_field(
-            name="Log Channel",
-            value=log_channel,
-            inline=True
-        )
-        embed.add_field(
-            name="Send Reports",
-            value=report,
-            inline=True
-        )
-        embed.add_field(
-            name="Timeout Role",
-            value=timeout_role,
-            inline=True
-        )
+        embed = discord.Embed(color=(await ctx.embed_colour()))
+        embed.set_author(name="Timeout Cog Settings", icon_url=ctx.guild.me.display_avatar.url)
+        embed.add_field(name="Log Channel", value=log_channel, inline=True)
+        embed.add_field(name="Send Reports", value=report, inline=True)
+        embed.add_field(name="Timeout Role", value=timeout_role, inline=True)
 
         # Send embed
         await ctx.send(embed=embed)

@@ -42,9 +42,7 @@ class Xkcd(commands.Cog):
     async def make_comic_embed(self, ctx: commands.Context, data: dict) -> discord.Embed:
         """Generate embed for xkcd comic"""
         xkcd_embed = discord.Embed(
-            title=f"xkcd Comic: #{data['num']}",
-            url=f"https://xkcd.com/{data['num']}",
-            colour=await ctx.embed_colour()
+            title=f"xkcd Comic: #{data['num']}", url=f"https://xkcd.com/{data['num']}", colour=await ctx.embed_colour()
         )
         xkcd_embed.add_field(name="Comic Title", value=data["safe_title"])
         xkcd_embed.add_field(name="Publish Date", value=f"{data['year']}-{data['month']}-{data['day']}")

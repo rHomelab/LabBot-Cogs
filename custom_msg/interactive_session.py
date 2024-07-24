@@ -152,10 +152,7 @@ class MixedBuilder(InteractiveSession):
         embed_payload = await EmbedBuilder.from_session(self).run()
         await self.ctx.send("Embed added.")
 
-        self.payload.update({
-            "content": message_payload["content"],
-            "embed": embed_payload["embed"]
-        })
+        self.payload.update({"content": message_payload["content"], "embed": embed_payload["embed"]})
         return self.payload
 
     async def confirm_sample(self) -> bool:

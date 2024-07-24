@@ -1,4 +1,5 @@
 """discord red-bot phishing link detection"""
+
 import re
 from typing import Callable, List, Literal, Optional, Set, TypedDict
 
@@ -46,6 +47,7 @@ async def get_updates_from_timeframe(session: aiohttp.ClientSession, num_seconds
 
 class PhishingDetectionCog(commands.Cog):
     """Phishing link detection cog"""
+
     bot: Red
     predicate: Optional[Callable[[str], bool]] = None
     urls: Set[str]
@@ -53,9 +55,11 @@ class PhishingDetectionCog(commands.Cog):
 
     def __init__(self, bot: Red):
         self.bot = bot
-        self.session = aiohttp.ClientSession(headers={
-            "X-Identity": "A Red-DiscordBot instance using the phishingdetection cog from https://github.com/rhomelab/labbot-cogs"
-        })
+        self.session = aiohttp.ClientSession(
+            headers={
+                "X-Identity": "A Red-DiscordBot instance using the phishingdetection cog from https://github.com/rhomelab/labbot-cogs"
+            }
+        )
         self.initialise_url_set.start()
 
     def cog_unload(self):
