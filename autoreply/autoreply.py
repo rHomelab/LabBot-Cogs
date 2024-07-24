@@ -10,6 +10,7 @@ from redbot.core.utils.menus import menu, next_page, prev_page, start_adding_rea
 from redbot.core.utils.predicates import ReactionPredicate
 
 CUSTOM_CONTROLS = {"⬅️": prev_page, "➡️": next_page}
+EMBED_DESCRIPTION_MAX_LENGTH = 4096
 
 
 class AutoReplyCog(commands.Cog):
@@ -150,8 +151,8 @@ class AutoReplyCog(commands.Cog):
         return error_embed
 
     async def make_removal_success_embed(self, ctx, trigger_dict: dict):
-        trigger = trigger_dict["trigger"][:1010] if len(trigger_dict["trigger"]) > 1010 else trigger_dict["trigger"]
-        response = trigger_dict["response"][:1010] if len(trigger_dict["response"]) > 1010 else trigger_dict["response"]
+        trigger = f"**Trigger:**\n{trigger_dict['trigger']}"[: int(EMBED_DESCRIPTION_MAX_LENGTH / 2)]
+        response = f"**Response:**\n{trigger_dict['response']}"[: int(EMBED_DESCRIPTION_MAX_LENGTH / 2)]
         desc = f"**Trigger:**\n{trigger}\n**Response:**\n{response}"
         embed = discord.Embed(
             title="Autoreply trigger removed",
@@ -160,10 +161,10 @@ class AutoReplyCog(commands.Cog):
         )
         return embed
 
-    async def make_trigger_embed(self, ctx, trigger_dict: dict, index=None):
-        trigger = trigger_dict["trigger"][:1010] if len(trigger_dict["trigger"]) > 1010 else trigger_dict["trigger"]
-        response = trigger_dict["response"][:1010] if len(trigger_dict["response"]) > 1010 else trigger_dict["response"]
-        desc = f"**Trigger:**\n{trigger}\n**Response:**\n{response}"
+    async def make_trigger_embed(self, ctx, trigger_dict: dict[str, str], index=None):
+        trigger = f"**Trigger:**\n{trigger_dict['trigger']}"[: int(EMBED_DESCRIPTION_MAX_LENGTH / 2)]
+        response = f"**Response:**\n{trigger_dict['response']}"[: int(EMBED_DESCRIPTION_MAX_LENGTH / 2)]
+        desc = trigger + response
         embed = discord.Embed(description=desc, colour=await ctx.embed_colour())
         if index:
             embed.set_footer(text=f"{index['current']} of {index['max']}")
@@ -180,7 +181,7 @@ class AutoReplyCog(commands.Cog):
             )
         except asyncio.TimeoutError:
             await msg.clear_reactions()
-            return
+            return False
         else:
             await msg.clear_reactions()
             return bool(emojis.index(reaction.emoji))

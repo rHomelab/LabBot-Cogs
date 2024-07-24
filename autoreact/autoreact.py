@@ -51,7 +51,7 @@ class AutoReactCog(commands.Cog):
                         "Could not react to message %s in channel %s (%s) as the message was not found."
                         + "Maybe the message was deleted?",
                         message.id,
-                        message.channel.name,
+                        message.channel.name,  # type: ignore
                         message.channel.id,
                     )
 
@@ -69,7 +69,7 @@ class AutoReactCog(commands.Cog):
                             "Could not react to message %s in channel %s (%s) as the message was not found."
                             + "Maybe the message was deleted?",
                             message.id,
-                            message.channel.name,
+                            message.channel.name,  # type: ignore
                             message.channel.id,
                         )
 
@@ -320,7 +320,8 @@ class AutoReactCog(commands.Cog):
 
     async def make_error_embed(self, ctx, error_type: str = ""):
         error_msgs = {
-            "InvalidObjectType": "Invalid object. Please provide a valid object type from reactions, channels, whitelisted channels",
+            "InvalidObjectType": "Invalid object. Please provide a valid object type from reactions,"
+            "channels, whitelisted channels",
             "ChannelInWhitelist": "This channel is already in the whitelist",
             "ChannelNotFound": "Channel not found in config",
             "NoConfiguration": "No configuration has been set for this object",
@@ -397,6 +398,7 @@ class AutoReactCog(commands.Cog):
             )
         except asyncio.TimeoutError:
             await msg.clear_reactions()
+            return False
         else:
             await msg.clear_reactions()
             return bool(emojis.index(reaction.emoji))
