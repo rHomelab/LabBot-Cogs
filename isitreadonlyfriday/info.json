@@ -1,0 +1,12 @@
+{
+    "author": [
+        "tigattack"
+    ],
+    "description": "Usage: [p]isitreadonlyfriday [UTC offset] or /isitreadonlyfriday [UTC offset]",
+    "short": "Tells you if it's Read Only Friday",
+    "name": "isitreadonlyfriday",
+    "tags": [
+        "fun"
+    ],
+    "min_bot_version": "3.5.1"
+}
