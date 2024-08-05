@@ -28,6 +28,7 @@ Cogs for the [Red-DiscordBot](https://github.com/Cog-Creators/Red-DiscordBot/)-b
       - [Configure Enforcer](#configure-enforcer)
     - [Feed](#feed)
     - [Google](#google)
+    - [IsItReadOnlyFriday](#isitreadonlyfriday)
     - [Latex](#latex)
     - [Letters](#letters)
     - [Markov](#markov)
@@ -205,6 +206,14 @@ This cog allows users to feed each other.
 This cog allows users to send google links to each other.
 
 `[p]google <query>`
+
+### IsItReadOnlyFriday
+
+This cog answers the question "[Is It Read-Only Friday?](https://isitreadonlyfriday.com)".
+
+`[p]isitreadonlyfriday [offset=0]`
+
+Also availble as a slash command.
 
 ### Latex
 
