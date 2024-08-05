@@ -2,8 +2,8 @@
     "author": [
         "tigattack"
     ],
-    "description": "Usage: [p]isitreadonlyfriday [UTC offset] or /isitreadonlyfriday [UTC offset]",
-    "short": "Tells you if it's Read Only Friday",
+    "description": "Tells you if it's Read-Only Friday\nUsage: [p]isitreadonlyfriday [offset=0] or /isitreadonlyfriday [offset=0]\n`offset` is an optional UTC offset in hours.",
+    "short": "Tells you if it's Read-Only Friday",
     "name": "isitreadonlyfriday",
     "tags": [
         "fun"
