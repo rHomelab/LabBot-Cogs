@@ -40,7 +40,7 @@ class IsItReadOnlyFriday(commands.Cog):
 
     @commands.command()
     async def isitreadonlyfriday(self, ctx: commands.Context, offset: int = 0) -> None:
-        """Returns isitreadonlyfriday result with given offset (default 0)"""
+        """Returns isitreadonlyfriday result with given UTC offset"""
 
         embed = await self.get_isitreadonlyfriday(offset)
         await ctx.send(embed=embed)

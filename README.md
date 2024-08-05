@@ -209,7 +209,7 @@ This cog allows users to send google links to each other.
 
 ### IsItReadOnlyFriday
 
-This cog answers the question "[Is It Read-Only Friday?](https://isitreadonlyfriday.com)".
+This cog answers the question "[Is It Read-Only Friday?](https://isitreadonlyfriday.com)". The user can optionally specify a UTC offset.
 
 `[p]isitreadonlyfriday [offset=0]`
 
