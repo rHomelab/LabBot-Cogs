@@ -18,7 +18,7 @@ class IsItReadOnlyFriday(commands.Cog):
         # Get readonly data from isitreadonlyfriday api
         try:
             async with aiohttp.request(
-                "GET", f"https://isitreadonlyfriday.com/api/isitreadonlyfrida/{offset}"
+                "GET", f"https://isitreadonlyfriday.com/api/isitreadonlyfriday/{offset}"
             ) as response:
                 response.raise_for_status()
                 try:
