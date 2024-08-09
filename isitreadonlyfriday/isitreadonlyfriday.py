@@ -40,16 +40,31 @@ class IsItReadOnlyFriday(commands.Cog):
 
     @commands.command()
     async def isitreadonlyfriday(self, ctx: commands.Context, offset: int = 0) -> None:
-        """Returns isitreadonlyfriday result with given UTC offset (default 0, range -12 to 12)"""
+        """Tells you if it's read-only Friday!
+
+        Accepts optional UTC offset (default 0, range -12 to 12).
+        """
+
+        if offset not in range(-12, 13):
+            await ctx.send("Offset must be between -12 and 12.")
+            return
 
         embed = await self.get_isitreadonlyfriday(offset)
         await ctx.send(embed=embed)
 
     @app_commands.command(name="isitreadonlyfriday")
     async def app_isitreadonlyfriday(
-        self, interaction: discord.Interaction, offset: int = 0
+        self,
+        interaction: discord.Interaction,
+        offset: app_commands.Range[int, -12, 12] = 0,
     ):
-        """Returns isitreadonlyfriday result with given UTC offset (default 0, range -12 to 12)"""
+        """Tells you if it's read-only Friday!
+
+        Paramters
+        ----------
+        offset: int
+            UTC offset (default 0, range -12 to 12)
+        """
 
         embed = await self.get_isitreadonlyfriday(offset)
         await interaction.response.send_message(embed=embed)
