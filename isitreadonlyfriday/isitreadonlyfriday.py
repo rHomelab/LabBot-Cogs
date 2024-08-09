@@ -54,7 +54,9 @@ class IsItReadOnlyFriday(commands.Cog):
 
     @app_commands.command(name="isitreadonlyfriday")
     async def app_isitreadonlyfriday(
-        self, interaction: discord.Interaction, offset: app_commands.Range[int, -12, 12] = 0
+        self,
+        interaction: discord.Interaction,
+        offset: app_commands.Range[int, -12, 12] = 0,
     ):
         """Tells you if it's read-only Friday!
 
