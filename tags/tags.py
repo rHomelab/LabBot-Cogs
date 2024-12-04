@@ -4,6 +4,8 @@ from typing import Optional
 import discord
 from redbot.core import commands
 from redbot.core.bot import Red
+from redbot.core.utils.chat_formatting import pagify
+from redbot.core.utils.menus import menu
 from redbot.core.utils.mod import is_mod_or_superior
 
 from tags.utils import Alias, Tag, TagConfigHelper
@@ -190,16 +192,41 @@ class TagCog(commands.Cog):
     @_tag.command("list")
     async def _list(self, ctx: commands.Context, user: Optional[discord.User]):
         """List all tags and aliases, or just those owned by the user if specified."""
-        # TODO Paginate and format this better.
-        results = ["**__Tags__**"]
+        embed_page_length = 300
+
+        tags = []
         for tag in await self.config.get_tags(ctx, user):
-            results.append(f"{tag.tag}")
+            tags.append(f"* {tag.tag}")
+        tags_str = "\n".join(sorted(tags))
 
-        results.append("**__Aliases__**")
+        aliases = []
         for alias in await self.config.get_aliases(ctx, user):
-            results.append(f"{alias.alias}:{alias.tag}")
+            aliases.append(f"* **Tag:** {alias.tag}  \n  **Alias:** {alias.alias}")
+        aliases_str = "\n".join(sorted(aliases))
 
-        await ctx.send("\n".join(results))
+        tags_pages = list(pagify(tags_str, page_length=embed_page_length))
+        aliases_pages = list(pagify(aliases_str, page_length=embed_page_length))
+
+        tags_embeds = [
+            discord.Embed(
+                title="Tags", colour=await ctx.embed_colour(), description=page
+            ).set_footer(text=f"Page {index} of {len(tags_pages)}")
+            for index, page in enumerate(tags_pages, start=1)
+        ]
+        aliases_embeds = [
+            discord.Embed(
+                title="Tag Aliases", colour=await ctx.embed_colour(), description=page
+            ).set_footer(text=f"Page {index} of {len(aliases_pages)}")
+            for index, page in enumerate(aliases_pages, start=1)
+        ]
+
+        for embed_list in [tags_embeds, aliases_embeds]:
+            if len(embed_list) == 1:
+                await ctx.send(embed=embed_list[0])
+            else:
+                self.bot.loop.create_task(
+                    menu(ctx=ctx, pages=embed_list, timeout=120.0)
+                )
 
     @_tag.group(name="alias")
     async def _alias(self, ctx: commands.Context):
