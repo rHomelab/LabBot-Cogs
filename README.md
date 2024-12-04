@@ -14,8 +14,6 @@ Cogs for the [Red-DiscordBot](https://github.com/Cog-Creators/Red-DiscordBot/)-b
 - [LabBot Cogs](#labbot-cogs)
   - [Table of Contents](#table-of-contents)
   - [Contributors](#contributors)
-    - [Moderation Team](#moderation-team)
-    - [Other](#other)
   - [Cog Summaries](#cog-summaries)
   - [Cog Documentation](#cog-documentation)
     - [AutoReact](#autoreact)
@@ -59,27 +57,9 @@ Cogs for the [Red-DiscordBot](https://github.com/Cog-Creators/Red-DiscordBot/)-b
 
 This is a joint project involving any of the [Homelab Discord](https://discord.gg/homelab) admins, moderators, and community members that would like to get involved.
 
-A number of people have contributed to this project: Members of the moderation team, former members of the moderation team, and members of the wider community.
+A number of people have contributed to this project; members of the moderation team, former members of the moderation team, and members of the wider community.
 
-A massive thank you to all who've helped out with this project ❤️
-
-### Moderation Team
-
-- [portalBlock](https://github.com/portalBlock)
-- [tigattack](https://github.com/tigattack)
-
-### Other
-
-- [BeryJu](https://github.com/BeryJu)
-- [DanTho](https://github.com/dannyt66)
-- [Darkflame72](https://github.com/Darkflame72)
-- [Hugh Mungus (the1337g33k)](https://github.com/the1337g33k)
-- [Issy](https://github.issy.dev)
-- [McTwist](https://github.com/McTwist)
-- [ripple](https://github.com/rippleFCL)
-- [Sneezey](https://github.com/kdavis)
-- [TheDevFreak](https://github.com/TheDevFreak)
-- [s33g](https://github.com/s33g)
+A massive thank you to [all who've helped with this project](https://github.com/rHomelab/LabBot-Cogs/graphs/contributors) ❤️
 
 ## Cog Summaries
 
@@ -235,6 +215,8 @@ This cog generates messages based on markov chains generated per-user.
 
 User messages will never be analysed unless the user explicitly opts in.
 It must also be enabled per-channel: `[p]markov channelenable`
+
+_Modified version of [CrunchBangDev](https://gitlab.com/CrunchBangDev/cbd-cogs/-/tree/master/Markov)'s cog._
 
 #### User commands
 
