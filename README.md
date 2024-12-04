@@ -57,7 +57,7 @@ Cogs for the [Red-DiscordBot](https://github.com/Cog-Creators/Red-DiscordBot/)-b
 
 This is a joint project involving any of the [Homelab Discord](https://discord.gg/homelab) admins, moderators, and community members that would like to get involved.
 
-A number of people have contributed to this project; members of the moderation team, former members of the moderation team, and members of the wider community.
+A number of people have contributed to this project, both current and former members of the moderation team and members of the wider community.
 
 A massive thank you to [all who've helped with this project](https://github.com/rHomelab/LabBot-Cogs/graphs/contributors) ❤️
 
