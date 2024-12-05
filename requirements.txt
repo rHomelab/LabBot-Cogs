@@ -2,3 +2,4 @@ pip
 wheel
 Red-DiscordBot
 prometheus-client
+chat_exporter
