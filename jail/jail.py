@@ -31,8 +31,13 @@ class JailCog(commands.Cog):
 
     @checks.admin()
     @_jail.command("setup")
-    async def _jail_setup(self, ctx: commands.Context, cat_id: int):
+    async def _jail_setup(self, ctx: commands.Context, cat_id: str):
         """Sets the jail category channel."""
+        try:
+            cat_id = int(cat_id)
+        except ValueError:
+            await ctx.send("Please supply a category channel ID only.")
+            return
         channel = ctx.guild.get_channel(cat_id)
         if not isinstance(channel, CategoryChannel):
             await ctx.send("Sorry, that's not a category channel.")
