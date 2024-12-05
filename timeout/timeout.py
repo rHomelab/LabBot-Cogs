@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime as dt
+from typing import Literal
 
 import discord
 from redbot.core import Config, checks, commands
@@ -26,8 +27,8 @@ class Timeout(commands.Cog):
             roles=[]
         )
 
-        self.actor: str = None
-        self.target: str = None
+        self.actor: str | None = None
+        self.target: str | None = None
 
     # Helper functions
 
@@ -35,6 +36,9 @@ class Timeout(commands.Cog):
         """Remove data stored for members who are no longer in the guild
         This helps avoid permanently storing role lists for members who left whilst in timeout.
         """
+        # This should never happen due to checks in other functions, but it doesn't hurt to have it and it satisfies type checkers.
+        if ctx.guild is None:
+            raise TypeError("ctx.guild is None")
 
         member_data = await self.config.all_members(ctx.guild)
 
@@ -47,9 +51,18 @@ class Timeout(commands.Cog):
     async def report_handler(self, ctx: commands.Context, user: discord.Member, action_info: dict):
         """Build and send embed reports"""
 
+        # This should never happen due to checks in other functions, but it doesn't hurt to have it and it satisfies type checkers.
+        if ctx.guild is None:
+            raise TypeError("ctx.guild is None")
+
         # Retrieve log channel
         log_channel_config = await self.config.guild(ctx.guild).logchannel()
         log_channel = ctx.guild.get_channel(log_channel_config)
+
+        # Again, this shouldn't happen due to checks in `timeoutset_logchannel`, but it doesn't hurt to have it and it satisfies type checkers.
+        if not isinstance(log_channel, discord.TextChannel):
+            await ctx.send(f"The configured log channel ({log_channel_config}) was not found or is not a text channel.")
+            return
 
         # Build embed
         embed = discord.Embed(
@@ -87,6 +100,11 @@ class Timeout(commands.Cog):
             timeout_role: discord.Role,
             timeout_roleset: list[discord.Role]):
         """Retrieve and save user's roles, then add user to timeout"""
+
+        # This should never happen due to checks in other functions, but it doesn't hurt to have it and it satisfies type checkers.
+        if ctx.guild is None:
+            raise TypeError("ctx.guild is None")
+
         # Catch users already holding timeout role.
         # This could be caused by an error in this cog's logic or,
         # more likely, someone manually adding the user to the role.
@@ -141,9 +159,18 @@ class Timeout(commands.Cog):
     async def timeout_remove(self, ctx: commands.Context, user: discord.Member, reason: str):
         """Remove user from timeout"""
 
+        # This should never happen due to checks in other functions, but it doesn't hurt to have it and it satisfies type checkers.
+        if ctx.guild is None:
+            raise TypeError("ctx.guild is None")
+
         # Retrieve timeout channel
         timeout_channel_config = await self.config.guild(ctx.guild).timeout_channel()
         timeout_channel = ctx.guild.get_channel(timeout_channel_config)
+
+        # Again, this shouldn't happen due to checks in `timeoutset_timeout_channel`, but it doesn't hurt to have it and it satisfies type checkers.
+        if not isinstance(timeout_channel, discord.TextChannel):
+            await ctx.send(f"The configured log channel ({timeout_channel_config}) was not found or is not a text channel.")
+            return
 
         # Fetch and define user's previous roles.
         user_roles = []
@@ -210,12 +237,16 @@ class Timeout(commands.Cog):
         Example:
         - `[p]timeoutset logchannel #mod-log`
         """
+        # This should never happen due to the guild_only decorator, but it doesn't hurt to have it and it satisfies type checkers.
+        if ctx.guild is None:
+            raise TypeError("ctx.guild is None")
+
         await self.config.guild(ctx.guild).logchannel.set(channel.id)
         await ctx.tick()
 
     @timeoutset.command(name="report", usage="<enable|disable>")
     @checks.mod()
-    async def timeoutset_report(self, ctx: commands.Context, choice: str):
+    async def timeoutset_report(self, ctx: commands.Context, choice: Literal['enable', 'disable']):
         """Whether to send a report when a user's timeout status is updated.
 
         These reports will be sent to the configured log channel as an embed.
@@ -228,10 +259,14 @@ class Timeout(commands.Cog):
         - `[p]timeoutset report disable`
         """
 
+        # This should never happen due to the guild_only decorator, but it doesn't hurt to have it and it satisfies type checkers.
+        if ctx.guild is None:
+            raise TypeError("ctx.guild is None")
+
         # Ensure log channel has been defined
         log_channel = await self.config.guild(ctx.guild).logchannel()
 
-        if str.lower(choice) == "enable":
+        if choice.lower() == "enable":
             if log_channel:
                 await self.config.guild(ctx.guild).report.set(True)
                 await ctx.tick()
@@ -241,7 +276,7 @@ class Timeout(commands.Cog):
                     f"Set the log channel with `{ctx.clean_prefix}timeoutset logchannel`."
                 )
 
-        elif str.lower(choice) == "disable":
+        elif choice.lower() == "disable":
             await self.config.guild(ctx.guild).report.set(False)
             await ctx.tick()
 
@@ -256,6 +291,10 @@ class Timeout(commands.Cog):
         Example:
         - `[p]timeoutset role MyRole`
         """
+        # This should never happen due to the guild_only decorator, but it doesn't hurt to have it and it satisfies type checkers.
+        if ctx.guild is None:
+            raise TypeError("ctx.guild is None")
+
         await self.config.guild(ctx.guild).timeoutrole.set(role.id)
         await ctx.tick()
 
@@ -269,6 +308,10 @@ class Timeout(commands.Cog):
         Example:
         - `[p]timeoutset timeoutchannel #timeout`
         """
+        # This should never happen due to the guild_only decorator, but it doesn't hurt to have it and it satisfies type checkers.
+        if ctx.guild is None:
+            raise TypeError("ctx.guild is None")
+
         await self.config.guild(ctx.guild).timeout_channel.set(channel.id)
         await ctx.tick()
 
@@ -276,6 +319,9 @@ class Timeout(commands.Cog):
     @checks.mod()
     async def timeoutset_list(self, ctx: commands.Context):
         """Show current settings."""
+        # This should never happen due to the guild_only decorator, but it doesn't hurt to have it and it satisfies type checkers.
+        if ctx.guild is None:
+            raise TypeError("ctx.guild is None")
 
         log_channel = await self.config.guild(ctx.guild).logchannel()
         report = await self.config.guild(ctx.guild).report()
@@ -336,7 +382,7 @@ class Timeout(commands.Cog):
 
     @commands.command()
     @checks.mod()
-    async def timeout(self, ctx: commands.Context, user: discord.Member, *, reason: str = None):
+    async def timeout(self, ctx: commands.Context, user: discord.Member, *, reason: str | None = None):
         """Timeouts a user or returns them from timeout if they are currently in timeout.
 
         See and edit current configuration with `[p]timeoutset`.
@@ -350,6 +396,11 @@ class Timeout(commands.Cog):
 
         The cog determines that user is currently in timeout if the user's only role is the configured timeout role.
         """
+        # This isn't strictly necessary given the `@commands.guild_only()` decorator,
+        # but type checks still fail without this condition due to some wonky typing in discord.py
+        if ctx.guild is None:
+            raise TypeError("ctx.guild is None")
+
         author = ctx.author
         everyone_role = ctx.guild.default_role
 
@@ -360,6 +411,10 @@ class Timeout(commands.Cog):
         # Find the timeout role in server
         timeout_role_data = await self.config.guild(ctx.guild).timeoutrole()
         timeout_role = ctx.guild.get_role(timeout_role_data)
+
+        if timeout_role is None:
+            await ctx.send(f"Timeout role not found. Please set the timeout role using `{ctx.clean_prefix}timeoutset role`.")
+            return
 
         # Notify and stop if command author tries to timeout themselves,
         # another mod, or if the bot can't do that due to Discord role heirarchy.
