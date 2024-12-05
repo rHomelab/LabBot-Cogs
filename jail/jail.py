@@ -5,7 +5,7 @@ from discord import CategoryChannel
 from redbot.core import commands, checks
 from redbot.core.bot import Red
 
-from jail.utils import JailConfigHelper, Message, Edit
+from jail.utils import JailConfigHelper
 
 
 class JailCog(commands.Cog):
