@@ -125,6 +125,12 @@ class JailSet(JailSetABC):
             if jail.active:
                 jail.active = False
 
+    def log_message(self, message: MessageABC):
+        for jail in self.jails:
+            if jail.active:
+                jail.messages.append(message)
+                return
+
 
 class JailConfigHelper(JailConfigHelperABC):
 

@@ -158,6 +158,11 @@ class JailSetABC(ABC):
         """Saves a jail to the set."""
         pass
 
+    @abstractmethod
+    def log_message(self, message: MessageABC):
+        """Saves a message to the current jail."""
+        pass
+
 
 class JailConfigHelperABC(ABC):
     config: Config
