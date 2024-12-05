@@ -246,6 +246,8 @@ class JailConfigHelper(JailConfigHelperABC):
             async with self.config.guild(ctx.guild).jails() as jails:
                 await ctx.send(f"Updating jail for {jail.user}\n{jailset.to_list()}")
                 jails[str(jail.user)] = jailset.to_list()
+        else:
+            await ctx.send("No jail found.")
 
     async def edit_message(self, ctx: commands.Context, jailset: JailSetABC, edited: discord.Message, time: int):
         jail = jailset.get_active_jail()
