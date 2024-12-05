@@ -5,79 +5,6 @@ import discord
 from redbot.core import Config, commands
 
 
-class EditABC(ABC):
-    message_id: int
-    datetime: int
-    content: str
-
-    def __init__(self, **kwargs):
-        if kwargs.keys() != self.__annotations__.keys():
-            raise Exception("Invalid kwargs provided")
-
-        for key, val in kwargs.items():
-            expected_type: type = self.__annotations__[key]
-            if not isinstance(val, expected_type):
-                raise TypeError(f"Expected type {expected_type} for kwarg {key!r}, got type {type(val)} instead")
-
-            setattr(self, key, val)
-
-    @classmethod
-    @abstractmethod
-    def new(cls, ctx: commands.Context, message_id: int, datetime: int, content: str):
-        """Initialise the class in a command context"""
-        pass
-
-    @classmethod
-    @abstractmethod
-    def from_storage(cls, ctx: commands.Context, data: dict):
-        """Initialise the class from a config record"""
-        pass
-
-    @abstractmethod
-    def to_dict(self) -> dict:
-        """Returns a dictionary representation of the class, suitable for storing in config"""
-        pass
-
-
-class MessageABC(ABC):
-    message_id: int
-    datetime: int
-    author: int
-    deleted: bool
-    deleted_datetime: int
-    content: str
-    edits: List[EditABC]
-
-    def __init__(self, **kwargs):
-        if kwargs.keys() != self.__annotations__.keys():
-            raise Exception("Invalid kwargs provided")
-
-        for key, val in kwargs.items():
-            # expected_type: type = self.__annotations__[key]
-            # if not isinstance(val, expected_type):
-                # raise TypeError(f"Expected type {expected_type} for kwarg {key!r}, got type {type(val)} instead")
-
-            setattr(self, key, val)
-
-    @classmethod
-    @abstractmethod
-    def new(cls, ctx: commands.Context, message_id: int, datetime: int, author: int, deleted: bool,
-            deleted_datetime: int, content: str, edits: List[EditABC]):
-        """Initialise the class in a command context"""
-        pass
-
-    @classmethod
-    @abstractmethod
-    def from_storage(cls, ctx: commands.Context, data: dict):
-        """Initialise the class from a config record"""
-        pass
-
-    @abstractmethod
-    def to_dict(self) -> dict:
-        """Returns a dictionary representation of the class, suitable for storing in config"""
-        pass
-
-
 class JailABC(ABC):
     datetime: int
     channel_id: int
@@ -86,7 +13,6 @@ class JailABC(ABC):
     jailer: int
     user: int
     user_roles: List[int]
-    messages: List[MessageABC]
 
     def __init__(self, **kwargs):
         if kwargs.keys() != self.__annotations__.keys():
@@ -102,7 +28,7 @@ class JailABC(ABC):
     @classmethod
     @abstractmethod
     def new(cls, ctx: commands.Context, datetime: int, channel_id: int, role_id: int, active: bool, jailer: int,
-            user: int, user_roles: List[int], messages: List[MessageABC]):
+            user: int, user_roles: List[int]):
         """Initialise the class in a command context"""
         pass
 
@@ -157,16 +83,6 @@ class JailSetABC(ABC):
     @abstractmethod
     def add_jail(self, jail: JailABC):
         """Saves a jail to the set."""
-        pass
-
-    @abstractmethod
-    def log_message(self, message: MessageABC):
-        """Saves a message to the current jail."""
-        pass
-
-    @abstractmethod
-    def log_edit(self, edit: EditABC):
-        """Saves a message edit to the current jail."""
         pass
 
 

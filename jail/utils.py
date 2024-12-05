@@ -5,69 +5,14 @@ import discord
 from discord import CategoryChannel, NotFound
 from redbot.core import commands, Config
 
-from jail.abstracts import EditABC, MessageABC, JailABC, JailConfigHelperABC, JailSetABC
-
-
-class Edit(EditABC):
-
-    @classmethod
-    def new(cls, ctx: commands.Context, message_id: int, datetime: int, content: str):
-        return cls(
-            message_id=message_id,
-            datetime=datetime,
-            content=content
-        )
-
-    @classmethod
-    def from_storage(cls, ctx: commands.Context, data: dict):
-        return Edit.new(ctx, data['message_id'], data['datetime'], data['content'])
-
-    def to_dict(self) -> dict:
-        return {
-            "message_id": self.message_id,
-            "datetime": self.datetime,
-            "content": self.content
-        }
-
-
-class Message(MessageABC):
-
-    @classmethod
-    def new(cls, ctx: commands.Context, message_id: int, datetime: int, author: int, deleted: bool, deleted_datetime:
-            int, content: str, edits: List[EditABC]):
-        return cls(
-            message_id=message_id,
-            datetime=datetime,
-            author=author,
-            deleted=deleted,
-            deleted_datetime=deleted_datetime,
-            content=content,
-            edits=edits
-        )
-
-    @classmethod
-    def from_storage(cls, ctx: commands.Context, data: dict):
-        return Message.new(ctx, message_id=int(data['message_id']), datetime=data['datetime'], author=data['author'],
-                           deleted=data['deleted'], deleted_datetime=data['deleted_datetime'], content=data['content'],
-                           edits=[Edit.from_storage(ctx, e) for e in data['edits']])
-
-    def to_dict(self) -> dict:
-        return {
-            "message_id": self.message_id,
-            "datetime": self.datetime,
-            "author": self.author,
-            "deleted": self.deleted,
-            "deleted_datetime": self.deleted_datetime,
-            "content": self.content,
-            "edits": [e.to_dict() for e in self.edits]
-        }
+from jail.abstracts import JailABC, JailConfigHelperABC, JailSetABC
 
 
 class Jail(JailABC):
 
     @classmethod
     def new(cls, ctx: commands.Context, datetime: int, channel_id: int, role_id: int, active: bool, jailer: int,
-            user: int, user_roles: List[int], messages: List[Message]):
+            user: int, user_roles: List[int]):
         return cls(
             datetime=datetime,
             channel_id=channel_id,
@@ -75,15 +20,13 @@ class Jail(JailABC):
             active=active,
             jailer=jailer,
             user=user,
-            user_roles=user_roles,
-            messages=[]
+            user_roles=user_roles
         )
 
     @classmethod
     def from_storage(cls, ctx: commands.Context, data: dict):
         return Jail.new(ctx, datetime=data['datetime'], channel_id=data['channel_id'], role_id=data['role_id'],
-                        active=data['active'], jailer=data['jailer'], user=data['user'], user_roles=data['user_roles'],
-                        messages=[Message.from_storage(ctx, m) for m in data['messages']])
+                        active=data['active'], jailer=data['jailer'], user=data['user'], user_roles=data['user_roles'])
 
     def to_dict(self) -> dict:
         return {
@@ -93,8 +36,7 @@ class Jail(JailABC):
             "active": self.active,
             "jailer": self.jailer,
             "user": self.user,
-            "user_roles": self.user_roles,
-            "messages": [m.to_dict() for m in self.messages]
+            "user_roles": self.user_roles
         }
 
 
@@ -126,19 +68,6 @@ class JailSet(JailSetABC):
         for jail in reversed(self.jails):
             if jail.active:
                 jail.active = False
-
-    def log_message(self, message: MessageABC):
-        for jail in self.jails:
-            if jail.active:
-                jail.messages.append(message)
-                return
-
-    def log_edit(self, edit: EditABC):
-        for jail in self.jails:
-            if jail.active:
-                for message in jail.messages:
-                    if message.message_id == edit.message_id:
-                        message.edits.append(edit)
 
 
 class JailConfigHelper(JailConfigHelperABC):
@@ -252,21 +181,3 @@ class JailConfigHelper(JailConfigHelperABC):
             if str(user.id) in jails:
                 return JailSet.from_storage(ctx, jails[str(user.id)])
         return None
-
-    async def save_message_to_jail(self, ctx: commands.Context, jailset: JailSetABC, message: discord.Message,
-                                   time: int):
-        jail = jailset.get_active_jail()
-        if jail is not None:
-            jail.messages.append(Message.new(ctx, message.id, time, message.author.id, False, 0, message.content, []))
-            async with self.config.guild(ctx.guild).jails() as jails:
-                jails[str(jail.user)] = jailset.to_list()
-
-    async def edit_message(self, ctx: commands.Context, jailset: JailSetABC, edited: discord.Message, time: int):
-        jail = jailset.get_active_jail()
-        if jail is not None:
-            # Theory: If no messages here, skips to writing and overwrites. JailSet/Jail passed doesn't have the messages??
-            for message in jail.messages:
-                if message.message_id == edited.id:
-                    message.edits.append(Edit.new(ctx, time, edited.content))
-            async with self.config.guild(ctx.guild).jails() as jails:
-                jails[str(jail.user)] = jailset.to_list()
