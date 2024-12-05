@@ -3,8 +3,9 @@ from datetime import datetime as dt
 from io import BytesIO
 from os import path
 from os import remove as delete_file
+from typing import Literal
 
-import chat_exporter  # ==1.7.3
+import chat_exporter
 import discord
 from redbot.core import Config, checks, commands, data_manager
 from redbot.core.utils.menus import start_adding_reactions
@@ -243,6 +244,10 @@ class Timeout(commands.Cog):
         timeout_channel: discord.TextChannel
     ):
         """Archive specified channel to HTML file"""
+        # This should never happen due to checks in other functions, but it doesn't hurt to have it and it satisfies type checkers.
+        if ctx.guild is None:
+            raise TypeError("ctx.guild is None")
+
         # Snippet below will archive to text file instead of HTML.
         # Could be useful at some point?
         # with open(transcript_path, "w", encoding="utf-8") as file:
@@ -264,7 +269,7 @@ class Timeout(commands.Cog):
             # Archive the channel
             transcript = await chat_exporter.export(
                 channel=timeout_channel,
-                set_timezone="UTC"
+                tz_info="UTC"
             )
 
             if transcript is None:
@@ -395,7 +400,7 @@ class Timeout(commands.Cog):
 
     @timeoutset.command(name="archive", usage="<enable|disable>")
     @checks.mod()
-    async def timeoutset_archive(self, ctx: commands.Context, choice: str):
+    async def timeoutset_archive(self, ctx: commands.Context, choice: Literal['enable', 'disable']):
         """Archive the timeout channel after a user is removed from timeout.
 
         Set the timeout channel with `[p]timeoutset timeoutchannel` before enabling archiving.
@@ -404,6 +409,9 @@ class Timeout(commands.Cog):
         - `[p]timeoutset archive enable`
         - `[p]timeoutset archive disable`
         """
+        # This should never happen due to the guild_only decorator, but it doesn't hurt to have it and it satisfies type checkers.
+        if ctx.guild is None:
+            raise TypeError("ctx.guild is None")
 
         # Ensure timeout channel has been defined
         timeout_channel = await self.config.guild(ctx.guild).timeout_channel()
@@ -590,7 +598,7 @@ class Timeout(commands.Cog):
 
     @timeout_archive.command(name="list", usage="[user]")
     @checks.mod()
-    async def timeout_archive_list(self, ctx: commands.Context, user: discord.Member = None):
+    async def timeout_archive_list(self, ctx: commands.Context, user: discord.Member | None = None):
         """List all archives
 
         Once you've found the archive you want, you can retrieve it with:
@@ -602,6 +610,9 @@ class Timeout(commands.Cog):
         List archives for a specific user:
         - `[p]timeoutarchive list @user`
         """
+        # This should never happen due to the guild_only decorator, but it doesn't hurt to have it and it satisfies type checkers.
+        if ctx.guild is None:
+            raise TypeError("ctx.guild is None")
 
         # how to handle large embeds? pagify? :harold:
         # archive ID can just be the array index, but +1 to make it more user friendly
@@ -610,7 +621,6 @@ class Timeout(commands.Cog):
         if not await self.config.guild(ctx.guild).archives():
             await ctx.send("I couldn't find any stored archives.")
 
-        # TODO
         else:
             async with await self.config.guild(ctx.guild).archives() as archives:
                 if user:
@@ -686,6 +696,9 @@ class Timeout(commands.Cog):
         - `[p]timeoutarchive get @user 1`
         This will get the archive with ID `1` for the specified user.
         """
+        # This should never happen due to the guild_only decorator, but it doesn't hurt to have it and it satisfies type checkers.
+        if ctx.guild is None:
+            raise TypeError("ctx.guild is None")
 
         async with ctx.typing():
             archive_id = archive_id + 1
@@ -701,7 +714,7 @@ class Timeout(commands.Cog):
                 description=(
                     f"[Click here to view the archive.]({ARCHIVE_RENDER_URL}{message.attachments[0].url})"
                 ),
-                colour=ctx.embed_colour(),
+                colour=await ctx.embed_colour(),
             )
 
             await ctx.send(embed=embed)
@@ -717,6 +730,12 @@ class Timeout(commands.Cog):
         - `[p]timeoutarchive remove @user 1`
         This will remove the archive with ID `1` for the specified user.
         """
+        # This should never happen due to the guild_only decorator, but it doesn't hurt to have it and it satisfies type checkers.
+        if ctx.guild is None:
+            raise TypeError("ctx.guild is None")
+
+        path_no_exist = False
+        archive_path = ""
 
         archive_id = archive_id + 1
 
