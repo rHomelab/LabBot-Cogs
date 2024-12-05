@@ -11,18 +11,20 @@ from jail.abstracts import EditABC, MessageABC, JailABC, JailConfigHelperABC, Ja
 class Edit(EditABC):
 
     @classmethod
-    def new(cls, ctx: commands.Context, datetime: int, content: str):
+    def new(cls, ctx: commands.Context, message_id: int, datetime: int, content: str):
         return cls(
+            message_id=message_id,
             datetime=datetime,
             content=content
         )
 
     @classmethod
     def from_storage(cls, ctx: commands.Context, data: dict):
-        return Edit.new(ctx, data['datetime'], data['content'])
+        return Edit.new(ctx, data['message_id'], data['datetime'], data['content'])
 
     def to_dict(self) -> dict:
         return {
+            "message_id": self.message_id,
             "datetime": self.datetime,
             "content": self.content
         }
@@ -130,6 +132,13 @@ class JailSet(JailSetABC):
             if jail.active:
                 jail.messages.append(message)
                 return
+
+    def log_edit(self, edit: EditABC):
+        for jail in self.jails:
+            if jail.active:
+                for message in jail.messages:
+                    if message.message_id == edit.message_id:
+                        message.edits.append(edit)
 
 
 class JailConfigHelper(JailConfigHelperABC):

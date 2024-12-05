@@ -6,6 +6,7 @@ from redbot.core import Config, commands
 
 
 class EditABC(ABC):
+    message_id: int
     datetime: int
     content: str
 
@@ -22,7 +23,7 @@ class EditABC(ABC):
 
     @classmethod
     @abstractmethod
-    def new(cls, ctx: commands.Context, datetime: int, content: str):
+    def new(cls, ctx: commands.Context, message_id: int, datetime: int, content: str):
         """Initialise the class in a command context"""
         pass
 
@@ -161,6 +162,11 @@ class JailSetABC(ABC):
     @abstractmethod
     def log_message(self, message: MessageABC):
         """Saves a message to the current jail."""
+        pass
+
+    @abstractmethod
+    def log_edit(self, edit: EditABC):
+        """Saves a message edit to the current jail."""
         pass
 
 
