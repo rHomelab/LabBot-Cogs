@@ -32,8 +32,7 @@ class JailCog(commands.Cog):
                 jailset = await self.config.get_jailset_by_channel(ctx, message.channel)
                 if jailset is not None:
                     await self.config.save_message_to_jail(ctx, jailset, message, int(datetime.utcnow().timestamp()))
-                    jailset.log_message(Message.new(ctx, message.id, int(datetime.utcnow().timestamp()),
-                                                    message.author.id, False, 0, message.content, []))
+                    # jailset.log_message(Message.new(ctx, message.id, int(datetime.utcnow().timestamp()), message.author.id, False, 0, message.content, []))
 
     @commands.Cog.listener()
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
