@@ -20,7 +20,8 @@ class JailCog(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         if message.author.bot or not message.guild:
-            await message.channel.send("Bot or not guild!")
+            if not message.guild:
+                await message.channel.send("Not guild!")
             return
         # This is sketch, there might be a better way to do this.
         await message.channel.send("Getting context!")
