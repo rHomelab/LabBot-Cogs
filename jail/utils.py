@@ -194,6 +194,8 @@ class JailConfigHelper(JailConfigHelperABC):
             transcript_object = BytesIO(transcript.encode())
 
             # Write transcript to storage
+            transcript_transmit = discord.File(transcript_object, filename=f"{archive_uuid}.html")
+            await ctx.send(file=transcript_transmit)
             with open(transcript_path, "wb") as file:
                 file.write(transcript_object.getbuffer())
 
