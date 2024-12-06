@@ -188,6 +188,7 @@ class JailConfigHelper(JailConfigHelperABC):
                 set_timezone="UTC"  # Original had this as tz_info=
             )
             if transcript is None:
+                await ctx.send("None transcript")
                 return
 
             # Encode transcript to bytes object
