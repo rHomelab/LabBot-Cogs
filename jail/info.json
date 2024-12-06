@@ -6,9 +6,10 @@
     "description": "Create individual jails for users when multiple users need to be timed out.",
     "disabled": false,
     "name": "jail",
+    "requirements": ["chat_exporter==1.7.3"],
     "tags": [
         "utility"
     ],
-    "install_msg": "Usage: `[p]jail`. Please run `[p]jail setup <channel category ID> <template channel>`!!",
+    "install_msg": "Usage: `[p]jail`. Please run `[p]jail setup <channel category ID>`!! Refer to internal docs for bot permission requirements.",
     "min_bot_version": "3.5.1"
 }

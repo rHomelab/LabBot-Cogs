@@ -1,9 +1,14 @@
+import datetime
 import json
+import uuid
+from io import BytesIO
+from os import path
 from typing import List
 
 import discord
+from chat_exporter import chat_exporter
 from discord import CategoryChannel, NotFound
-from redbot.core import commands, Config
+from redbot.core import commands, Config, data_manager
 
 from jail.abstracts import JailABC, JailConfigHelperABC, JailSetABC
 
@@ -64,9 +69,10 @@ class JailSet(JailSetABC):
     def add_jail(self, jail: JailABC):
         self.jails.append(jail)
 
-    def deactivate_jail(self):
+    def deactivate_jail(self, archive_uuid: uuid.UUID):
         for jail in reversed(self.jails):
             if jail.active:
+                # TODO: Save archive guid (and load it from the config)
                 jail.active = False
 
 
@@ -152,14 +158,44 @@ class JailConfigHelper(JailConfigHelperABC):
             if role is not None:
                 await role.delete(reason="Jail: Jail deleted.")
             channel = ctx.guild.get_channel(jail.channel_id)
-            await channel.delete(reason="Jail: Jail deleted.")
-            async with self.config.guild(ctx.guild).jails() as jails:
-                if str(jail.user) in jails:
-                    jailset = JailSet.from_storage(ctx, jails[str(jail.user)])
-                    jailset.deactivate_jail()
-                    jails[str(jail.user)] = jailset.to_list()
+            if channel is not None:
+                archive_uuid = uuid.uuid4()
+                await self.archive_channel(ctx, channel, archive_uuid)
+                await channel.delete(reason="Jail: Jail deleted.")
+                async with self.config.guild(ctx.guild).jails() as jails:
+                    if str(jail.user) in jails:
+                        jailset = JailSet.from_storage(ctx, jails[str(jail.user)])
+                        jailset.deactivate_jail(archive_uuid)
+                        jails[str(jail.user)] = jailset.to_list()
         except NotFound:
             pass
+
+    async def archive_channel(self, ctx: commands.Context, channel: discord.TextChannel,
+                              archive_uuid: uuid.UUID):
+        """Archive supplied channel to an HTML file"""
+        # Copied this from tig because the work was already done :)
+        if ctx.guild is None:
+            raise TypeError("ctx.guild is None")
+        time = datetime.datetime.utcnow()
+        time_formatted = time.strftime("%Y-%m-%d_%H.%M.%S")
+        data_path = data_manager.cog_data_path(self)
+        transcript_file_name = f"transcript_{archive_uuid}_{time_formatted}.html"
+        transcript_path = path.join(data_path, transcript_file_name)
+
+        async with ctx.typing():
+            transcript = await chat_exporter.export(
+                channel=channel,
+                set_timezone="UTC"  # Original had this as tz_info=
+            )
+            if transcript is None:
+                return
+
+            # Encode transcript to bytes object
+            transcript_object = BytesIO(transcript.encode())
+
+            # Write transcript to storage
+            with open(transcript_path, "wb") as file:
+                file.write(transcript_object.getbuffer())
 
     async def get_jail_by_user(self, ctx: commands.Context, user: discord.User) -> JailABC:
         async with self.config.guild(ctx.guild).jails() as jails:
