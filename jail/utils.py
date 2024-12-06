@@ -10,7 +10,6 @@ from chat_exporter import chat_exporter
 from discord import CategoryChannel, NotFound
 from redbot.core import commands, Config, data_manager
 
-from jail import JailCog
 from jail.abstracts import JailABC, JailConfigHelperABC, JailSetABC
 
 
