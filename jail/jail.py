@@ -15,7 +15,7 @@ class JailCog(commands.Cog):
         super().__init__(*args, **kwargs)
         self.bot = bot
 
-        self.config = JailConfigHelper(self)
+        self.config = JailConfigHelper()
 
     @checks.mod()
     @commands.guild_only()
