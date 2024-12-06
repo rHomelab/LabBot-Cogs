@@ -6,7 +6,7 @@
     "description": "Create individual jails for users when multiple users need to be timed out.",
     "disabled": false,
     "name": "jail",
-    "requirements": ["chat_exporter==1.7.3"],
+    "requirements": ["chat_exporter"],
     "tags": [
         "utility"
     ],

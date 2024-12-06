@@ -185,14 +185,14 @@ class JailConfigHelper(JailConfigHelperABC):
         async with ctx.typing():
             transcript = await chat_exporter.export(
                 channel=channel,
-                set_timezone="UTC"  # Original had this as tz_info=
+                tz_info="UTC"  # Original had this as tz_info=
             )
             if transcript is None:
                 await ctx.send("None transcript")
                 return
 
             # Encode transcript to bytes object
-            transcript_object = BytesIO(transcript.encode())
+            transcript_object = BytesIO(initial_bytes=transcript.encode())
 
             # Write transcript to storage
             transcript_transmit = discord.File(transcript_object, filename=f"{archive_uuid}.html")
