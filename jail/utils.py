@@ -10,6 +10,7 @@ from chat_exporter import chat_exporter
 from discord import CategoryChannel, NotFound
 from redbot.core import commands, Config, data_manager
 
+from jail import JailCog
 from jail.abstracts import JailABC, JailConfigHelperABC, JailSetABC
 
 
@@ -78,9 +79,10 @@ class JailSet(JailSetABC):
 
 class JailConfigHelper(JailConfigHelperABC):
 
-    def __init__(self):
+    def __init__(self, cog: JailCog):
         self.config = Config.get_conf(self, identifier=1289862744207523842002, cog_name="JailCog")
         self.config.register_guild(jails={})
+        self.cog = cog
 
     async def set_category(self, ctx: commands.Context, category: CategoryChannel):
         await self.config.guild(ctx.guild).category.set(category.id)
@@ -178,10 +180,10 @@ class JailConfigHelper(JailConfigHelperABC):
             raise TypeError("ctx.guild is None")
         time = datetime.datetime.utcnow()
         time_formatted = time.strftime("%Y-%m-%d_%H.%M.%S")
-        data_path = data_manager.cog_data_path(self)
+        data_path = data_manager.cog_data_path(self.cog)
         transcript_file_name = f"transcript_{archive_uuid}_{time_formatted}.html"
         transcript_path = path.join(data_path, transcript_file_name)
-        await ctx.send(transcript_path)
+
         async with ctx.typing():
             transcript = await chat_exporter.export(
                 channel=channel,
