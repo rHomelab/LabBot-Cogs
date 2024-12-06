@@ -197,6 +197,8 @@ class JailConfigHelper(JailConfigHelperABC):
             with open(transcript_path, "wb") as file:
                 file.write(transcript_object.getbuffer())
 
+            await ctx.send(transcript_path)
+
     async def get_jail_by_user(self, ctx: commands.Context, user: discord.User) -> JailABC:
         async with self.config.guild(ctx.guild).jails() as jails:
             if str(user.id) in jails:
