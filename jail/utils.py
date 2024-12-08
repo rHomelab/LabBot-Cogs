@@ -44,7 +44,7 @@ class Jail(JailABC):
             "jailer": self.jailer,
             "user": self.user,
             "user_roles": self.user_roles,
-            "archive_id": self.archive_id
+            "archive_id": str(self.archive_id)
         }
 
     def __str__(self) -> str:
