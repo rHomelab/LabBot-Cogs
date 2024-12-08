@@ -121,7 +121,7 @@ class JailConfigHelper(JailConfigHelperABC):
         await channel.set_permissions(role, overwrite=perms)
         async with self.config.guild(ctx.guild).jails() as jails:
             jail = Jail.new(ctx, datetime, channel.id, role.id, True, ctx.author.id, member.id,
-                            [r.id for r in member.roles])
+                            [r.id for r in member.roles], None)
             if str(member.id) in jails.keys():
                 jailset = JailSet.from_storage(ctx, jails[str(member.id)])
             else:
