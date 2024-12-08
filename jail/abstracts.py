@@ -1,3 +1,4 @@
+import uuid
 from abc import ABC, abstractmethod
 from typing import List
 
@@ -13,6 +14,7 @@ class JailABC(ABC):
     jailer: int
     user: int
     user_roles: List[int]
+    archive_id: uuid.UUID
 
     def __init__(self, **kwargs):
         if kwargs.keys() != self.__annotations__.keys():
@@ -28,7 +30,7 @@ class JailABC(ABC):
     @classmethod
     @abstractmethod
     def new(cls, ctx: commands.Context, datetime: int, channel_id: int, role_id: int, active: bool, jailer: int,
-            user: int, user_roles: List[int]):
+            user: int, user_roles: List[int], uuid: uuid.UUID):
         """Initialise the class in a command context"""
         pass
 

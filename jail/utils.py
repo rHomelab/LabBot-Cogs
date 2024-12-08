@@ -17,7 +17,7 @@ class Jail(JailABC):
 
     @classmethod
     def new(cls, ctx: commands.Context, datetime: int, channel_id: int, role_id: int, active: bool, jailer: int,
-            user: int, user_roles: List[int]):
+            user: int, user_roles: List[int], archive_id: uuid.UUID):
         return cls(
             datetime=datetime,
             channel_id=channel_id,
@@ -25,13 +25,15 @@ class Jail(JailABC):
             active=active,
             jailer=jailer,
             user=user,
-            user_roles=user_roles
+            user_roles=user_roles,
+            archive_id=archive_id
         )
 
     @classmethod
     def from_storage(cls, ctx: commands.Context, data: dict):
         return Jail.new(ctx, datetime=data['datetime'], channel_id=data['channel_id'], role_id=data['role_id'],
-                        active=data['active'], jailer=data['jailer'], user=data['user'], user_roles=data['user_roles'])
+                        active=data['active'], jailer=data['jailer'], user=data['user'], user_roles=data['user_roles'],
+                        archive_id=data['archive_id'])
 
     def to_dict(self) -> dict:
         return {
@@ -41,8 +43,12 @@ class Jail(JailABC):
             "active": self.active,
             "jailer": self.jailer,
             "user": self.user,
-            "user_roles": self.user_roles
+            "user_roles": self.user_roles,
+            "archive_id": self.archive_id
         }
+
+    def __str__(self) -> str:
+        return f"<@{self.user}> <t:{self.datetime}>: {self.archive_id}"
 
 
 class JailSet(JailSetABC):
@@ -72,7 +78,6 @@ class JailSet(JailSetABC):
     def deactivate_jail(self, archive_uuid: uuid.UUID):
         for jail in reversed(self.jails):
             if jail.active:
-                # TODO: Save archive guid (and load it from the config)
                 jail.active = False
 
 
@@ -162,6 +167,7 @@ class JailConfigHelper(JailConfigHelperABC):
                 archive_uuid = uuid.uuid4()
                 await self.archive_channel(ctx, channel, archive_uuid)
                 await channel.delete(reason="Jail: Jail deleted.")
+                jail.archive_id = archive_uuid
                 async with self.config.guild(ctx.guild).jails() as jails:
                     if str(jail.user) in jails:
                         jailset = JailSet.from_storage(ctx, jails[str(jail.user)])
