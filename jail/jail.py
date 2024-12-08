@@ -59,6 +59,7 @@ class JailCog(commands.Cog):
         else:
             await ctx.send("Error getting member! Cannot free them. I'll cleanup the jail and role though.")
         await self.config.cleanup_jail(ctx, jail)
+        await ctx.send("User has been freed!")
 
     @_jail.group("archives", pass_context=True, invoke_without_command=True)
     async def _jail_archives(self, ctx: commands.Context, user: discord.User):
