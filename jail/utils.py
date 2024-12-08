@@ -183,9 +183,8 @@ class JailConfigHelper(JailConfigHelperABC):
         if ctx.guild is None:
             raise TypeError("ctx.guild is None")
         time = datetime.datetime.utcnow()
-        time_formatted = time.strftime("%Y-%m-%d_%H.%M.%S")
         data_path = data_manager.cog_data_path(self)
-        transcript_file_name = f"transcript_{archive_uuid}_{time_formatted}.html"
+        transcript_file_name = f"{archive_uuid}.html"
         transcript_path = path.join(data_path, transcript_file_name)
 
         async with ctx.typing():
