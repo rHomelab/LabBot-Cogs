@@ -78,6 +78,7 @@ class JailSet(JailSetABC):
     def deactivate_jail(self, archive_uuid: uuid.UUID):
         for jail in reversed(self.jails):
             if jail.active:
+                jail.archive_id = archive_uuid
                 jail.active = False
 
 
@@ -167,7 +168,6 @@ class JailConfigHelper(JailConfigHelperABC):
                 archive_uuid = uuid.uuid4()
                 await self.archive_channel(ctx, channel, archive_uuid)
                 await channel.delete(reason="Jail: Jail deleted.")
-                jail.archive_id = archive_uuid
                 async with self.config.guild(ctx.guild).jails() as jails:
                     if str(jail.user) in jails:
                         jailset = JailSet.from_storage(ctx, jails[str(jail.user)])
