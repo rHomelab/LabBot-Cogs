@@ -27,6 +27,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
       - [Configure Enforcer](#configure-enforcer)
     - [Feed](#feed)
     - [Google](#google)
+    - [Jail](#jail)
     - [Latex](#latex)
     - [Letters](#letters)
     - [Markov](#markov)
@@ -89,6 +90,7 @@ A massive thank you to all who've helped out with this project ❤️
 - **[Enforcer](#enforcer):** Allows you to enforce certain characteristics on a channel.
 - **[Feed](#feed):** This allows users to feed each other.
 - **[Google](#google):** Send a google link to someone.
+- **[Jail](#google):** Jails users in an isolated channel.
 - **[LaTeX](#latex):** Render a LaTeX statement.
 - **[Letters](#letters):** Outputs large emote letters/numbers from input text.
 - **[Notes](#notes):** Manage notes and warnings against users.
@@ -195,6 +197,19 @@ This cog allows users to feed each other.
 This cog allows users to send google links to each other.
 
 `[p]google <query>`
+
+### Jail
+
+This cog allows users to be "jailed" in their own personal cell (channel). Also archives the channel to disk for future
+reference. 
+
+`[p]jail setup <#category>` - Set the jail category where jail channels will be created in. (category is the channel 
+category ID of the jail category)
+`[p]jail <@user>` - Jail the specified user.
+`[p]jail free <@user>` - Frees the specified user and cleans up the jail channel & role, archives the channel content.
+`[p]jail archives` - Lists the archived jails with user, date, and jail UUID.
+`[p]jail archives fetch <export uuid>` - Sends the specified jail channel archive as a file in the current channel (be 
+careful running this in public channels)
 
 ### Latex
 
