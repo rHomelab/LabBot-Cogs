@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import logging
 
 import aiohttp
@@ -36,7 +37,18 @@ class IsItReadOnlyFriday(commands.Cog):
             log.error(f"Error fetching data from API: {readonly['error']}")
             return await self.make_error_embed()
 
-        return await self.make_readonly_embed(readonly)
+        return await self.make_readonly_embed(readonly, "Friday")
+
+    async def get_isitreadonlydecember(self, offset: int):
+        # Check if it's December with a given (pre-checked) UTC offset
+        utc_now = datetime.datetime.now(datetime.timezone.utc)
+        offset_tz = datetime.timezone(datetime.timedelta(hours=offset))
+        local = utc_now.astimezone(offset_tz)
+        data = {
+            "offset": offset,
+            "readonly": local.month == 12
+        }
+        return await self.make_readonly_embed(data, "December")
 
     @commands.command()
     async def isitreadonlyfriday(self, ctx: commands.Context, offset: int = 0) -> None:
@@ -69,18 +81,49 @@ class IsItReadOnlyFriday(commands.Cog):
         embed = await self.get_isitreadonlyfriday(offset)
         await interaction.response.send_message(embed=embed)
 
+    @commands.command()
+    async def isitreadonlydecember(self, ctx: commands.Context, offset: int = 0) -> None:
+        """Tells you if it's read-only December!
+
+        Accepts optional UTC offset (default 0, range -12 to 12).
+        """
+
+        if offset not in range(-12, 13):
+            await ctx.send("Offset must be between -12 and 12.")
+            return
+
+        embed = await self.get_isitreadonlydecember(offset)
+        await ctx.send(embed=embed)
+
+    @app_commands.command(name="isitreadonlydecember")
+    async def app_isitreadonlydecember(
+        self,
+        interaction: discord.Interaction,
+        offset: app_commands.Range[int, -12, 12] = 0,
+    ):
+        """Tells you if it's read-only December!
+
+        Paramters
+        ----------
+        offset: int
+            UTC offset (default 0, range -12 to 12)
+        """
+
+        embed = await self.get_isitreadonlydecember(offset)
+        await interaction.response.send_message(embed=embed)
+
     @staticmethod
-    async def make_readonly_embed(data: dict) -> discord.Embed:
+    async def make_readonly_embed(data: dict, period: str) -> discord.Embed:
         """Generate embed for isitreadonlyfriday readonly"""
         if data["readonly"]:
             return discord.Embed(
-                title="Is It Read-Only Friday?",
+                title=f"Is It Read-Only {period}?",
                 description="Yes! Don't change anything!",
                 colour=discord.Colour.red(),
             )
 
         return discord.Embed(
-            title="Is It Read-Only Friday?",
+            title=f"Is It Read-Only {period}?",
             description="No! Change away!",
             colour=discord.Colour.green(),
         )
