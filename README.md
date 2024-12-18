@@ -71,6 +71,7 @@ A massive thank you to [all who've helped with this project](https://github.com/
 - **[Enforcer](#enforcer):** Allows you to enforce certain characteristics on a channel.
 - **[Feed](#feed):** This allows users to feed each other.
 - **[Google](#google):** Send a google link to someone.
+- **[IsItReadOnlyFriday](#isitreadonlyfriday):** Answers if it's read-only Friday (or December).
 - **[LaTeX](#latex):** Render a LaTeX statement.
 - **[Letters](#letters):** Outputs large emote letters/numbers from input text.
 - **[Notes](#notes):** Manage notes and warnings against users.
@@ -190,8 +191,11 @@ This cog allows users to send google links to each other.
 ### IsItReadOnlyFriday
 
 This cog answers the question "[Is It Read-Only Friday?](https://isitreadonlyfriday.com)". The user can optionally specify a UTC offset.
+Includes read-only December for the users with annual change freezes.
 
 `[p]isitreadonlyfriday [offset=0]`
+
+`[p]isitreadonlydecember [offset=0]`
 
 Also availble as a slash command.
 
