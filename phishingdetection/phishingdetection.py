@@ -13,12 +13,8 @@ def api_endpoint(endpoint: str) -> str:
     return f"https://phish.sinking.yachts/v2{endpoint}"
 
 
-def escape_url(url: str) -> str:
-    return url.replace(".", "\\.")
-
-
 def generate_predicate_from_urls(urls: Set[str]) -> Callable[[str], bool]:
-    urls_section = "|".join(escape_url(url) for url in urls)
+    urls_section = "|".join(re.escape(url) for url in urls)
     pattern = re.compile(f"(^| )(http[s]?://)?(www\\.)?({urls_section})(/|/[^ \n]+)?($| )")
 
     def predicate(content: str) -> bool:

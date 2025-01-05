@@ -1,5 +1,4 @@
 """discord red-bot report cog"""
-from distutils.util import strtobool
 
 import discord
 from redbot.core import Config, checks, commands
@@ -195,3 +194,10 @@ class ReportCog(commands.Cog):
             .add_field(name="Channel", value=ctx.channel.mention)
             .add_field(name="Timestamp", value=f"<t:{int(ctx.message.created_at.timestamp())}:F>")
         )
+
+
+def strtobool(value: str) -> bool:
+    value = value.lower()
+    if value in ("y", "yes", "on", "1", "true", "t"):
+        return True
+    return False

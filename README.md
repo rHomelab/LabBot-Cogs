@@ -7,19 +7,18 @@
   <img src="https://img.shields.io/github/actions/workflow/status/rhomelab/labbot-cogs/ci.yml?style=for-the-badge">
 <p>
 
-Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homelab](https://reddit.com/r/Homelab) Discord server bot.
+Cogs for the [Red-DiscordBot](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homelab](https://reddit.com/r/Homelab) Discord server bot.
 
 ## Table of Contents
 
 - [LabBot Cogs](#labbot-cogs)
   - [Table of Contents](#table-of-contents)
   - [Contributors](#contributors)
-    - [Moderation Team](#moderation-team)
-    - [Other](#other)
   - [Cog Summaries](#cog-summaries)
   - [Cog Documentation](#cog-documentation)
     - [AutoReact](#autoreact)
     - [AutoReply](#autoreply)
+    - [BanCount](#bancount)
     - [BetterPing](#betterping)
     - [Convert](#convert)
     - [Custom-msg](#custom-msg)
@@ -27,6 +26,7 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
       - [Configure Enforcer](#configure-enforcer)
     - [Feed](#feed)
     - [Google](#google)
+    - [IsItReadOnlyFriday](#isitreadonlyfriday)
     - [Jail](#jail)
     - [Latex](#latex)
     - [Letters](#letters)
@@ -58,27 +58,9 @@ Cogs for the [RED](https://github.com/Cog-Creators/Red-DiscordBot/)-based [Homel
 
 This is a joint project involving any of the [Homelab Discord](https://discord.gg/homelab) admins, moderators, and community members that would like to get involved.
 
-A number of people have contributed to this project: Members of the moderation team, former members of the moderation team, and members of the wider community.
+A number of people have contributed to this project, both current and former members of the moderation team and members of the wider community.
 
-A massive thank you to all who've helped out with this project ❤️
-
-### Moderation Team
-
-- [portalBlock](https://github.com/portalBlock)
-- [tigattack](https://github.com/tigattack)
-
-### Other
-
-- [BeryJu](https://github.com/BeryJu)
-- [DanTho](https://github.com/dannyt66)
-- [Darkflame72](https://github.com/Darkflame72)
-- [Hugh Mungus (the1337g33k)](https://github.com/the1337g33k)
-- [Issy](https://github.issy.dev)
-- [McTwist](https://github.com/McTwist)
-- [ripple](https://github.com/rippleFCL)
-- [Sneezey](https://github.com/kdavis)
-- [TheDevFreak](https://github.com/TheDevFreak)
-- [s33g](https://github.com/s33g)
+A massive thank you to [all who've helped with this project](https://github.com/rHomelab/LabBot-Cogs/graphs/contributors) ❤️
 
 ## Cog Summaries
 
@@ -90,6 +72,7 @@ A massive thank you to all who've helped out with this project ❤️
 - **[Enforcer](#enforcer):** Allows you to enforce certain characteristics on a channel.
 - **[Feed](#feed):** This allows users to feed each other.
 - **[Google](#google):** Send a google link to someone.
+- **[IsItReadOnlyFriday](#isitreadonlyfriday):** Answers if it's read-only Friday (or December).
 - **[Jail](#jail):** Jails users in an isolated channel.
 - **[LaTeX](#latex):** Render a LaTeX statement.
 - **[Letters](#letters):** Outputs large emote letters/numbers from input text.
@@ -121,6 +104,15 @@ This cog allows mods to add auto reactions to certain phrases.
 This cog automatically responds to messages that match specific trigger phrases, set by admins.
 
 `[p]autoreact`
+
+### BanCount
+
+This cog displays the number of users banned in the guild with a random selection from a list of messages.
+
+- `[p]bancount` - Displays the total ban count using a randomly selected message.
+- `[p]bancount list` - Lists all the messages that can be used in the guild.
+- `[p]bancount add <message>` - Add a message to the guild list. Use `$ban` to insert the ban count in the message.
+- `[p]bancount remove <message index>` - Deletes (by index, from the list command) the message from the guild list. 
 
 ### BetterPing
 
@@ -198,6 +190,17 @@ This cog allows users to send google links to each other.
 
 `[p]google <query>`
 
+### IsItReadOnlyFriday
+
+This cog answers the question "[Is It Read-Only Friday?](https://isitreadonlyfriday.com)". The user can optionally specify a UTC offset.
+Includes read-only December for the users with annual change freezes.
+
+`[p]isitreadonlyfriday [offset=0]`
+
+`[p]isitreadonlydecember [offset=0]`
+
+Also availble as a slash command.
+
 ### Jail
 
 This cog allows users to be "jailed" in their own personal cell (channel). Also archives the channel to disk for future
@@ -231,6 +234,8 @@ This cog generates messages based on markov chains generated per-user.
 
 User messages will never be analysed unless the user explicitly opts in.
 It must also be enabled per-channel: `[p]markov channelenable`
+
+_Modified version of [CrunchBangDev](https://gitlab.com/CrunchBangDev/cbd-cogs/-/tree/master/Markov)'s cog._
 
 #### User commands
 
@@ -349,16 +354,18 @@ abandoned tags. Ever use of a tag or alias is tracked. Same with ownership trans
 searching have not yet been implemented.
 
 - `[p]tag <tag>` - Triggers the specified tag.
-- `[p]tag search <query>` - Searches for a tag or alias (WIP).
+- ~~`[p]tag search <query>` - Searches for a tag or alias.~~
 - `[p]tag create <tag> <content>` - Creates the specified tag which will reply with the provided content when triggered.
-- `[p]tag stats [user]` - Provides general stats about the tag system, or if a user is provided, about that user (WIP).
-- `[p]tag info <tag>` - Provides info about the tag such as its creator, date of creation, etc. (WIP).
+- ~~`[p]tag stats [user]` - Provides general stats about the tag system, or if a user is provided, about that user.~~
+- `[p]tag info <tag>` - Provides info about the tag such as its creator, date of creation, etc.
 - `[p]tag edit <tag> <content>` - Updates the content of the specified tag.
 - `[p]tag delete <tag>` - Deletes the specified tag.
 - `[p]tag claim <tag>` - Allows the runner to claim ownership of the tag if the current owner is not in the guild.
 - `[p]tag transfer <tag> <user>` - Transfers ownership of the specified tag to the specified user.
+- `[p]tag list [user]` - Lists all tags and aliases, or just those for the specified user.
 - `[p]tag alias create <alias> <tag>` - Creates the specified alias to the specified tag.
 - `[p]tag alias delete <alias>` - Deletes the specified alias.
+- (struck commands are disabled, pending feature review.)
 
 ### prometheus_exporter
 

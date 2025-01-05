@@ -87,16 +87,15 @@ class ConfigHelper(ConfigHelperABC):
 
         return predicate
 
-    @staticmethod
-    def sort_by_date_and_warning(note: Note) -> float:
-        return note.created_at * (int(note.is_warning) + 1)
-
     def sorted_notes(self, notes: Iterable[Note]) -> List[Note]:
-        return sorted(filter(self.filter_not_deleted, notes), key=self.sort_by_date_and_warning)
+        return sorted(filter(self.filter_not_deleted, notes), key=lambda note: note.created_at)
 
-    async def add_note(self, ctx: commands.Context, user: MAYBE_MEMBER, message: str, *, is_warning: bool):
+    async def add_note(self, ctx: commands.Context, user: MAYBE_MEMBER, message: str, *, is_warning: bool) -> Note:
+        note = None
         async with getattr(self.config.guild(ctx.guild), "warnings" if is_warning else "notes")() as notes:
-            notes.append(Note.new(ctx, len(notes) + 1, user.id, message, is_warning=is_warning).to_dict())
+            note = Note.new(ctx, len(notes) + 1, user.id, message, is_warning=is_warning)
+            notes.append(note.to_dict())
+        return note
 
     async def get_all_notes(self, ctx: commands.Context) -> List[Note]:
         config_group = self.config.guild(ctx.guild)
