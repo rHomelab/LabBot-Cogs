@@ -27,6 +27,7 @@ Cogs for the [Red-DiscordBot](https://github.com/Cog-Creators/Red-DiscordBot/)-b
     - [Feed](#feed)
     - [Google](#google)
     - [IsItReadOnlyFriday](#isitreadonlyfriday)
+    - [Jail](#jail)
     - [Latex](#latex)
     - [Letters](#letters)
     - [Markov](#markov)
@@ -72,6 +73,7 @@ A massive thank you to [all who've helped with this project](https://github.com/
 - **[Feed](#feed):** This allows users to feed each other.
 - **[Google](#google):** Send a google link to someone.
 - **[IsItReadOnlyFriday](#isitreadonlyfriday):** Answers if it's read-only Friday (or December).
+- **[Jail](#jail):** Jails users in an isolated channel.
 - **[LaTeX](#latex):** Render a LaTeX statement.
 - **[Letters](#letters):** Outputs large emote letters/numbers from input text.
 - **[Notes](#notes):** Manage notes and warnings against users.
@@ -198,6 +200,19 @@ Includes read-only December for the users with annual change freezes.
 `[p]isitreadonlydecember [offset=0]`
 
 Also availble as a slash command.
+
+### Jail
+
+This cog allows users to be "jailed" in their own personal cell (channel). Also archives the channel to disk for future
+reference. 
+
+`[p]jail setup <#category>` - Set the jail category where jail channels will be created in. (category is the channel 
+category ID of the jail category)
+`[p]jail <@user>` - Jail the specified user.
+`[p]jail free <@user>` - Frees the specified user and cleans up the jail channel & role, archives the channel content.
+`[p]jail archives` - Lists the archived jails with user, date, and jail UUID.
+`[p]jail archives fetch <export uuid>` - Sends the specified jail channel archive as a file in the current channel (be 
+careful running this in public channels)
 
 ### Latex
 
