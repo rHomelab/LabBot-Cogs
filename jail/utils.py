@@ -8,7 +8,7 @@ from typing import List
 import discord
 from chat_exporter import chat_exporter
 from discord import CategoryChannel, NotFound
-from redbot.core import commands, Config, data_manager
+from redbot.core import Config, commands, data_manager
 
 from jail.abstracts import JailABC, JailConfigHelperABC, JailSetABC
 

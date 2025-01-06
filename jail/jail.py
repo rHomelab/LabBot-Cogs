@@ -6,10 +6,10 @@ from typing import Optional
 
 import discord
 from discord import CategoryChannel
-from redbot.core import commands, checks, data_manager
+from redbot.core import checks, commands, data_manager
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import pagify
-from redbot.core.utils.menus import menu, prev_page, close_menu, next_page
+from redbot.core.utils.menus import close_menu, menu, next_page, prev_page
 
 from jail.utils import JailConfigHelper
 
