@@ -41,6 +41,7 @@ Cogs for the [Red-DiscordBot](https://github.com/Cog-Creators/Red-DiscordBot/)-b
     - [Quotes](#quotes)
     - [Reactrole](#reactrole)
     - [Report](#report)
+    - [role\_welcome](#role_welcome)
     - [Roleinfo](#roleinfo)
     - [Sentry](#sentry)
     - [Tags](#tags)
@@ -83,6 +84,7 @@ A massive thank you to [all who've helped with this project](https://github.com/
 - **[Quotes](#quotes):** Allows users to quote other users' messages in a quotes channel.
 - **[Reactrole](#reactrole):** Allows roles to be applied and removed using reactions.
 - **[Report](#report):** Allows users to report issues.
+- **[role\_welcome](#role_welcome):** Sends a welcome message the first time a user is added to a role.
 - **[Roleinfo](#roleinfo):** Displays info on a role
 - **[Sentry](#sentry):** Send unhandled errors to sentry.
 - **[Tags](#tags):** Allow user-generated stored messages.
@@ -327,6 +329,21 @@ This cog will allow members to send a report into a channel where it can be revi
 - `[p]report [message]` - A report can be sent to the logchannel for any moderators to see and action upon when they are ready.
 
 - `[p]emergency [message]` - An emergency can be requested which will ping all members in the configured logchannel if they are online.
+
+### role\_welcome
+
+Sends a welcome message the first time a user is added to a role.
+
+The welcome message is templatable with the following placeholders:
+- `{user}`: User mention (`@user`)
+- `{role}`: Role name (plaintext, not mentioned)
+- `{guild}`: Guild name
+
+- `[p]rolewelcome status` - Print the current cog status.
+- `[p]rolewelcome channel <text channel>` - Set the text channel to send the welcome message to.
+- `[p]rolewelcome role <role>` - Set the role to be watched for new users.
+- `[p]rolewelcome message <message>` - Set the welcome message, optionally including any of the noted template placeholders above.
+- `[p]rolewelcome test` - Test the welcome message in the current channel.
 
 ### Roleinfo
 
