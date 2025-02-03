@@ -1,7 +1,7 @@
 {
 	"author": ["tigattack"],
 	"short": "Welcome members when they are first given a role",
-	"description": "Send a welcome message the first time a user is added to a role.",
+	"description": "Send a welcome message when a user is added to a role.",
 	"name": "role_welcome",
 	"install_msg": "Usage: `[p]rolewelcome`",
     "min_bot_version": "3.5.1"

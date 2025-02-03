@@ -84,7 +84,7 @@ A massive thank you to [all who've helped with this project](https://github.com/
 - **[Quotes](#quotes):** Allows users to quote other users' messages in a quotes channel.
 - **[Reactrole](#reactrole):** Allows roles to be applied and removed using reactions.
 - **[Report](#report):** Allows users to report issues.
-- **[role\_welcome](#role_welcome):** Sends a welcome message the first time a user is added to a role.
+- **[role\_welcome](#role_welcome):** Sends a welcome message when a user is added to a role.
 - **[Roleinfo](#roleinfo):** Displays info on a role
 - **[Sentry](#sentry):** Send unhandled errors to sentry.
 - **[Tags](#tags):** Allow user-generated stored messages.
@@ -332,9 +332,9 @@ This cog will allow members to send a report into a channel where it can be revi
 
 ### role\_welcome
 
-Sends a welcome message the first time a user is added to a role.
+Sends a welcome message when a user is added to a role.
 
-The welcome message is templatable with the following placeholders:
+The following template placeholders can be used in the welcome message:
 - `{user}`: User mention (`@user`)
 - `{role}`: Role name (plaintext, not mentioned)
 - `{guild}`: Guild name
@@ -342,6 +342,8 @@ The welcome message is templatable with the following placeholders:
 - `[p]rolewelcome status` - Print the current cog status.
 - `[p]rolewelcome channel <text channel>` - Set the text channel to send the welcome message to.
 - `[p]rolewelcome role <role>` - Set the role to be watched for new users.
+- `[p]rolewelcome always_welcome <true|false>` - Set whether to welcome users to a role always or only on first join. See more info in `[p]help rolewelcome always_welcome`.
+- `[p]rolewelcome reset_on_leave <true|false>` - Set whether to reset a user's welcomed status on leave. See more info in `[p]help rolewelcome reset_on_leave`.
 - `[p]rolewelcome message <message>` - Set the welcome message, optionally including any of the noted template placeholders above.
 - `[p]rolewelcome test` - Test the welcome message in the current channel.
 
