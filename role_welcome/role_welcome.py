@@ -193,8 +193,8 @@ class RoleWelcomeCog(commands.Cog):
     async def set_always_welcome(self, ctx: commands.Context, value: str):
         """Set whether to welcome users to a role always or only on first join.
 
-        If set to `true`, users will only be welcomed to the role the first time they join it.
-        If set to `false`, users will be welcomed to the role every time they join it.
+        * If set to `true`, users will only be welcomed to the role the first time they join it.
+        * If set to `false`, users will be welcomed to the role every time they join it.
 
         Example:
         - `[p]rolewelcome always_welcome true`
@@ -212,12 +212,10 @@ class RoleWelcomeCog(commands.Cog):
     async def set_reset_on_leave(self, ctx: commands.Context, value: str):
         """Set whether to reset a user's welcomed status on leave.
 
-        This setting affects the specific behaviour of the `always_welcome` setting when it is set to **`false`**.
+        This setting affects the specific behaviour of the `always_welcome` setting when it is set to **`false`**. With that in mind, the following information assumes that `always_welcome` is `false`:
 
-        With that in mind, the following information assumes that `always_welcome` is `false`.
-
-        If set to `true` and a user has already been welcomed once, then they leave the server, re-joins, and is given the role again, they **will** be welcomed.
-        If set to `false`: a user will not be removed from the welcomed users list on leave and will not be welcomed again if they re-join and join the trigger role.
+        * If set to `true` and a user has already been welcomed once, then they leave the server, re-joins, and is given the role again, they **will** be welcomed.
+        * If set to `false`: a user will not be removed from the welcomed users list on leave and will not be welcomed again if they re-join and join the trigger role.
 
         Example:
         - `[p]rolewelcome reset_on_leave true`
@@ -230,6 +228,10 @@ class RoleWelcomeCog(commands.Cog):
             return
         await self.config.guild(ctx.guild).reset_on_leave.set(value_bool)
         await ctx.tick()
+        if await self.config.guild(ctx.guild).always_welcome() is True:
+            await ctx.send(
+                f"⚠️ This setting's behaviour only takes effect when `always_welcome` is set to `false`.\nSee `{ctx.prefix}help role_welcome always_welcome` and `{ctx.prefix}help role_welcome reset_on_leave` for more information."
+            )
 
     # Helpers
 
