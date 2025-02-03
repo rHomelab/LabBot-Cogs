@@ -1,10 +1,12 @@
 """discord red-bot role_welcome"""
+
 import logging
 
 import discord
 from redbot.core import Config, checks, commands
 
 log = logging.getLogger("red.rhomelab.welcome")
+
 
 class RoleWelcomeCog(commands.Cog):
     """RoleWelcome Cog"""
@@ -51,7 +53,9 @@ class RoleWelcomeCog(commands.Cog):
             # Roles haven't changed
             return
 
-        if role in [role.id for role in before.roles] or role not in [role.id for role in after.roles]:
+        if role in [role.id for role in before.roles] or role not in [
+            role.id for role in after.roles
+        ]:
             # Member already had role or does not have role
             return
 
@@ -111,7 +115,9 @@ class RoleWelcomeCog(commands.Cog):
             if guild_role:
                 guild_role = guild_role.name
             else:
-                guild_role = f"Set to role with ID `{role_id}`, but could not find role!"
+                guild_role = (
+                    f"Set to role with ID `{role_id}`, but could not find role!"
+                )
 
         if channel_id:
             guild_channel = ctx.guild.get_channel(channel_id)
@@ -143,7 +149,9 @@ class RoleWelcomeCog(commands.Cog):
         await ctx.tick()
 
     @welcome.command("channel")
-    async def set_welcome_channel(self, ctx: commands.Context, channel: discord.abc.GuildChannel):
+    async def set_welcome_channel(
+        self, ctx: commands.Context, channel: discord.abc.GuildChannel
+    ):
         """Set the channel to send welcome messages to.
 
         Example:
@@ -154,7 +162,9 @@ class RoleWelcomeCog(commands.Cog):
             await ctx.send("Welcome channel must be a text channel.")
             return
         if not channel.permissions_for(ctx.guild.me).send_messages:
-            await ctx.send(f"I need the `Send messages` permission before I can send messages in {channel.mention}.")
+            await ctx.send(
+                f"I need the `Send messages` permission before I can send messages in {channel.mention}."
+            )
             return
         await self.config.guild(ctx.guild).channel.set(channel.id)
         await ctx.tick()
@@ -235,10 +245,17 @@ class RoleWelcomeCog(commands.Cog):
 
     # Helpers
 
-    async def send_welcome_message(self, guild: discord.Guild, channel: discord.TextChannel, member: discord.abc.User):
+    async def send_welcome_message(
+        self,
+        guild: discord.Guild,
+        channel: discord.TextChannel,
+        member: discord.abc.User,
+    ):
         """Send welcome message"""
         if not channel.permissions_for(guild.me).send_messages:
-            log.error(f"Missing send messages permission for {channel.name} ({channel.id})")
+            log.error(
+                f"Missing send messages permission for {channel.name} ({channel.id})"
+            )
             return
         role_name = "role_unset"
         welcome_role_id = await self.config.guild(guild).role()
@@ -249,15 +266,17 @@ class RoleWelcomeCog(commands.Cog):
                 role_name = welcome_role.name
 
         welcome_message = await self.config.guild(guild).message()
-        welcome_message = welcome_message.format(user=member.mention, role=role_name, guild=guild.name)
+        welcome_message = welcome_message.format(
+            user=member.mention, role=role_name, guild=guild.name
+        )
         await channel.send(welcome_message)
 
     async def str_to_bool(self, value: str | bool) -> bool | None:
         """Strict boolean conversion
-        
+
         Returns `True` (bool) if value is `True` (bool) or one of "true", "yes", or "y" (case-insensitive str).
         Returns `False` (bool) if value is `False` (bool) or one of "false", "no", or "n" (case-insensitive str).
-        Otherwise raises `ValueError`.        
+        Otherwise raises `ValueError`.
         """
         if isinstance(value, bool):
             return value
