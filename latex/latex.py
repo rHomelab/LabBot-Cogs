@@ -19,7 +19,7 @@ class LatexCog(commands.Cog):
         await ctx.message.delete()
 
     async def make_latex_embed(self, ctx: commands.Context, latex) -> discord.Embed:
-        url = "https://latex.codecogs.com/gif.download?" + urllib.parse.quote_plus(latex)
+        url = "https://latex.codecogs.com/png.image?" + urllib.parse.quote_plus(latex)
         latex_embed = discord.Embed(title="LaTeX Rendering", colour=await ctx.embed_colour())
         latex_embed.add_field(name="Requested by:", value=ctx.author.mention)
         latex_embed.set_image(url=url)
