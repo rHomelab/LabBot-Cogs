@@ -290,3 +290,4 @@ GitHub.sublime-settings
 *.code-workspace
 
 # End of https://www.toptal.com/developers/gitignore/api/python,jupyternotebooks,vscode,pycharm+all,sublimetext
+.red_data
