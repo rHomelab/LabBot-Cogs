@@ -157,7 +157,7 @@ class RoleWelcomeCog(commands.Cog):
         - `[p]rolewelcome role @members`
         """
         await self.config.guild(ctx.guild).role.set(role.id)
-        await ctx.tick()
+        await ctx.tick(message=f"Role set to {role.name}")
 
     @welcome.command("channel")
     async def set_welcome_channel(
@@ -178,7 +178,7 @@ class RoleWelcomeCog(commands.Cog):
             )
             return
         await self.config.guild(ctx.guild).channel.set(channel.id)
-        await ctx.tick()
+        await ctx.tick(message=f"Welcome channel set to {channel.mention}.")
 
     @welcome.command("message")
     async def set_welcome_message(
@@ -200,7 +200,7 @@ class RoleWelcomeCog(commands.Cog):
         if message == "default":
             message = self.default_welcome_message
         await self.config.guild(ctx.guild).message.set(message)
-        await ctx.tick()
+        await ctx.tick(message=f"Welcome message set to `{message}`.")
 
     @welcome.command("test")
     async def test_welcome_message(self, ctx: commands.Context):
