@@ -93,6 +93,13 @@ class RoleWelcomeCog(commands.Cog):
     @commands.guild_only()
     @checks.mod()
     async def welcome(self, ctx: commands.Context):
+        """
+        Send a welcome message when a user is added to a role.
+
+        This cog will send a configurable welcome message to a specified channel when a user receives a specified role.
+
+        The specific logic used to decide when to welcome a user can be adjusted with the `always_welcome` and `reset_on_leave` settings.
+        """
         pass
 
     # Commands
@@ -145,7 +152,7 @@ class RoleWelcomeCog(commands.Cog):
     async def set_welcome_role(self, ctx: commands.Context, role: discord.Role):
         """Set the role to be watched for new users.
 
-        Example:
+        **Example:**
         - `[p]rolewelcome role <role>`
         - `[p]rolewelcome role @members`
         """
@@ -158,7 +165,7 @@ class RoleWelcomeCog(commands.Cog):
     ):
         """Set the channel to send welcome messages to.
 
-        Example:
+        **Example:**
         - `[p]rolewelcome channel <channel>`
         - `[p]rolewelcome channel #welcome`
         """
@@ -186,7 +193,7 @@ class RoleWelcomeCog(commands.Cog):
         - `{role}`: Role name
         - `{guild}`: Guild name
 
-        Example:
+        **Example:**
         - `[p]rolewelcome message Welcome to {role} in {guild}, {user}!`
         - `[p]rolewelcome message default` to reset to default
         """
