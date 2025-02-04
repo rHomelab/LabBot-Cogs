@@ -119,6 +119,8 @@ class RoleWelcomeCog(commands.Cog):
         role_id = await self.config.guild(ctx.guild).role()
         channel_id = await self.config.guild(ctx.guild).channel()
 
+        num_welcomed_users = len(await self.config.guild(ctx.guild).welcomed_users())
+
         always_welcome = await self.config.guild(ctx.guild).always_welcome()
         reset_on_leave = await self.config.guild(ctx.guild).reset_on_leave()
 
@@ -143,6 +145,7 @@ class RoleWelcomeCog(commands.Cog):
         embed.add_field(name="Trigger Role", value=guild_role)
         embed.add_field(name="Welcome Channel", value=channel)
         embed.add_field(name="Welcome Message", value=f"`{message}`")
+        embed.add_field(name="Welcomed Users", value=num_welcomed_users)
         embed.add_field(name="Always Welcome", value=always_welcome)
         embed.add_field(name="Reset on Leave", value=reset_on_leave)
 
