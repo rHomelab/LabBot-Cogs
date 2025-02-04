@@ -1,7 +1,8 @@
 #!/usr/bin/env bash -e
 
-# This aligns with the VSCode launch.json config:
+# This aligns with the VSCode launch.json config and gitignore
 INSTANCE_NAME="RedBot_dev_homelab"
+DATA_PATH=".red_data"
 
 echo "This script assumes you have python3 and pip installed on your system. If you don't, please install them before continuing."
 
@@ -26,7 +27,7 @@ echo "Installing dependencies..."
 pip install -r requirements.txt
 
 echo "Creating RedBot instance..."
-redbot-setup --instance-name "$INSTANCE_NAME" --no-prompt --data-path .red_data
+redbot-setup --instance-name "$INSTANCE_NAME" --no-prompt --data-path $DATA_PATH
 redbot "$INSTANCE_NAME" --edit --no-prompt --token "$TOKEN" --prefix "$PREFIX"
 
 echo
