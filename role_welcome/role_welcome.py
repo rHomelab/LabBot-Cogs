@@ -80,11 +80,14 @@ class RoleWelcomeCog(commands.Cog):
     async def on_raw_member_remove(self, event: discord.RawMemberRemoveEvent):
         """Remove member from list of welcomed members"""
         guild = self.bot.get_guild(event.guild_id)
-        if await self.config.guild(guild).reset_on_leave() is False:
+        if not await self.config.guild(guild).reset_on_leave():
             return
         user_id = event.user.id
         async with self.config.guild(guild).welcomed_users() as welcomed_users:
             if user_id in welcomed_users:
+                log.debug(
+                    f"User {user_id} ({event.user.global_name}) left the guild and has been removed from welcomed users list"
+                )
                 welcomed_users.remove(user_id)
 
     # Command groups
