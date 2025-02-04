@@ -168,14 +168,18 @@ class RoleWelcomeCog(commands.Cog):
         It is advisable to proceed with this to ensure all users are welcomed to the new role, however it may not be necessary in cases such as the recreation of a role or usage of a new role for the same purpose.
         See `[p]rolewelcome always_welcome` and `[p]rolewelcome reset_on_leave` for more information.
         """
+        old_role = await self.config.guild(ctx.guild).role()
         await self.config.guild(ctx.guild).role.set(role.id)
-        await ctx.send(
-            f"✅ Role set to {role.name}."
-            + "\nYou will now be prompted to clear the list of welcomed users. It is advisable to"
-            + " proceed with this to ensure all users are welcomed to the new role, however it may not"
-            + " be necessary in cases such as the recreation of a role or usage of a new role for the same purpose."
-        )
-        await self.clear_welcomed_users(ctx)
+        await ctx.send(f"✅ Role set to {role.name}.")
+
+        welcomed_users = await self.config.guild(ctx.guild).welcomed_users()
+        if old_role is not None and len(welcomed_users) > 0 and old_role != role.id:
+            await ctx.send(
+                "\nYou will now be prompted to clear the list of welcomed users. It is advisable to"
+                + " proceed with this to ensure all users are welcomed to the new role, however it may not"
+                + " be necessary in cases such as the recreation of a role or usage of a new role for the same purpose."
+            )
+            await self.clear_welcomed_users(ctx)
 
     @welcome.command("channel")
     async def set_welcome_channel(
