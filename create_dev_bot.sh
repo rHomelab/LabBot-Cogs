@@ -26,7 +26,7 @@ if [ "$is_venv_sourced" = "True" ]; then
 fi
 
 echo "Creating and activating virtual environment..."
-python3 -m venv venv
+python3 -m venv .venv
 source venv/bin/activate
 
 echo "Installing dependencies..."
