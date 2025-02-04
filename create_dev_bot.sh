@@ -5,8 +5,14 @@ INSTANCE_NAME="RedBot_dev_homelab"
 DATA_PATH=".red_data"
 
 echo "This script assumes you have python3 and pip installed on your system. If you don't, please install them before continuing."
+echo
 
 read -p "Enter your bot token: " TOKEN
+if [ -z "$TOKEN" ]; then
+    echo "You must provide a bot token."
+    exit 1
+fi
+
 read -p "Enter your bot prefix [!]: " PREFIX
 PREFIX=${PREFIX:-"!"}
 
