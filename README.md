@@ -344,7 +344,7 @@ The following template placeholders can be used in the welcome message:
 
 #### Welcome Logic
 
-The specific logic used to decide when to welcome a user can be adjusted with the `always_welcome` (default `true`) and `reset_on_leave` (default `true`) settings.
+The specific logic used to decide when to welcome a user can be adjusted with the `always_welcome` (default: `true`) and `reset_on_leave` (default: `true`) settings.
 
 | Scenario                                            | `always_welcome` | `reset_on_leave` | Welcome message sent |
 |-----------------------------------------------------|------------------|------------------|----------------------|
@@ -360,8 +360,8 @@ The specific logic used to decide when to welcome a user can be adjusted with th
 - `[p]rolewelcome status` - Print the current cog status.
 - `[p]rolewelcome channel <text channel>` - Set the text channel to send the welcome message to.
 - `[p]rolewelcome role <role>` - Set the role to be watched for new users.
-- `[p]rolewelcome always_welcome` - Set whether to welcome users to a role always or only on first join. See more info in `[p]help rolewelcome always_welcome`.
-- `[p]rolewelcome reset_on_leave` - Set whether to reset a user's welcomed status on leave. See more info in `[p]help rolewelcome reset_on_leave`.
+- `[p]rolewelcome always_welcome` - Toggle whether to welcome users to a role always or only on first join. See more info in `[p]help rolewelcome always_welcome`.
+- `[p]rolewelcome reset_on_leave` - Toggle whether to reset a user's welcomed status on leave. See more info in `[p]help rolewelcome reset_on_leave`.
 - `[p]rolewelcome message <message>` - Set the welcome message, optionally including any of the noted template placeholders above.
 - `[p]rolewelcome test` - Test the welcome message in the current channel.
 
