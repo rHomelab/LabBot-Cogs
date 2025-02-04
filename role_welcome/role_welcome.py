@@ -36,13 +36,6 @@ class RoleWelcomeCog(commands.Cog):
 
         guild = after.guild
 
-        always_welcome = await self.config.guild(guild).always_welcome()
-
-        async with self.config.guild(guild).welcomed_users() as welcomed_users:
-            if after.id in welcomed_users and not always_welcome:
-                return
-            welcomed_users.append(after.id)
-
         role = await self.config.guild(guild).role()
 
         if not role:
@@ -69,6 +62,16 @@ class RoleWelcomeCog(commands.Cog):
             # Welcome channel doesn't exist or is not a text channel
             log.error("Welcome channel doesn't exist or is not a text channel")
             return
+
+        always_welcome = await self.config.guild(guild).always_welcome()
+
+        async with self.config.guild(guild).welcomed_users() as welcomed_users:
+            if after.id in welcomed_users and not always_welcome:
+                log.debug(
+                    f"User {after.id} ({after.global_name}) has already been welcomed"
+                )
+                return
+            welcomed_users.append(after.id)
 
         await self.send_welcome_message(guild, welcome_channel, after)
 
