@@ -9,7 +9,7 @@ from redbot.core.utils.views import ConfirmView
 log = logging.getLogger("red.rhomelab.welcome")
 
 
-class RoleWelcomeCog(commands.Cog):
+class RoleWelcome(commands.Cog):
     """RoleWelcome Cog"""
 
     def __init__(self, bot):
