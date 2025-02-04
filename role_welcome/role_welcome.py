@@ -4,6 +4,7 @@ import logging
 
 import discord
 from redbot.core import Config, checks, commands
+from redbot.core.utils.views import ConfirmView
 
 log = logging.getLogger("red.rhomelab.welcome")
 
@@ -272,6 +273,32 @@ class RoleWelcomeCog(commands.Cog):
         new_value = not current_value
         await self.config.guild(ctx.guild).reset_on_leave.set(new_value)
         await ctx.send(f"✅ Reset on leave is now `{new_value}`.")
+
+    @welcome.command()
+    async def clear_welcomed_users(self, ctx: commands.Context):
+        """
+        Clear the list of welcomed users.
+
+        **Example:**
+        - `[p]rolewelcome clear_welcomed_users` - Clears the list of welcomed users.
+        - `[p]rolewelcome status` - Shows the current number of welcomed users.
+
+        ⚠️ **NOTE**
+        Clearing the list of welcomed users will cause all users to be welcomed again when they receive the role.
+        See `[p]rolewelcome always_welcome` and `[p]rolewelcome reset_on_leave` for more information on welcome logic.
+        """
+        num_welcomed_users = len(await self.config.guild(ctx.guild).welcomed_users())
+        if num_welcomed_users == 0:
+            await ctx.send("The list of welcomed users is already empty.")
+            return
+        view = ConfirmView(ctx.author)
+        view.message = await ctx.send(f"Are you sure you want to clear all {num_welcomed_users} users from the list?", view=view)
+        await view.wait()
+        if view.result:
+            await self.config.guild(ctx.guild).welcomed_users.set(value=[])
+            await ctx.send(f"✅ Cleared {num_welcomed_users} entries from the list of welcomed users.")
+        else:
+            await ctx.send("Welcome list was not cleared.")
 
     # Helpers
 
