@@ -71,7 +71,8 @@ class RoleWelcomeCog(commands.Cog):
                     f"User {after.id} ({after.global_name}) has already been welcomed"
                 )
                 return
-            welcomed_users.append(after.id)
+            if after.id not in welcomed_users:
+                welcomed_users.append(after.id)
 
         await self.send_welcome_message(guild, welcome_channel, after)
 
