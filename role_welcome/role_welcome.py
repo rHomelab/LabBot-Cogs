@@ -56,6 +56,7 @@ class RoleWelcomeCog(commands.Cog):
         welcome_channel_id = await self.config.guild(guild).channel()
         if not welcome_channel_id:
             # Welcome channel is not set for this guild
+            log.error("User received role but welcome channel is not set for this guild")
             return
 
         welcome_channel = guild.get_channel(welcome_channel_id)
