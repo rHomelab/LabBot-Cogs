@@ -161,9 +161,14 @@ class RoleWelcomeCog(commands.Cog):
         **Example:**
         - `[p]rolewelcome role <role>`
         - `[p]rolewelcome role @members`
+
+        ⚠️ **NOTE**
+        Changing the role will reset the list of welcomed users.
+        See `[p]rolewelcome always_welcome` and `[p]rolewelcome reset_on_leave` for more information.
         """
         await self.config.guild(ctx.guild).role.set(role.id)
-        await ctx.tick(message=f"Role set to {role.name}")
+        await self.config.guild(ctx.guild).welcomed_users.set(value=[])
+        await ctx.tick(message=f"Role set to {role.name} and welcomed users list reset.")
 
     @welcome.command("channel")
     async def set_welcome_channel(
