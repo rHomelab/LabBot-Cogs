@@ -164,12 +164,18 @@ class RoleWelcomeCog(commands.Cog):
         - `[p]rolewelcome role @members`
 
         ⚠️ **NOTE**
-        Changing the role will reset the list of welcomed users.
+        When changing the role, you will be prompted to reset the list of welcomed users.
+        It is advisable to proceed with this to ensure all users are welcomed to the new role, however it may not be necessary in cases such as the recreation of a role or usage of a new role for the same purpose.
         See `[p]rolewelcome always_welcome` and `[p]rolewelcome reset_on_leave` for more information.
         """
         await self.config.guild(ctx.guild).role.set(role.id)
-        await self.config.guild(ctx.guild).welcomed_users.set(value=[])
-        await ctx.tick(message=f"Role set to {role.name} and welcomed users list reset.")
+        await ctx.send(
+            f"✅ Role set to {role.name}."
+            + "\nYou will now be prompted to clear the list of welcomed users. It is advisable to"
+            + " proceed with this to ensure all users are welcomed to the new role, however it may not"
+            + " be necessary in cases such as the recreation of a role or usage of a new role for the same purpose."
+        )
+        await self.clear_welcomed_users(ctx)
 
     @welcome.command("channel")
     async def set_welcome_channel(
@@ -291,14 +297,24 @@ class RoleWelcomeCog(commands.Cog):
         if num_welcomed_users == 0:
             await ctx.send("The list of welcomed users is already empty.")
             return
+
+        confirm_message = f"Do you wish to clear all {num_welcomed_users} users from the welcomed users list?"
+        if ctx.command.name == "clear_welcomed_users":
+            confirm_message += (
+                "\n⚠️ Clearing the list of welcomed users will cause all users to be welcomed again if they receive the role again."
+                + f"\nSee `{ctx.clean_prefix}rolewelcome always_welcome` and `{ctx.clean_prefix}rolewelcome reset_on_leave` for more information on welcome logic."
+            )
+
         view = ConfirmView(ctx.author)
-        view.message = await ctx.send(f"Are you sure you want to clear all {num_welcomed_users} users from the list?", view=view)
+        view.message = await ctx.send(confirm_message, view=view)
         await view.wait()
         if view.result:
             await self.config.guild(ctx.guild).welcomed_users.set(value=[])
-            await ctx.send(f"✅ Cleared {num_welcomed_users} entries from the list of welcomed users.")
+            await ctx.send(
+                f"✅ Cleared {num_welcomed_users} entries from the list of welcomed users."
+            )
         else:
-            await ctx.send("Welcome list was not cleared.")
+            await ctx.send("Welcomed users list was not cleared.")
 
     # Helpers
 
