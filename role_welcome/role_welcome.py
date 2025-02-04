@@ -239,7 +239,7 @@ class RoleWelcomeCog(commands.Cog):
         This offers similar functionality to `reset_on_leave`. You should review both settings carefully to understand how they interact.
 
         - If `always_welcome` is `false`, a user will not receive another welcome message if they lose and regain the role.
-        - If `always_welcome` is `false` but you still want users to be welcomed again after rejoining the server, ensure that `reset_on_leave` is set to `true`.
+        - If `always_welcome` is `false` but you still want users to be welcomed again after rejoining the guild, ensure that `reset_on_leave` is set to `true`.
         Run `[p]help rolewelcome reset_on_leave` for more information.
         """
         current_value = await self.config.guild(ctx.guild).always_welcome()
@@ -250,9 +250,9 @@ class RoleWelcomeCog(commands.Cog):
     @welcome.command("reset_on_leave")
     async def set_reset_on_leave(self, ctx: commands.Context):
         """
-        Toggle whether a user's welcome status is reset when they leave the server.
+        Toggle whether a user's welcome status is reset when they leave the guild.
 
-        - **If set to `true`**: When a user leaves the server, their welcome status is reset, meaning they will receive a welcome message again if they rejoin and receive the role again.
+        - **If set to `true`**: When a user leaves the guild, their welcome status is reset, meaning they will receive a welcome message again if they rejoin and receive the role again.
         - **If `false`**: Their welcome status is retained, so they **will not** be welcomed again unless `always_welcome` is left set to the default value of `true`.
 
         **Default:** `true`
@@ -265,7 +265,7 @@ class RoleWelcomeCog(commands.Cog):
         This offers similar functionality to `always_welcome`. You should review both settings carefully to understand how they interact.
 
         - If both `reset_on_leave` and `always_welcome` are `false`, users who leave and rejoin will **not** be welcomed again.
-        - If `always_welcome` is `true`, they will receive a welcome message each time they gain the role, regardless of the state of this setting or whether they have left and rejoined the server.
+        - If `always_welcome` is `true`, they will receive a welcome message each time they gain the role, regardless of the state of this setting or whether they have left and rejoined the guild.
         Run `[p]help rolewelcome always_welcome` for more information.
         """
         current_value = await self.config.guild(ctx.guild).reset_on_leave()
