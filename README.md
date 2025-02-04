@@ -334,16 +334,34 @@ This cog will allow members to send a report into a channel where it can be revi
 
 Sends a welcome message when a user is added to a role.
 
+#### Welcome Message Templating
+
 The following template placeholders can be used in the welcome message:
+
 - `{user}`: User mention (`@user`)
 - `{role}`: Role name (plaintext, not mentioned)
 - `{guild}`: Guild name
 
+#### Welcome Logic
+
+The specific logic used to decide when to welcome a user can be adjusted with the `always_welcome` (default `true`) and `reset_on_leave` (default `true`) settings.
+
+| Scenario                                            | `always_welcome` | `reset_on_leave` | Welcome message sent |
+|-----------------------------------------------------|------------------|------------------|----------------------|
+| User receives role for the first time               | Any              | Any              | ✅                   |
+| User receives role again                            | `true`           | Any              | ✅                   |
+| User receives role again                            | `false`          | Any              | ❌                   |
+| User receives role again after rejoining the server | `true`           | Any              | ✅                   |
+| User receives role again after rejoining the server | `false`          | `false`          | ❌                   |
+| User receives role again after rejoining the server | `false`          | `true`           | ✅                   |
+
+#### Commands
+
 - `[p]rolewelcome status` - Print the current cog status.
 - `[p]rolewelcome channel <text channel>` - Set the text channel to send the welcome message to.
 - `[p]rolewelcome role <role>` - Set the role to be watched for new users.
-- `[p]rolewelcome always_welcome <true|false>` - Set whether to welcome users to a role always or only on first join. See more info in `[p]help rolewelcome always_welcome`.
-- `[p]rolewelcome reset_on_leave <true|false>` - Set whether to reset a user's welcomed status on leave. See more info in `[p]help rolewelcome reset_on_leave`.
+- `[p]rolewelcome always_welcome` - Set whether to welcome users to a role always or only on first join. See more info in `[p]help rolewelcome always_welcome`.
+- `[p]rolewelcome reset_on_leave` - Set whether to reset a user's welcomed status on leave. See more info in `[p]help rolewelcome reset_on_leave`.
 - `[p]rolewelcome message <message>` - Set the welcome message, optionally including any of the noted template placeholders above.
 - `[p]rolewelcome test` - Test the welcome message in the current channel.
 

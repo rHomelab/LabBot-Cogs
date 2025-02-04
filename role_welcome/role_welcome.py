@@ -204,48 +204,56 @@ class RoleWelcomeCog(commands.Cog):
         await self.send_welcome_message(ctx.guild, ctx.channel, ctx.author)
 
     @welcome.command("always_welcome")
-    async def set_always_welcome(self, ctx: commands.Context, value: str):
-        """Set whether to welcome users to a role always or only on first join.
-
-        * If set to `true`, users will only be welcomed to the role the first time they join it.
-        * If set to `false`, users will be welcomed to the role every time they join it.
-
-        Example:
-        - `[p]rolewelcome always_welcome true`
-        - `[p]rolewelcome always_welcome false`
+    async def set_always_welcome(self, ctx: commands.Context):
         """
-        try:
-            value_bool = await self.str_to_bool(value)
-        except ValueError:
-            await ctx.send("Invalid value. Use `true` or `false`.")
-            return
-        await self.config.guild(ctx.guild).always_welcome.set(value_bool)
-        await ctx.tick()
+        Toggle whether users receive a welcome message every time they are assigned the role.
+
+        - **If set to `true`**: Users will receive a welcome message **every time** they receive the role, even if they have had it before.
+        - **If set to `false`**: Users will only receive a welcome message the **first time** they receive the role.
+
+        **Default:** `true`
+
+        **Example:**
+        - `[p]rolewelcome always_welcome` - Toggles the setting.
+        - `[p]rolewelcome status` - Shows the current status of this setting.
+
+        ⚠️ **NOTE**
+        This offers similar functionality to `reset_on_leave`. You should review both settings carefully to understand how they interact.
+
+        - If `always_welcome` is `false`, a user will not receive another welcome message if they lose and regain the role.
+        - If `always_welcome` is `false` but you still want users to be welcomed again after rejoining the server, ensure that `reset_on_leave` is set to `true`.
+        Run `[p]help rolewelcome reset_on_leave` for more information.
+        """
+        current_value = await self.config.guild(ctx.guild).always_welcome()
+        new_value = not current_value
+        await self.config.guild(ctx.guild).always_welcome.set(new_value)
+        await ctx.send(f"✅ Always welcome is now `{new_value}`.")
 
     @welcome.command("reset_on_leave")
-    async def set_reset_on_leave(self, ctx: commands.Context, value: str):
-        """Set whether to reset a user's welcomed status on leave.
-
-        This setting affects the specific behaviour of the `always_welcome` setting when it is set to **`false`**. With that in mind, the following information assumes that `always_welcome` is `false`:
-
-        * If set to `true` and a user has already been welcomed once, then they leave the server, re-joins, and is given the role again, they **will** be welcomed.
-        * If set to `false`: a user will not be removed from the welcomed users list on leave and will not be welcomed again if they re-join and join the trigger role.
-
-        Example:
-        - `[p]rolewelcome reset_on_leave true`
-        - `[p]rolewelcome reset_on_leave false`
+    async def set_reset_on_leave(self, ctx: commands.Context):
         """
-        try:
-            value_bool = await self.str_to_bool(value)
-        except ValueError:
-            await ctx.send("Invalid value. Use `true` or `false`.")
-            return
-        await self.config.guild(ctx.guild).reset_on_leave.set(value_bool)
-        await ctx.tick()
-        if await self.config.guild(ctx.guild).always_welcome() is True:
-            await ctx.send(
-                f"⚠️ This setting's behaviour only takes effect when `always_welcome` is set to `false`.\nSee `{ctx.prefix}help role_welcome always_welcome` and `{ctx.prefix}help role_welcome reset_on_leave` for more information."
-            )
+        Toggle whether a user's welcome status is reset when they leave the server.
+
+        - **If set to `true`**: When a user leaves the server, their welcome status is reset, meaning they will receive a welcome message again if they rejoin and receive the role again.
+        - **If `false`**: Their welcome status is retained, so they **will not** be welcomed again unless `always_welcome` is left set to the default value of `true`.
+
+        **Default:** `true`
+
+        **Example:**
+        - `[p]rolewelcome reset_on_leave` - Toggles the setting.
+        - `[p]rolewelcome status` - Shows the current status of this setting.
+
+        ⚠️ **NOTE**
+        This offers similar functionality to `always_welcome`. You should review both settings carefully to understand how they interact.
+
+        - If both `reset_on_leave` and `always_welcome` are `false`, users who leave and rejoin will **not** be welcomed again.
+        - If `always_welcome` is `true`, they will receive a welcome message each time they gain the role, regardless of the state of this setting or whether they have left and rejoined the server.
+        Run `[p]help rolewelcome always_welcome` for more information.
+        """
+        current_value = await self.config.guild(ctx.guild).reset_on_leave()
+        new_value = not current_value
+        await self.config.guild(ctx.guild).reset_on_leave.set(new_value)
+        await ctx.send(f"✅ Reset on leave is now `{new_value}`.")
 
     # Helpers
 
@@ -274,18 +282,3 @@ class RoleWelcomeCog(commands.Cog):
             user=member.mention, role=role_name, guild=guild.name
         )
         await channel.send(welcome_message)
-
-    async def str_to_bool(self, value: str | bool) -> bool | None:
-        """Strict boolean conversion
-
-        Returns `True` (bool) if value is `True` (bool) or one of "true", "yes", or "y" (case-insensitive str).
-        Returns `False` (bool) if value is `False` (bool) or one of "false", "no", or "n" (case-insensitive str).
-        Otherwise raises `ValueError`.
-        """
-        if isinstance(value, bool):
-            return value
-        if value.lower() in ["true", "yes", "y"]:
-            return True
-        if value.lower() in ["false", "no", "n"]:
-            return False
-        raise ValueError
