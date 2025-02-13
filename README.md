@@ -41,6 +41,7 @@ Cogs for the [Red-DiscordBot](https://github.com/Cog-Creators/Red-DiscordBot/)-b
     - [Quotes](#quotes)
     - [Reactrole](#reactrole)
     - [Report](#report)
+    - [role\_welcome](#role_welcome)
     - [Roleinfo](#roleinfo)
     - [Sentry](#sentry)
     - [Tags](#tags)
@@ -83,6 +84,7 @@ A massive thank you to [all who've helped with this project](https://github.com/
 - **[Quotes](#quotes):** Allows users to quote other users' messages in a quotes channel.
 - **[Reactrole](#reactrole):** Allows roles to be applied and removed using reactions.
 - **[Report](#report):** Allows users to report issues.
+- **[role\_welcome](#role_welcome):** Sends a welcome message when a user is added to a role.
 - **[Roleinfo](#roleinfo):** Displays info on a role
 - **[Sentry](#sentry):** Send unhandled errors to sentry.
 - **[Tags](#tags):** Allow user-generated stored messages.
@@ -327,6 +329,42 @@ This cog will allow members to send a report into a channel where it can be revi
 - `[p]report [message]` - A report can be sent to the logchannel for any moderators to see and action upon when they are ready.
 
 - `[p]emergency [message]` - An emergency can be requested which will ping all members in the configured logchannel if they are online.
+
+### role\_welcome
+
+Sends a welcome message when a user is added to a role.
+
+#### Welcome Message Templating
+
+The following template placeholders can be used in the welcome message:
+
+- `{user}`: User mention (`@user`)
+- `{role}`: Role name (plaintext, not mentioned)
+- `{guild}`: Guild name
+
+#### Welcome Logic
+
+The specific logic used to decide when to welcome a user can be adjusted with the `always_welcome` (default: `true`) and `reset_on_leave` (default: `true`) settings.
+
+| Scenario                                           | `always_welcome` | `reset_on_leave` | User welcomed |
+|----------------------------------------------------|------------------|------------------|---------------|
+| User receives role for the first time              | Any              | Any              | ✅            |
+| User receives role again                           | `true`           | Any              | ✅            |
+| User receives role again                           | `false`          | Any              | ❌            |
+| User receives role again after rejoining the guild | `true`           | Any              | ✅            |
+| User receives role again after rejoining the guild | `false`          | `false`          | ❌            |
+| User receives role again after rejoining the guild | `false`          | `true`           | ✅            |
+
+#### Commands
+
+- `[p]rolewelcome status` - Print the current cog status.
+- `[p]rolewelcome channel <text channel>` - Set the text channel to send the welcome message to.
+- `[p]rolewelcome role <role>` - Set the role to be watched for new users.
+- `[p]rolewelcome always_welcome` - Toggle whether users receive a welcome message every time they are assigned the role. See more info in `[p]help rolewelcome always_welcome`.
+- `[p]rolewelcome reset_on_leave` - Toggle whether a user's welcome status is reset when they leave the guild. See more info in `[p]help rolewelcome reset_on_leave`.
+- `[p]rolewelcome clear_welcomed_users` - Clear the list of welcomed users.
+- `[p]rolewelcome message <message>` - Set the welcome message, optionally including any of the noted template placeholders above.
+- `[p]rolewelcome test` - Test the welcome message in the current channel.
 
 ### Roleinfo
 
