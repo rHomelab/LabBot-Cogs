@@ -207,6 +207,7 @@ class RoleWelcome(commands.Cog):
     async def set_welcome_message(
         self,
         ctx: commands.Context,
+        *,
         message: str,
     ):
         """Set the welcome message.
