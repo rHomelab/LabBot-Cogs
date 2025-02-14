@@ -47,9 +47,7 @@ class RoleWelcome(commands.Cog):
             # Roles haven't changed
             return
 
-        if role in [role.id for role in before.roles] or role not in [
-            role.id for role in after.roles
-        ]:
+        if role in [role.id for role in before.roles] or role not in [role.id for role in after.roles]:
             # Member already had role or does not have role
             return
 
@@ -69,9 +67,7 @@ class RoleWelcome(commands.Cog):
 
         async with self.config.guild(guild).welcomed_users() as welcomed_users:
             if after.id in welcomed_users and not always_welcome:
-                log.debug(
-                    f"User {after.id} ({after.global_name}) has already been welcomed"
-                )
+                log.debug(f"User {after.id} ({after.global_name}) has already been welcomed")
                 return
             if after.id not in welcomed_users:
                 welcomed_users.append(after.id)
@@ -133,9 +129,7 @@ class RoleWelcome(commands.Cog):
             if guild_role:
                 guild_role = guild_role.name
             else:
-                guild_role = (
-                    f"Set to role with ID `{role_id}`, but could not find role!"
-                )
+                guild_role = f"Set to role with ID `{role_id}`, but could not find role!"
 
         if channel_id:
             guild_channel = ctx.guild.get_channel(channel_id)
@@ -183,9 +177,7 @@ class RoleWelcome(commands.Cog):
             await self.clear_welcomed_users(ctx)
 
     @welcome.command("channel")
-    async def set_welcome_channel(
-        self, ctx: commands.Context, channel: discord.abc.GuildChannel
-    ):
+    async def set_welcome_channel(self, ctx: commands.Context, channel: discord.abc.GuildChannel):
         """Set the channel to send welcome messages to.
 
         **Example:**
@@ -196,9 +188,7 @@ class RoleWelcome(commands.Cog):
             await ctx.send("Welcome channel must be a text channel.")
             return
         if not channel.permissions_for(ctx.guild.me).send_messages:
-            await ctx.send(
-                f"I need the `Send messages` permission before I can send messages in {channel.mention}."
-            )
+            await ctx.send(f"I need the `Send messages` permission before I can send messages in {channel.mention}.")
             return
         await self.config.guild(ctx.guild).channel.set(channel.id)
         await ctx.tick(message=f"Welcome channel set to {channel.mention}.")
@@ -316,9 +306,7 @@ class RoleWelcome(commands.Cog):
         await view.wait()
         if view.result:
             await self.config.guild(ctx.guild).welcomed_users.set(value=[])
-            await ctx.send(
-                f"✅ Cleared {num_welcomed_users} entries from the list of welcomed users."
-            )
+            await ctx.send(f"✅ Cleared {num_welcomed_users} entries from the list of welcomed users.")
         else:
             await ctx.send("Welcomed users list was not cleared.")
 
@@ -352,9 +340,7 @@ class RoleWelcome(commands.Cog):
     ):
         """Send welcome message"""
         if not channel.permissions_for(guild.me).send_messages:
-            log.error(
-                f"Missing send messages permission for {channel.name} ({channel.id})"
-            )
+            log.error(f"Missing send messages permission for {channel.name} ({channel.id})")
             return
         role_name = "role_unset"
         welcome_role_id = await self.config.guild(guild).role()
@@ -365,7 +351,5 @@ class RoleWelcome(commands.Cog):
                 role_name = welcome_role.name
 
         welcome_message = await self.config.guild(guild).message()
-        welcome_message = welcome_message.format(
-            user=member.mention, role=role_name, guild=guild.name
-        )
+        welcome_message = welcome_message.format(user=member.mention, role=role_name, guild=guild.name)
         await channel.send(welcome_message)

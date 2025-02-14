@@ -23,14 +23,24 @@ class JailABC(ABC):
         for key, val in kwargs.items():
             # expected_type: type = self.__annotations__[key]
             # if not isinstance(val, expected_type):
-                # raise TypeError(f"Expected type {expected_type} for kwarg {key!r}, got type {type(val)} instead")
+            # raise TypeError(f"Expected type {expected_type} for kwarg {key!r}, got type {type(val)} instead")
 
             setattr(self, key, val)
 
     @classmethod
     @abstractmethod
-    def new(cls, ctx: commands.Context, datetime: int, channel_id: int, role_id: int, active: bool, jailer: int,
-            user: int, user_roles: List[int], uuid: uuid.UUID):
+    def new(
+        cls,
+        ctx: commands.Context,
+        datetime: int,
+        channel_id: int,
+        role_id: int,
+        active: bool,
+        jailer: int,
+        user: int,
+        user_roles: List[int],
+        uuid: uuid.UUID,
+    ):
         """Initialise the class in a command context"""
         pass
 
@@ -56,7 +66,7 @@ class JailSetABC(ABC):
         for key, val in kwargs.items():
             # expected_type: type = self.__annotations__[key]
             # if not isinstance(val, expected_type):
-                # raise TypeError(f"Expected type {expected_type} for kwarg {key!r}, got type {type(val)} instead")
+            # raise TypeError(f"Expected type {expected_type} for kwarg {key!r}, got type {type(val)} instead")
 
             setattr(self, key, val)
 

@@ -77,10 +77,7 @@ class JailCog(commands.Cog):
         # Create embeds from pagified data
         jails_target: Optional[str] = getattr(user, "display_name", str(user.id)) if user is not None else None
         base_embed_options = {
-            "title": (
-                    (f"Jail archives for {jails_target}" if jails_target else "All jails")
-                    + f" - ({num_jails} jails)"
-            ),
+            "title": ((f"Jail archives for {jails_target}" if jails_target else "All jails") + f" - ({num_jails} jails)"),
             "colour": await ctx.embed_colour(),
         }
         embeds = [
@@ -92,8 +89,7 @@ class JailCog(commands.Cog):
             await ctx.send(embed=embeds[0])
         else:
             ctx.bot.loop.create_task(
-                menu(ctx=ctx, pages=embeds, controls={"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page},
-                     timeout=180.0)
+                menu(ctx=ctx, pages=embeds, controls={"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}, timeout=180.0)
             )
 
     @_jail_archives.command("fetch")
@@ -110,6 +106,8 @@ class JailCog(commands.Cog):
                     transmit = discord.File(BytesIO(initial_bytes=data.encode()), filename=archive_file)
                     await ctx.send(file=transmit)
             except Exception as e:
-                await ctx.send("Error fetching archive. Likely file not found, maybe a permissions issue. "
-                               "Check the console for details.")
+                await ctx.send(
+                    "Error fetching archive. Likely file not found, maybe a permissions issue. "
+                    "Check the console for details."
+                )
                 print(e)

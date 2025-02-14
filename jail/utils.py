@@ -1,5 +1,4 @@
 import datetime
-import json
 import uuid
 from io import BytesIO
 from os import path
@@ -14,10 +13,19 @@ from jail.abstracts import JailABC, JailConfigHelperABC, JailSetABC
 
 
 class Jail(JailABC):
-
     @classmethod
-    def new(cls, ctx: commands.Context, datetime: int, channel_id: int, role_id: int, active: bool, jailer: int,
-            user: int, user_roles: List[int], archive_id: uuid.UUID):
+    def new(
+        cls,
+        ctx: commands.Context,
+        datetime: int,
+        channel_id: int,
+        role_id: int,
+        active: bool,
+        jailer: int,
+        user: int,
+        user_roles: List[int],
+        archive_id: uuid.UUID,
+    ):
         return cls(
             datetime=datetime,
             channel_id=channel_id,
@@ -26,14 +34,22 @@ class Jail(JailABC):
             jailer=jailer,
             user=user,
             user_roles=user_roles,
-            archive_id=archive_id
+            archive_id=archive_id,
         )
 
     @classmethod
     def from_storage(cls, ctx: commands.Context, data: dict):
-        return Jail.new(ctx, datetime=data['datetime'], channel_id=data['channel_id'], role_id=data['role_id'],
-                        active=data['active'], jailer=data['jailer'], user=data['user'], user_roles=data['user_roles'],
-                        archive_id=data['archive_id'])
+        return Jail.new(
+            ctx,
+            datetime=data["datetime"],
+            channel_id=data["channel_id"],
+            role_id=data["role_id"],
+            active=data["active"],
+            jailer=data["jailer"],
+            user=data["user"],
+            user_roles=data["user_roles"],
+            archive_id=data["archive_id"],
+        )
 
     def to_dict(self) -> dict:
         return {
@@ -44,7 +60,7 @@ class Jail(JailABC):
             "jailer": self.jailer,
             "user": self.user,
             "user_roles": self.user_roles,
-            "archive_id": str(self.archive_id)
+            "archive_id": str(self.archive_id),
         }
 
     def __str__(self) -> str:
@@ -52,12 +68,9 @@ class Jail(JailABC):
 
 
 class JailSet(JailSetABC):
-
     @classmethod
     def new(cls, ctx: commands.Context, jails: List[JailABC]):
-        return cls(
-            jails=jails
-        )
+        return cls(jails=jails)
 
     @classmethod
     def from_storage(cls, ctx: commands.Context, data: list):
@@ -83,7 +96,6 @@ class JailSet(JailSetABC):
 
 
 class JailConfigHelper(JailConfigHelperABC):
-
     def __init__(self):
         self.config = Config.get_conf(self, identifier=1289862744207523842002, cog_name="JailCog")
         self.config.register_guild(jails={})
@@ -103,26 +115,24 @@ class JailConfigHelper(JailConfigHelperABC):
             return None
         reason = f"Jail: {ctx.author.name} created a jail for: {member.name}"
 
-        role = await ctx.guild.create_role(
-            name=f"Jail:{member.name}",
-            mentionable=False,
-            reason=reason
+        role = await ctx.guild.create_role(name=f"Jail:{member.name}", mentionable=False, reason=reason)
+        perms = discord.PermissionOverwrite(
+            view_channel=True, read_message_history=True, read_messages=True, send_messages=True
         )
-        perms = discord.PermissionOverwrite(view_channel=True, read_message_history=True, read_messages=True,
-                                            send_messages=True)
         channel = await ctx.guild.create_text_channel(
             name=f"{member.name}-timeout",
             reason=reason,
             category=category,
             news=False,
             topic=f"{member.display_name} was bad and now we're here. DO NOT LEAVE! Leaving is evading and will "
-                  f"result in an immediate ban.",
-            nsfw=False
+            f"result in an immediate ban.",
+            nsfw=False,
         )
         await channel.set_permissions(role, overwrite=perms)
         async with self.config.guild(ctx.guild).jails() as jails:
-            jail = Jail.new(ctx, datetime, channel.id, role.id, True, ctx.author.id, member.id,
-                            [r.id for r in member.roles], None)
+            jail = Jail.new(
+                ctx, datetime, channel.id, role.id, True, ctx.author.id, member.id, [r.id for r in member.roles], None
+            )
             if str(member.id) in jails.keys():
                 jailset = JailSet.from_storage(ctx, jails[str(member.id)])
             else:
@@ -176,8 +186,7 @@ class JailConfigHelper(JailConfigHelperABC):
         except NotFound:
             pass
 
-    async def archive_channel(self, ctx: commands.Context, channel: discord.TextChannel,
-                              archive_uuid: uuid.UUID):
+    async def archive_channel(self, ctx: commands.Context, channel: discord.TextChannel, archive_uuid: uuid.UUID):
         """Archive supplied channel to an HTML file"""
         # Copied this from tig because the work was already done :)
         if ctx.guild is None:
@@ -190,7 +199,7 @@ class JailConfigHelper(JailConfigHelperABC):
         async with ctx.typing():
             transcript = await chat_exporter.export(
                 channel=channel,
-                tz_info="UTC"  # Original had this as tz_info=
+                tz_info="UTC",  # Original had this as tz_info=
             )
             if transcript is None:
                 await ctx.send("None transcript")

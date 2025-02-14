@@ -16,11 +16,7 @@ class BanCountCog(commands.Cog):
         super().__init__(*args, **kwargs)
         self.bot = bot
 
-        default_guild_config = {
-            "messages": [
-                "Total users banned: $ban!"
-            ]
-        }
+        default_guild_config = {"messages": ["Total users banned: $ban!"]}
 
         self.config = Config.get_conf(self, identifier=1289862744207523842001)
         self.config.register_guild(**default_guild_config)
@@ -47,8 +43,7 @@ class BanCountCog(commands.Cog):
     async def _bancount_add(self, ctx: commands.Context, *, message: str):
         """Add a message to the message list."""
         if self.REPLACER not in message:
-            await ctx.send(
-                f"You need to include `{self.REPLACER}` in your message so I know where to insert the count!")
+            await ctx.send(f"You need to include `{self.REPLACER}` in your message so I know where to insert the count!")
             return
         async with self.config.guild(ctx.guild).messages() as messages:
             messages.append(message)
@@ -61,10 +56,7 @@ class BanCountCog(commands.Cog):
         async with self.config.guild(ctx.guild).messages() as messages:
             # Credit to the Notes cog author(s) for this pagify structure
             pages = list(pagify("\n".join(f"`{i}) {message}`" for i, message in enumerate(messages))))
-            embed_opts = {
-                "title": "Guild's BanCount Message List",
-                "colour": await ctx.embed_colour()
-            }
+            embed_opts = {"title": "Guild's BanCount Message List", "colour": await ctx.embed_colour()}
             embeds = [
                 discord.Embed(**embed_opts, description=page).set_footer(text=f"Page {index} of {len(pages)}")
                 for index, page in enumerate(pages, start=1)
@@ -73,8 +65,7 @@ class BanCountCog(commands.Cog):
                 await ctx.send(embed=embeds[0])
             else:
                 ctx.bot.loop.create_task(
-                    menu(ctx=ctx, pages=embeds, controls={"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page},
-                         timeout=180.0)
+                    menu(ctx=ctx, pages=embeds, controls={"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}, timeout=180.0)
                 )
 
     @checks.mod()

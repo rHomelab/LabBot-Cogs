@@ -18,17 +18,14 @@ class _SilentHandler(WSGIRequestHandler):
 
 
 class MetricsServer(Protocol):
-    def serve(self) -> None:
-        ...
+    def serve(self) -> None: ...
 
-    def stop(self) -> None:
-        ...
+    def stop(self) -> None: ...
 
 
 class PrometheusMetricsServer(MetricsServer, Protocol):
     @property
-    def registry(self) -> CollectorRegistry:
-        ...
+    def registry(self) -> CollectorRegistry: ...
 
 
 class promServer(PrometheusMetricsServer):
@@ -73,4 +70,3 @@ class promServer(PrometheusMetricsServer):
             self.server.server_close()
             self.server_thread.join()
             logger.debug("prom server thread joined")
-

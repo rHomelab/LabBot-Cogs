@@ -18,20 +18,18 @@ class IsItReadOnlyFriday(commands.Cog):
     async def get_isitreadonlyfriday(self, offset: int) -> discord.Embed:
         # Get readonly data from isitreadonlyfriday api
         try:
-            async with aiohttp.request(
-                "GET", f"https://isitreadonlyfriday.com/api/isitreadonlyfriday/{offset}"
-            ) as response:
+            async with aiohttp.request("GET", f"https://isitreadonlyfriday.com/api/isitreadonlyfriday/{offset}") as response:
                 response.raise_for_status()
                 try:
                     readonly = await response.json()
                 except aiohttp.ContentTypeError:
                     readonly = {"error": "Response content is not JSON"}
         except aiohttp.ClientError as e:
-            readonly = {"error": f"Client error: {str(e)}"}
+            readonly = {"error": f"Client error: {e!s}"}
         except asyncio.TimeoutError:
             readonly = {"error": "Request timed out"}
         except Exception as e:
-            readonly = {"error": f"An unexpected error occurred: {str(e)}"}
+            readonly = {"error": f"An unexpected error occurred: {e!s}"}
 
         if readonly.get("error"):
             log.error(f"Error fetching data from API: {readonly['error']}")
@@ -44,10 +42,7 @@ class IsItReadOnlyFriday(commands.Cog):
         utc_now = datetime.datetime.now(datetime.timezone.utc)
         offset_tz = datetime.timezone(datetime.timedelta(hours=offset))
         local = utc_now.astimezone(offset_tz)
-        data = {
-            "offset": offset,
-            "readonly": local.month == 12
-        }
+        data = {"offset": offset, "readonly": local.month == 12}
         return await self.make_readonly_embed(data, "December")
 
     @commands.command()

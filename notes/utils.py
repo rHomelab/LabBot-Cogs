@@ -36,7 +36,7 @@ class Note(NoteABC):
             message=data["message"],
             reporter_id=data["reporter"],
             reporter_name=data["reporterstr"],
-            created_at=int(data["date"]),  # FIXME: Migrate all stored values to int
+            created_at=int(data["date"]),  # FIXME: Migrate all stored values to int
             deleted=data["deleted"],
             is_warning=is_warning,
             _guild=ctx.guild,

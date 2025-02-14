@@ -35,7 +35,7 @@ async def make_tag_info_embed(tag: Tag, aliases: [Alias]) -> discord.Embed:
     if len(aliases) > 0:
         result.add_field(name="Aliases", value=f"`{', '.join(alias_list)}`")
     if len(transfers) > 0:
-        result.add_field(name="Prior Owners", value=', '.join(transfers))
+        result.add_field(name="Prior Owners", value=", ".join(transfers))
 
     return result
 
@@ -141,12 +141,11 @@ class TagCog(commands.Cog):
         tag = await self.config.get_tag(ctx, trigger)
         if tag is None:
             await ctx.send("That isn't a tag, sorry.")
+        elif tag.owner == ctx.author.id or await is_mod_or_superior(self.bot, ctx.author):
+            await self.config.delete_tag(ctx, trigger)
+            await ctx.send("Tag successfully deleted!")
         else:
-            if tag.owner == ctx.author.id or await is_mod_or_superior(self.bot, ctx.author):
-                await self.config.delete_tag(ctx, trigger)
-                await ctx.send("Tag successfully deleted!")
-            else:
-                await ctx.send("You can't delete that tag. Only the creator or mods can do that, and you're neither!")
+            await ctx.send("You can't delete that tag. Only the creator or mods can do that, and you're neither!")
 
     @_tag.command(name="claim")
     async def _claim(self, ctx: commands.Context, trigger: str):
@@ -158,8 +157,10 @@ class TagCog(commands.Cog):
             else:
                 curr_owner = ctx.guild.get_member(tag.owner)
                 if curr_owner is not None:
-                    await ctx.send(f"That tag's owner is still in the guild! You can see if {curr_owner.mention} "
-                                   f"wants to transfer it to you.")
+                    await ctx.send(
+                        f"That tag's owner is still in the guild! You can see if {curr_owner.mention} "
+                        f"wants to transfer it to you."
+                    )
                 else:
                     await self.config.transfer_tag(ctx, trigger, ctx.author.id, "Claim", int(datetime.utcnow().timestamp()))
                     await ctx.send("Tag successfully claimed!")
@@ -176,13 +177,13 @@ class TagCog(commands.Cog):
             if tag.owner == ctx.author.id:
                 allowable = True
                 reason = "Owner-initiated"
-            else:
-                if await is_mod_or_superior(self.bot, ctx.author):
-                    allowable = True
-                    reason = f"Mod-initiated by {ctx.author.mention}"
+            elif await is_mod_or_superior(self.bot, ctx.author):
+                allowable = True
+                reason = f"Mod-initiated by {ctx.author.mention}"
             if allowable:
-                await self.config.transfer_tag(ctx, trigger, member.id, f"Transfer: {reason}",
-                                               int(datetime.utcnow().timestamp()))
+                await self.config.transfer_tag(
+                    ctx, trigger, member.id, f"Transfer: {reason}", int(datetime.utcnow().timestamp())
+                )
                 await ctx.send("Tag successfully transferred!")
             else:
                 await ctx.send("You can't transfer that tag. Ask the owner if they want to transfer it to you.")
@@ -208,15 +209,15 @@ class TagCog(commands.Cog):
         aliases_pages = list(pagify(aliases_str, page_length=embed_page_length))
 
         tags_embeds = [
-            discord.Embed(
-                title="Tags", colour=await ctx.embed_colour(), description=page
-            ).set_footer(text=f"Page {index} of {len(tags_pages)}")
+            discord.Embed(title="Tags", colour=await ctx.embed_colour(), description=page).set_footer(
+                text=f"Page {index} of {len(tags_pages)}"
+            )
             for index, page in enumerate(tags_pages, start=1)
         ]
         aliases_embeds = [
-            discord.Embed(
-                title="Tag Aliases", colour=await ctx.embed_colour(), description=page
-            ).set_footer(text=f"Page {index} of {len(aliases_pages)}")
+            discord.Embed(title="Tag Aliases", colour=await ctx.embed_colour(), description=page).set_footer(
+                text=f"Page {index} of {len(aliases_pages)}"
+            )
             for index, page in enumerate(aliases_pages, start=1)
         ]
 
@@ -224,9 +225,7 @@ class TagCog(commands.Cog):
             if len(embed_list) == 1:
                 await ctx.send(embed=embed_list[0])
             else:
-                self.bot.loop.create_task(
-                    menu(ctx=ctx, pages=embed_list, timeout=120.0)
-                )
+                self.bot.loop.create_task(menu(ctx=ctx, pages=embed_list, timeout=120.0))
 
     @_tag.group(name="alias")
     async def _alias(self, ctx: commands.Context):
@@ -263,11 +262,8 @@ class TagCog(commands.Cog):
         alias = await self.config.get_alias(ctx, trigger)
         if alias is None:
             await ctx.send("That isn't an alias, sorry.")
+        elif alias.creator == ctx.author.id or await is_mod_or_superior(self.bot, ctx.author):
+            await self.config.delete_alias(ctx, trigger)
+            await ctx.send("Alias successfully deleted!")
         else:
-            if alias.creator == ctx.author.id or await is_mod_or_superior(self.bot, ctx.author):
-                await self.config.delete_alias(ctx, trigger)
-                await ctx.send("Alias successfully deleted!")
-            else:
-                await ctx.send("You can't delete that alias. Only the creator or mods can do that, and you're neither!")
-
-
+            await ctx.send("You can't delete that alias. Only the creator or mods can do that, and you're neither!")

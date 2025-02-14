@@ -1,4 +1,5 @@
 """discord red-bot autoreact"""
+
 import asyncio
 import logging
 from typing import Generator, Optional
@@ -47,11 +48,11 @@ class AutoReactCog(commands.Cog):
                     await message.add_reaction(reaction)
                 except discord.errors.NotFound:
                     log.info(
-                        "Could not react to message %s in channel %s (%s) as the message was not found." +
-                        "Maybe the message was deleted?",
+                        "Could not react to message %s in channel %s (%s) as the message was not found."
+                        + "Maybe the message was deleted?",
                         message.id,
                         message.channel.name,
-                        message.channel.id
+                        message.channel.id,
                     )
 
         # Do not continue if channel is whitelisted
@@ -65,11 +66,11 @@ class AutoReactCog(commands.Cog):
                         await message.add_reaction(emoji)
                     except discord.errors.NotFound:
                         log.info(
-                            "Could not react to message %s in channel %s (%s) as the message was not found." +
-                            "Maybe the message was deleted?",
+                            "Could not react to message %s in channel %s (%s) as the message was not found."
+                            + "Maybe the message was deleted?",
                             message.id,
                             message.channel.name,
-                            message.channel.id
+                            message.channel.id,
                         )
 
     # Command groups
@@ -233,7 +234,6 @@ class AutoReactCog(commands.Cog):
         - `[p]autoreact remove channel <channel>`
         """
         async with self.config.guild(ctx.guild).channels() as channels:
-
             if str(channel.id) not in channels.keys():
                 error_embed = await self.make_error_embed(ctx, error_type="ChannelNotFound")
                 await ctx.send(embed=error_embed)
@@ -266,7 +266,6 @@ class AutoReactCog(commands.Cog):
         - `[p]autoreact remove whitelisted_channel <channel>`
         """
         async with self.config.guild(ctx.guild).whitelisted_channels() as channels:
-
             if channel.id not in channels:
                 error_embed = await self.make_error_embed(ctx, error_type="ChannelNotFound")
                 await ctx.send(embed=error_embed)
@@ -368,7 +367,7 @@ class AutoReactCog(commands.Cog):
                         value=" ".join(elem["reactions"]),
                         inline=True,
                     )
-                    embed.add_field(name="​", value="​", inline=True)  # ZWJ field
+                    embed.add_field(name="\u200b", value="\u200b", inline=True)  # ZWJ field
                 embed_list.append(embed)
 
         elif object_type in ("whitelisted channels", "whitelisted_channels"):
