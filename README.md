@@ -363,6 +363,7 @@ The specific logic used to decide when to welcome a user can be adjusted with th
 - `[p]rolewelcome always_welcome` - Toggle whether users receive a welcome message every time they are assigned the role. See more info in `[p]help rolewelcome always_welcome`.
 - `[p]rolewelcome reset_on_leave` - Toggle whether a user's welcome status is reset when they leave the guild. See more info in `[p]help rolewelcome reset_on_leave`.
 - `[p]rolewelcome clear_welcomed_users` - Clear the list of welcomed users.
+- `[p]rolewelcome backfill_welcomed_users <role>` - Backfill the list of welcomed users with all members of a role.
 - `[p]rolewelcome message <message>` - Set the welcome message, optionally including any of the noted template placeholders above.
 - `[p]rolewelcome test` - Test the welcome message in the current channel.
 

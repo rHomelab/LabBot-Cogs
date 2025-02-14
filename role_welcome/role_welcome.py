@@ -322,6 +322,26 @@ class RoleWelcome(commands.Cog):
         else:
             await ctx.send("Welcomed users list was not cleared.")
 
+    @welcome.command()
+    async def backfill_welcomed_users(self, ctx: commands.Context, role: discord.Role):
+        """
+        Backfill the list of welcomed users with all members of a role.
+        
+        **Example:**
+        - `[p]rolewelcome backfill_welcomed_users <role>`
+        - `[p]rolewelcome backfill_welcomed_users @members`
+        """
+        guild = ctx.guild
+        welcomed_users = await self.config.guild(guild).welcomed_users()
+        num_added_users = 0
+        async with ctx.typing():
+            async with self.config.guild(guild).welcomed_users() as welcomed_users:
+                for member in role.members:
+                    if member.id not in welcomed_users:
+                        welcomed_users.append(member.id)
+                        num_added_users += 1
+        await ctx.send(f"✅ Added {num_added_users} members of {role.name} to the list of welcomed users.")
+
     # Helpers
 
     async def send_welcome_message(
