@@ -35,7 +35,7 @@ class NoteABC(ABC):
 
     @classmethod
     @abstractmethod
-    def new(cls, ctx: commands.Context, note_id: int, member_id: int, message: str, *, is_warning: bool = False):  # noqa: PLR0913
+    def new(cls, ctx: commands.Context, note_id: int, member_id: int, message: str, *, is_warning: bool = False):
         """Initialise the class in a command context"""
         pass
 

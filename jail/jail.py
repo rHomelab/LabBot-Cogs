@@ -102,13 +102,12 @@ class JailCog(commands.Cog):
         async with ctx.typing():
             try:
                 # fixme: this is rly bad, dont use possibly blocking functions in async.
-                with open(archive_path, "r") as file:  # noqa: ASYNC101
+                with open(archive_path, "r") as file:  # noqa: ASYNC230
                     data = file.read()
                     transmit = discord.File(BytesIO(initial_bytes=data.encode()), filename=archive_file)
                     await ctx.send(file=transmit)
             except Exception as e:
                 await ctx.send(
-                    "Error fetching archive. Likely file not found, maybe a permissions issue. "
-                    "Check the console for details."
+                    "Error fetching archive. Likely file not found, maybe a permissions issue. Check the console for details."
                 )
                 print(e)

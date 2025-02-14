@@ -15,7 +15,7 @@ class NoteException(Exception):
 
 class Note(NoteABC):
     @classmethod
-    def new(cls, ctx: commands.Context, note_id: int, member_id: int, message: str, *, is_warning: bool = False):  # noqa: PLR0913
+    def new(cls, ctx: commands.Context, note_id: int, member_id: int, message: str, *, is_warning: bool = False):
         return cls(
             note_id=note_id,
             member_id=member_id,

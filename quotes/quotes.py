@@ -51,7 +51,7 @@ class QuotesCog(commands.Cog):
     # fixme: too many branches, i cba to refactor this now
     @commands.guild_only()
     @_quotes.command(name="add")
-    async def add_quote(self, ctx: commands.Context, *message_ids: Tuple[str]):  # noqa: PLR0912
+    async def add_quote(self, ctx: commands.Context, *message_ids: Tuple[str]):
         """Add a message or set of messages to the quotes channel
 
         Usage:

@@ -208,7 +208,7 @@ class JailConfigHelper(JailConfigHelperABC):
 
             # Write transcript to storage
             # fixme: this is rly bad, dont use possibly blocking functions in async.
-            with open(transcript_path, "wb") as file:  # noqa: ASYNC101
+            with open(transcript_path, "wb") as file:  # noqa: ASYNC230
                 file.write(transcript_object.getbuffer())
 
     async def get_jail_by_user(self, ctx: commands.Context, user: discord.User) -> JailABC:

@@ -9,7 +9,7 @@ from tags.abstracts import AliasABC, TagABC, TagConfigHelperABC, TransferABC, Us
 
 class Transfer(TransferABC):
     @classmethod
-    def new(cls, ctx: commands.Context, prior: int, reason: str, to: int, time: int):  # noqa: PLR0913
+    def new(cls, ctx: commands.Context, prior: int, reason: str, to: int, time: int):
         return cls(prior=prior, reason=reason, to=to, time=time)
 
     @classmethod
@@ -107,7 +107,7 @@ class TagConfigHelper(TagConfigHelperABC):
                 tags[trigger] = tag.to_dict()
         return tag
 
-    async def transfer_tag(self, ctx: commands.Context, trigger: str, to: int, reason: str, time: int):  # noqa: PLR0913
+    async def transfer_tag(self, ctx: commands.Context, trigger: str, to: int, reason: str, time: int):
         tag = await self.get_tag(ctx, trigger)
         if tag is not None:
             transfers = tag.transfers
@@ -165,7 +165,7 @@ class TagConfigHelper(TagConfigHelperABC):
             if tag.tag in tags:
                 tags[tag.tag]["uses"].append(use.to_dict())
 
-    async def create_alias(self, ctx: commands.Context, alias: str, tag: str, creator: int, created: int):  # noqa: PLR0913
+    async def create_alias(self, ctx: commands.Context, alias: str, tag: str, creator: int, created: int):
         new_alias = Alias.new(ctx, alias, creator, created, tag, [])
         async with self.config.guild(ctx.guild).aliases() as aliases:
             aliases[alias] = new_alias.to_dict()
