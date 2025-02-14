@@ -208,12 +208,12 @@ Also availble as a slash command.
 This cog allows users to be "jailed" in their own personal cell (channel). Also archives the channel to disk for future
 reference. 
 
-`[p]jail setup <#category>` - Set the jail category where jail channels will be created in. (category is the channel 
+* `[p]jail setup <#category>` - Set the jail category where jail channels will be created in. (category is the channel 
 category ID of the jail category)
-`[p]jail <@user>` - Jail the specified user.
-`[p]jail free <@user>` - Frees the specified user and cleans up the jail channel & role, archives the channel content.
-`[p]jail archives` - Lists the archived jails with user, date, and jail UUID.
-`[p]jail archives fetch <export uuid>` - Sends the specified jail channel archive as a file in the current channel (be 
+* `[p]jail <@user>` - Jail the specified user.
+* `[p]jail free <@user>` - Frees the specified user and cleans up the jail channel & role, archives the channel content.
+* `[p]jail archives` - Lists the archived jails with user, date, and jail UUID.
+* `[p]jail archives fetch <export uuid>` - Sends the specified jail channel archive as a file in the current channel (be 
 careful running this in public channels)
 
 ### Latex
