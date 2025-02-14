@@ -12,7 +12,7 @@ jobs:
         uses: ./.github/actions/setup
       - uses: astral-sh/ruff-action@v3
         with:
-          version-file: "./requirements.txt"
+          version-file: "./requirements-dev.txt"
 
   pyright:
     runs-on: ubuntu-latest
