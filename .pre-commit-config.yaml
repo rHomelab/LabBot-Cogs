@@ -9,8 +9,7 @@ repos:
       # Run the formatter.
       - id: ruff-format
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: 'v1.10.0'  # Use the sha / tag you want to point at
+  - repo: https://github.com/RobertCraigie/pyright-python
+    rev: v1.1.393
     hooks:
-    -   id: mypy
-        args: [--strict, --ignore-missing-imports]
+    - id: pyright
