@@ -100,7 +100,7 @@ class PurgeCog(commands.Cog):
             if not result:
                 pass
             new_list = users_kicked + "\n" + await self._get_safe_username(user)
-            if len(new_list) > 2048:
+            if len(new_list) > 2048:  # noqa: PLR2004
                 break
             users_kicked = new_list
 
@@ -206,7 +206,7 @@ class PurgeCog(commands.Cog):
 
         for user in users:
             new_desc = data.description + "\n" + await self._get_safe_username(user)
-            if len(new_desc) > 2048:
+            if len(new_desc) > 2048:  # noqa: PLR2004
                 break
             data.description = new_desc
 

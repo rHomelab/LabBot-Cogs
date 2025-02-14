@@ -38,8 +38,10 @@ def correct_punctuation_spacing(input_str: str) -> str:
 def string_converter(input_str: str) -> str:
     """Convert a string to discord emojis"""
     # NOTE In future it would be ideal to convert this function to an advanced converter (https://discordpy.readthedocs.io/en/latest/ext/commands/commands.html#advanced-converters)
-    # So we can bootstrap the commands.clean_content converter and escape channel/user/role mentions (currently there is no ping exploit; it just looks odd when converted)
-    # However, the current version of the commands.clean_content converter doesn't actually work on an argument; it scans the whole message content.
+    # So we can bootstrap the commands.clean_content converter and escape channel/user/role mentions
+    # (currently there is no ping exploit; it just looks odd when converted)
+    # However, the current version of the commands.clean_content converter doesn't actually work on an argument;
+    #  it scans the whole message content.
     # This has been fixed in discord.py 2.0
 
     # Make the whole string lowercase
@@ -82,7 +84,7 @@ class Letters(commands.Cog):
         output = f"```{msg}```" if raw else msg
 
         # Ensure output isn't too long
-        if len(output) > 2000:
+        if len(output) > 2000:  # noqa: PLR2004
             return await ctx.send("Input too large.")
 
         # Send message

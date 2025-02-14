@@ -101,7 +101,8 @@ class JailCog(commands.Cog):
 
         async with ctx.typing():
             try:
-                with open(archive_path, "r") as file:
+                # fixme: this is rly bad, dont use possibly blocking functions in async.
+                with open(archive_path, "r") as file:  # noqa: ASYNC101
                     data = file.read()
                     transmit = discord.File(BytesIO(initial_bytes=data.encode()), filename=archive_file)
                     await ctx.send(file=transmit)

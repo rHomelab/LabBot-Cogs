@@ -43,7 +43,7 @@ class Timeout(commands.Cog):
         # Send embed
         await log_channel.send(embed=embed)
 
-    async def timeout_add(
+    async def timeout_add(  # noqa: PLR0913
         self,
         ctx: commands.Context,
         user: discord.Member,

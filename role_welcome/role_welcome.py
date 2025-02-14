@@ -29,7 +29,7 @@ class RoleWelcome(commands.Cog):
         self.config.register_guild(**default_guild_settings)
 
     @commands.Cog.listener()
-    async def on_member_update(self, before: discord.Member, after: discord.Member):
+    async def on_member_update(self, before: discord.Member, after: discord.Member):  # noqa: PLR0911
         """Role addition event"""
         if after.bot:
             # Member is a bot
@@ -97,9 +97,11 @@ class RoleWelcome(commands.Cog):
         """
         Send a welcome message when a user is added to a role.
 
-        This cog will send a configurable welcome message to a specified channel when a user receives a specified role.
+        This cog will send a configurable welcome message to a specified channel when a user
+        receives a specified role.
 
-        The specific logic used to decide when to welcome a user can be adjusted with the `always_welcome` and `reset_on_leave` settings.
+        The specific logic used to decide when to welcome a user can be adjusted with the
+        `always_welcome` and `reset_on_leave` settings.
         """
         pass
 
@@ -160,7 +162,8 @@ class RoleWelcome(commands.Cog):
 
         ⚠️ **NOTE**
         When changing the role, you will be prompted to reset the list of welcomed users.
-        It is advisable to proceed with this to ensure all users are welcomed to the new role, however it may not be necessary in cases such as the recreation of a role or usage of a new role for the same purpose.
+        It is advisable to proceed with this to ensure all users are welcomed to the new role, however it may not be necessary
+        in cases such as the recreation of a role or usage of a new role for the same purpose.
         See `[p]rolewelcome always_welcome` and `[p]rolewelcome reset_on_leave` for more information.
         """
         old_role = await self.config.guild(ctx.guild).role()
@@ -229,7 +232,8 @@ class RoleWelcome(commands.Cog):
         """
         Toggle whether users receive a welcome message every time they are assigned the role.
 
-        - **If set to `true`**: Users will receive a welcome message **every time** they receive the role, even if they have had it before.
+        - **If set to `true`**: Users will receive a welcome message **every time** they receive the role, even if they have
+          had it before.
         - **If set to `false`**: Users will only receive a welcome message the **first time** they receive the role.
 
         **Default:** `true`
@@ -239,10 +243,12 @@ class RoleWelcome(commands.Cog):
         - `[p]rolewelcome status` - Shows the current status of this setting.
 
         ⚠️ **NOTE**
-        This offers similar functionality to `reset_on_leave`. You should review both settings carefully to understand how they interact.
+        This offers similar functionality to `reset_on_leave`. You should review both settings carefully to understand how they
+        interact.
 
         - If `always_welcome` is `false`, a user will not receive another welcome message if they lose and regain the role.
-        - If `always_welcome` is `false` but you still want users to be welcomed again after rejoining the guild, ensure that `reset_on_leave` is set to `true`.
+        - If `always_welcome` is `false` but you still want users to be welcomed again after rejoining the guild, ensure that
+          `reset_on_leave` is set to `true`.
         Run `[p]help rolewelcome reset_on_leave` for more information.
         """
         current_value = await self.config.guild(ctx.guild).always_welcome()
@@ -255,8 +261,10 @@ class RoleWelcome(commands.Cog):
         """
         Toggle whether a user's welcome status is reset when they leave the guild.
 
-        - **If set to `true`**: When a user leaves the guild, their welcome status is reset, meaning they will receive a welcome message again if they rejoin and receive the role again.
-        - **If `false`**: Their welcome status is retained, so they **will not** be welcomed again unless `always_welcome` is left set to the default value of `true`.
+        - **If set to `true`**: When a user leaves the guild, their welcome status is reset, meaning they will receive a
+          welcome message again if they rejoin and receive the role again.
+        - **If `false`**: Their welcome status is retained, so they **will not** be welcomed again unless `always_welcome` is
+          left set to the default value of `true`.
 
         **Default:** `true`
 
@@ -265,10 +273,12 @@ class RoleWelcome(commands.Cog):
         - `[p]rolewelcome status` - Shows the current status of this setting.
 
         ⚠️ **NOTE**
-        This offers similar functionality to `always_welcome`. You should review both settings carefully to understand how they interact.
+        This offers similar functionality to `always_welcome`. You should review both settings carefully to understand how they
+        interact.
 
         - If both `reset_on_leave` and `always_welcome` are `false`, users who leave and rejoin will **not** be welcomed again.
-        - If `always_welcome` is `true`, they will receive a welcome message each time they gain the role, regardless of the state of this setting or whether they have left and rejoined the guild.
+        - If `always_welcome` is `true`, they will receive a welcome message each time they gain the role, regardless of the
+          state of this setting or whether they have left and rejoined the guild.
         Run `[p]help rolewelcome always_welcome` for more information.
         """
         current_value = await self.config.guild(ctx.guild).reset_on_leave()
@@ -297,8 +307,10 @@ class RoleWelcome(commands.Cog):
         confirm_message = f"Do you wish to clear all {num_welcomed_users} users from the welcomed users list?"
         if ctx.command.name == "clear_welcomed_users":
             confirm_message += (
-                "\n⚠️ Clearing the list of welcomed users will cause all users to be welcomed again if they receive the role again."
-                + f"\nSee `{ctx.clean_prefix}rolewelcome always_welcome` and `{ctx.clean_prefix}rolewelcome reset_on_leave` for more information on welcome logic."
+                "\n⚠️ Clearing the list of welcomed users will cause all users "
+                "to be welcomed again if they receive the role again."
+                f"\nSee `{ctx.clean_prefix}rolewelcome always_welcome` and `{ctx.clean_prefix}rolewelcome reset_on_leave`"
+                "for more information on welcome logic."
             )
 
         view = ConfirmView(ctx.author)

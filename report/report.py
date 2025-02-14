@@ -1,5 +1,7 @@
 """discord red-bot report cog"""
 
+from typing import Optional
+
 import discord
 from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
@@ -59,7 +61,7 @@ class ReportCog(commands.Cog):
 
     @commands.command("report")
     @commands.guild_only()
-    async def cmd_report(self, ctx: commands.Context, *, message: str = None):
+    async def cmd_report(self, ctx: commands.Context, *, message: Optional[str] = None):
         """Sends a report to the mods for possible intervention
 
         Example:
@@ -93,7 +95,7 @@ class ReportCog(commands.Cog):
 
     @commands.command("emergency")
     @commands.guild_only()
-    async def cmd_emergency(self, ctx: commands.Context, *, message: str = None):
+    async def cmd_emergency(self, ctx: commands.Context, *, message: Optional[str] = None):
         """Pings the mods with a report for possible intervention
 
         Example:

@@ -320,7 +320,8 @@ class AutoReactCog(commands.Cog):
 
     async def make_error_embed(self, ctx, error_type: str = ""):
         error_msgs = {
-            "InvalidObjectType": "Invalid object. Please provide a valid object type from reactions, channels, whitelisted channels",
+            "InvalidObjectType": "Invalid object. Please provide a valid object "
+            "type from reactions, channels, whitelisted channels",
             "ChannelInWhitelist": "This channel is already in the whitelist",
             "ChannelNotFound": "Channel not found in config",
             "NoConfiguration": "No configuration has been set for this object",

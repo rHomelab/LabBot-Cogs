@@ -48,9 +48,10 @@ class QuotesCog(commands.Cog):
         )
         await ctx.send(embed=success_embed)
 
+    # fixme: too many branches, i cba to refactor this now
     @commands.guild_only()
     @_quotes.command(name="add")
-    async def add_quote(self, ctx: commands.Context, *message_ids: Tuple[str]):
+    async def add_quote(self, ctx: commands.Context, *message_ids: Tuple[str]):  # noqa: PLR0912
         """Add a message or set of messages to the quotes channel
 
         Usage:
@@ -66,6 +67,7 @@ class QuotesCog(commands.Cog):
         # Collect the messages
         async with ctx.channel.typing():
             for i, elem in enumerate(message_ids):
+                # fixme: this could be improved by moving the return into the try catch
                 if len(messages) != i:
                     return await self.send_error(
                         ctx,
@@ -147,14 +149,20 @@ class QuotesCog(commands.Cog):
             .add_field(name="Timestamp", value=f"<t:{int(messages[0].created_at.timestamp())}:F>")
         )
 
-    async def send_error(self, ctx, error_type: str = "", custom_msg: str = None) -> discord.Embed:
+    async def send_error(self, ctx, error_type: str = "", custom_msg: Optional[str] = None) -> discord.Embed:
         """Generate error message embeds"""
         error_msgs = {
-            "NoChannelSet": f"""There is no quotes channel configured for this server.
-        A moderator must set a quotes channel for this server using the command `{ctx.prefix}quote set_quotes_channel <channel>`""",
-            "ChannelNotFound": f"""Unable to find the quotes channel for this server. This could be due to a permissions issue or because the channel no longer exists.
-
-        A moderator must set a valid quotes channel for this server using the command `{ctx.prefix}quote set_quotes_channel <channel>`""",
+            "NoChannelSet": (
+                "There is no quotes channel configured for this server. "
+                "A moderator must set a quotes channel for this server using the "
+                f"command `{ctx.prefix}quote set_quotes_channel <channel>`"
+            ),
+            "ChannelNotFound": (
+                "Unable to find the quotes channel for this server. This could "
+                "be due to a permissions issue or because the channel no longer exists."
+                "A moderator must set a valid quotes channel for this server using the command "
+                f"`{ctx.prefix}quote set_quotes_channel <channel>`"
+            ),
             "NoArgs": "You must provide 1 or more message IDs for this command!",
         }
 

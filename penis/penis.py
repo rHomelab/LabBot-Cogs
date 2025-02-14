@@ -33,7 +33,7 @@ class Penis(commands.Cog):
         dongs = sorted(dongs.items(), key=lambda x: x[1])
 
         for user, dong in dongs:
-            if len(dong) <= 6:
+            if len(dong) <= 6:  # noqa: PLR2004
                 msg += "**{}'s size:**\n{}\nlol small\n".format(user.display_name, dong)
             else:
                 msg += "**{}'s size:**\n{}\n".format(user.display_name, dong)

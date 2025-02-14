@@ -6,6 +6,7 @@ import discord
 from redbot.core import Config, commands
 
 
+# fixme: please use data classes
 class JailABC(ABC):
     datetime: int
     channel_id: int
@@ -29,7 +30,7 @@ class JailABC(ABC):
 
     @classmethod
     @abstractmethod
-    def new(
+    def new(  # noqa: PLR0913
         cls,
         ctx: commands.Context,
         datetime: int,
@@ -54,6 +55,9 @@ class JailABC(ABC):
     def to_dict(self) -> dict:
         """Returns a dictionary representation of the class, suitable for storing in config"""
         pass
+
+
+# fixme: please use data classes
 
 
 class JailSetABC(ABC):

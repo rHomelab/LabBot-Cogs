@@ -6,7 +6,7 @@ from redbot.core import commands
 async def fetch_get(url_in: str) -> dict:
     """Make web requests"""
     async with aiohttp.request("GET", url_in) as response:
-        if response.status != 200:
+        if response.status != 200:  # noqa: PLR2004
             return {}
         return await response.json()
 

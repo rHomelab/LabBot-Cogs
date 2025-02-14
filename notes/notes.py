@@ -13,7 +13,8 @@ from .utils import MAYBE_MEMBER, ConfigHelper, NoteException
 
 
 def invoked_warning_cmd(ctx: commands.Context) -> bool:
-    """Useful for finding which alias triggered the command. Checks against the invoked parents attribute. Can only be used in subcommands."""
+    """Useful for finding which alias triggered the command. Checks
+    against the invoked parents attribute. Can only be used in subcommands."""
     return ctx.invoked_parents[0].startswith("warning")
 
 

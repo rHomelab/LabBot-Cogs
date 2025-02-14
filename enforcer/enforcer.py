@@ -1,7 +1,7 @@
 """discord red-bot enforcer"""
 
 import asyncio
-from typing import Union
+from typing import ClassVar, Optional, Union
 
 import discord
 from redbot.core import Config, checks, commands
@@ -23,7 +23,7 @@ CUSTOM_CONTROLS = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_pag
 class EnforcerCog(commands.Cog):
     """Enforcer Cog"""
 
-    ATTRIBUTES = {
+    ATTRIBUTES: ClassVar = {
         KEY_ENABLED: {"type": "bool"},
         KEY_MINCHARS: {"type": "number"},
         KEY_MAXCHARS: {"type": "number"},
@@ -131,7 +131,7 @@ class EnforcerCog(commands.Cog):
         channel: discord.TextChannel,
         attribute: str,
         *,
-        value: str = None,
+        value: Optional[str] = None,
     ):
         """Allows configuration of a channel
 
@@ -265,45 +265,48 @@ class EnforcerCog(commands.Cog):
     async def check_enforcer_rules(self, channel: dict, message: discord.Message) -> Union[bool, str]:
         """Check message against channel enforcer rules"""
         author = message.author
+        enforcer_error = ""
 
         if not channel.get(KEY_ENABLED):
             # Enforcing not enabled here
             return False
 
-        if KEY_MINDISCORDAGE in channel and author.created_at:
+        elif KEY_MINDISCORDAGE in channel and author.created_at:
             delta = discord.utils.utcnow() - author.created_at
             if delta.total_seconds() < channel[KEY_MINDISCORDAGE]:
                 # They breached minimum discord age
-                return "User account not old enough"
+                enforcer_error = "User account not old enough"
 
-        if KEY_MINGUILDAGE in channel and author.joined_at:
+        elif KEY_MINGUILDAGE in channel and author.joined_at:
             delta = discord.utils.utcnow() - author.joined_at
             if delta.total_seconds() < channel[KEY_MINGUILDAGE]:
                 # They breached minimum guild age
-                return "User not in server long enough"
+                enforcer_error = "User not in server long enough"
 
-        if channel.get(KEY_NOTEXT) and not message.content:
+        elif channel.get(KEY_NOTEXT) and not message.content:
             # They breached notext attribute
-            return "Message had no text"
+            enforcer_error = "Message had no text"
 
-        if (KEY_MINCHARS in channel) and (len(message.content) < channel[KEY_MINCHARS]):
+        elif (KEY_MINCHARS in channel) and (len(message.content) < channel[KEY_MINCHARS]):
             # They breached minchars attribute
-            return "Not enough characters"
+            enforcer_error = "Not enough characters"
 
-        if (KEY_MAXCHARS in channel) and (len(message.content) > channel[KEY_MAXCHARS]):
+        elif (KEY_MAXCHARS in channel) and (len(message.content) > channel[KEY_MAXCHARS]):
             # They breached maxchars attribute
-            return "Too many characters"
+            enforcer_error = "Too many characters"
 
-        if channel.get(KEY_NOMEDIA) or channel.get(KEY_REQUIREMEDIA):
+        elif channel.get(KEY_NOMEDIA) or channel.get(KEY_REQUIREMEDIA):
             # Check the embeds
             embeds = await self.check_embeds(message)
             if channel.get(KEY_NOMEDIA) and (embeds or message.attachments):
                 # They breached nomedia attribute
-                return "No media allowed"
+                enforcer_error = "No media allowed"
             if channel.get(KEY_REQUIREMEDIA) and not (embeds or message.attachments):
                 # They breached requiremedia attribute
-                return "Requires media attached"
+                enforcer_error = "Requires media attached"
 
+        if enforcer_error:
+            return enforcer_error
         return False
 
     async def check_embeds(self, message: discord.Message) -> bool:

@@ -15,7 +15,7 @@ class NoteException(Exception):
 
 class Note(NoteABC):
     @classmethod
-    def new(cls, ctx: commands.Context, note_id: int, member_id: int, message: str, *, is_warning: bool = False):
+    def new(cls, ctx: commands.Context, note_id: int, member_id: int, message: str, *, is_warning: bool = False):  # noqa: PLR0913
         return cls(
             note_id=note_id,
             member_id=member_id,
@@ -46,7 +46,10 @@ class Note(NoteABC):
         icon = "\N{WARNING SIGN}" if self.is_warning else "\N{MEMO}"
         member_name = self._guild.get_member(self.member_id) or self.member_id
         reporter_name = self._guild.get_member(self.reporter_id) or self.reporter_name
-        return f"{icon} #{self.note_id} **{member_name} - Added by {reporter_name}** - <t:{int(self.created_at)}:f>\n{self.message}"
+        return (
+            f"{icon} #{self.note_id} **{member_name} - Added by {reporter_name}** "
+            "- <t:{int(self.created_at)}:f>\n{self.message}"
+        )
 
     def __lt__(self, other) -> bool:
         return self.created_at < other.created_at

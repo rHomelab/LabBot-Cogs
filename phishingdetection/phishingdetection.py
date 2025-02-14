@@ -86,7 +86,8 @@ class PhishingDetectionCog(commands.Cog):
         """Fetch the list of phishing URLs and update the regex pattern"""
         # TODO: Use the websocket API to get live updates
         # Using 3660 (1 hour + 1 minute) instead of 3600 (1 hour) to prevent missing updates
-        # This is fine, as we store the URLs in a set, so duplicate add/remove operations do not result in missing/duplicate data
+        # This is fine, as we store the URLs in a set,
+        # so duplicate add/remove operations do not result in missing/duplicate data
         updates = await get_updates_from_timeframe(self.session, 3600)
         for update in updates:
             if update["type"] == "add":

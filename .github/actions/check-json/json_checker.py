@@ -1,5 +1,6 @@
 import json
 import re
+import sys
 from glob import glob
 from typing import List, Tuple, Union
 
@@ -79,4 +80,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     exit_code = main()
-    exit(exit_code)
+    sys.exit(exit_code)

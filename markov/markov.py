@@ -2,6 +2,7 @@ import logging
 import random
 import re
 from io import BytesIO
+from typing import Optional
 
 import discord
 from redbot.core import Config, checks, commands
@@ -56,27 +57,24 @@ class Markov(commands.Cog):
         # Load the user's markov chain and settings
         _, chains, depth, mode = await self.get_user_config(message.author)
 
-        # Create a token cleaner
-        cleaner = lambda x: x
-
-        # Choose a tokenizer mode
-        if mode == "word":
-            tokenizer = WORD_TOKENIZER
-            cleaner = lambda x: x.strip()
-        elif mode.startswith("chunk"):
-            chunk_length = 3 if len(mode) == 5 else mode[5:]
-            tokenizer = re.compile(rf"(.{{{chunk_length}}})")
-
-        # Get or create chain for tokenizer settings
         model = chains.get(f"{mode}-{depth}", {})
         # Begin all state chains with the control marker
         state = CONTROL
-        # Remove code block formatting and outer whitespace
+
         content = message.content.replace("`", "").strip()
-        # Split message into cleaned tokens
-        tokens = [t for x in tokenizer.split(content) if (t := cleaner(x))]
-        # Add control character transition to end of token chain
-        tokens.append(CONTROL)
+
+        # Choose a tokenizer mode
+        if mode == "word":
+            tokens = [x for x in WORD_TOKENIZER.split(content) if x.strip()]
+            # Add control character transition to end of token chain
+            tokens.append(CONTROL)
+        elif mode.startswith("chunk"):
+            chunk_length = 3 if len(mode) == 5 else mode[5:]  # noqa: PLR2004
+            tokenizer = re.compile(rf"(.{{{chunk_length}}})")
+            tokens = [x for x in tokenizer.split(content) if x]
+        else:
+            # fixme: what to do if mode is set wrong
+            return
 
         # Iterate over the tokens in the message
         for i, token in enumerate(tokens):
@@ -88,7 +86,7 @@ class Markov(commands.Cog):
 
             # Produce sliding state window (ngram)
             j = 1 + i - depth if i >= depth else 0
-            state = "".join(cleaner(x) for x in tokens[j : i + 1])
+            state = "".join(x for x in tokens[j : i + 1])
 
         # Store the model
         chains[f"{mode}-{depth}"] = model
@@ -113,7 +111,7 @@ class Markov(commands.Cog):
         i = 0
         while not text:
             text = await self.generate_text(chains, depth, mode)
-            if i > 3:
+            if i > 3:  # noqa: PLR2004
                 await ctx.send("I tried to generate text 3 times, now I'm giving up.")
                 return
             i += 1
@@ -145,6 +143,8 @@ class Markov(commands.Cog):
 
         Separate models will be stored for each combination of mode and depth that you choose.
         """
+        # fixme: error handle mode being wrong
+
         await self.conf.user(ctx.author).mode.set(mode)
         await ctx.send(f"Token mode set to '{mode}'.")
 
@@ -195,7 +195,7 @@ class Markov(commands.Cog):
 
     @checks.is_owner()
     @markov.command(aliases=["show_config"])
-    async def show_global(self, ctx: commands.Context, guild_id: int = None):
+    async def show_global(self, ctx: commands.Context, guild_id: Optional[int] = None):
         """Show global summary info or info for `guild_id`"""
         embed = discord.Embed(title="Markov settings", colour=await ctx.embed_colour())
         enabled_channels = ""

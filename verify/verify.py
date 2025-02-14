@@ -1,6 +1,7 @@
 """discord red-bot verify"""
 
 from datetime import timedelta
+from typing import Optional
 
 import discord
 import Levenshtein as lev
@@ -34,7 +35,7 @@ class VerifyCog(commands.Cog):
         self.config.register_guild(**default_guild_settings, force_registration=True)
 
     @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
+    async def on_message(self, message: discord.Message):  # noqa: PLR0911
         if not isinstance(message.guild, discord.Guild):
             # The user has DM'd us. Ignore.
             return
@@ -159,9 +160,9 @@ class VerifyCog(commands.Cog):
     async def verify_welcome(
         self,
         ctx: commands.Context,
-        channel: discord.TextChannel = None,
+        channel: Optional[discord.TextChannel] = None,
         *,
-        message: str = None,
+        message: Optional[str] = None,
     ):
         """Sets the welcome message
 
@@ -382,7 +383,7 @@ class VerifyCog(commands.Cog):
     @commands.command(name="v")
     @commands.guild_only()
     @checks.mod()
-    async def verify_manual(self, ctx: commands.Context, user: discord.Member, *, reason: str = None):
+    async def verify_manual(self, ctx: commands.Context, user: discord.Member, *, reason: Optional[str] = None):
         """Manually verifies a user
 
         Example:

@@ -7,6 +7,7 @@ import discord
 from redbot.core import Config, commands
 
 
+# fixme: please use data classes
 class BaseABC(ABC):
     def __init__(self, **kwargs):
         if kwargs.keys() != self.__annotations__.keys():
@@ -31,7 +32,7 @@ class TransferABC(BaseABC):
 
     @classmethod
     @abstractmethod
-    def new(cls, ctx: commands.Context, prior: int, reason: str, to: int, time: int):
+    def new(cls, ctx: commands.Context, prior: int, reason: str, to: int, time: int):  # noqa: PLR0913
         """Initialise the class in a command context"""
         pass
 
@@ -84,7 +85,7 @@ class AliasABC(BaseABC):
 
     @classmethod
     @abstractmethod
-    def new(cls, ctx: commands.Context, alias: str, creator: int, created: int, tag: str, uses: List[UseABC]):
+    def new(cls, ctx: commands.Context, alias: str, creator: int, created: int, tag: str, uses: List[UseABC]):  # noqa: PLR0913
         """Initialise the class in a command context"""
         pass
 
@@ -114,7 +115,7 @@ class TagABC(BaseABC):
 
     @classmethod
     @abstractmethod
-    def new(cls, ctx: commands.Context, creator: int, owner: int, created: int, tag: str, content: str):
+    def new(cls, ctx: commands.Context, creator: int, owner: int, created: int, tag: str, content: str):  # noqa: PLR0913
         """Initialise the class in a command context"""
         pass
 
@@ -157,7 +158,7 @@ class TagConfigHelperABC(ABC):
         """Updates and saves the content of an existing tag."""
         pass
 
-    async def transfer_tag(self, ctx: commands.Context, trigger: str, to: int, reason: str, time: int):
+    async def transfer_tag(self, ctx: commands.Context, trigger: str, to: int, reason: str, time: int):  # noqa: PLR0913
         """Transfers the specified tag ownership to the new specified owner and makes the transfer entry."""
         pass
 
@@ -186,7 +187,7 @@ class TagConfigHelperABC(ABC):
         """Adds and saves a usage entry for the specified tag."""
         pass
 
-    async def create_alias(self, ctx: commands.Context, alias: str, tag: str, creator: int, created: int):
+    async def create_alias(self, ctx: commands.Context, alias: str, tag: str, creator: int, created: int):  # noqa: PLR0913
         """Creates and saves the specified alias for the tag."""
         pass
 

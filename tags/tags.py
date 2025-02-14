@@ -92,8 +92,6 @@ class TagCog(commands.Cog):
             await ctx.send("That tag already exists as an alias!")
             return
 
-        tag = await self.config.create_tag(ctx, trigger, content)
-
         await ctx.send("Tag successfully created!")
 
     # @_tag.command(name="stats")

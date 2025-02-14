@@ -42,7 +42,7 @@ class IsItReadOnlyFriday(commands.Cog):
         utc_now = datetime.datetime.now(datetime.timezone.utc)
         offset_tz = datetime.timezone(datetime.timedelta(hours=offset))
         local = utc_now.astimezone(offset_tz)
-        data = {"offset": offset, "readonly": local.month == 12}
+        data = {"offset": offset, "readonly": local.month == 12}  # noqa: PLR2004
         return await self.make_readonly_embed(data, "December")
 
     @commands.command()

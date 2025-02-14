@@ -1,4 +1,3 @@
-import datetime
 import uuid
 from io import BytesIO
 from os import path
@@ -14,7 +13,7 @@ from jail.abstracts import JailABC, JailConfigHelperABC, JailSetABC
 
 class Jail(JailABC):
     @classmethod
-    def new(
+    def new(  # noqa: PLR0913
         cls,
         ctx: commands.Context,
         datetime: int,
@@ -191,7 +190,6 @@ class JailConfigHelper(JailConfigHelperABC):
         # Copied this from tig because the work was already done :)
         if ctx.guild is None:
             raise TypeError("ctx.guild is None")
-        time = datetime.datetime.utcnow()
         data_path = data_manager.cog_data_path(self)
         transcript_file_name = f"{archive_uuid}.html"
         transcript_path = path.join(data_path, transcript_file_name)
@@ -209,7 +207,8 @@ class JailConfigHelper(JailConfigHelperABC):
             transcript_object = BytesIO(initial_bytes=transcript.encode())
 
             # Write transcript to storage
-            with open(transcript_path, "wb") as file:
+            # fixme: this is rly bad, dont use possibly blocking functions in async.
+            with open(transcript_path, "wb") as file:  # noqa: ASYNC101
                 file.write(transcript_object.getbuffer())
 
     async def get_jail_by_user(self, ctx: commands.Context, user: discord.User) -> JailABC:

@@ -6,6 +6,8 @@ from redbot.core import Config, commands
 
 MAYBE_MEMBER = Union[discord.Member, discord.Object]
 
+# fixme: please use data classes
+
 
 class NoteABC(ABC):
     """Represents a note record"""
@@ -33,7 +35,7 @@ class NoteABC(ABC):
 
     @classmethod
     @abstractmethod
-    def new(cls, ctx: commands.Context, note_id: int, member_id: int, message: str, *, is_warning: bool = False):
+    def new(cls, ctx: commands.Context, note_id: int, member_id: int, message: str, *, is_warning: bool = False):  # noqa: PLR0913
         """Initialise the class in a command context"""
         pass
 
