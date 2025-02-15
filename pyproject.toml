@@ -11,4 +11,4 @@ line-length = 127
 # ...
 venvPath = "."
 venv = ".venv"
-exclude = [".venv", "jail", "notes", "tags"]
+exclude = [".venv", "jail", "notes", "tags", "prometheus_exporter"]
