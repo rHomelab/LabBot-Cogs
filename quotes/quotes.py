@@ -1,7 +1,7 @@
 """discord red-bot quotes"""
 
 import asyncio
-from typing import List, Optional, Tuple
+from typing import List, Optional, Sequence
 
 import discord
 from redbot.core import Config, checks, commands
@@ -33,7 +33,7 @@ class QuotesCog(commands.Cog):
     @commands.guild_only()
     @checks.mod()
     @_quotes.command(name="setchannel")
-    async def set_quotes_channel(self, ctx: commands.Context, channel: discord.TextChannel):
+    async def set_quotes_channel(self, ctx: commands.GuildContext, channel: discord.TextChannel):
         """Set the quotes channel for this server
 
         Usage:
@@ -51,7 +51,7 @@ class QuotesCog(commands.Cog):
     # fixme: too many branches, i cba to refactor this now
     @commands.guild_only()
     @_quotes.command(name="add")
-    async def add_quote(self, ctx: commands.Context, *message_ids: Tuple[str]):
+    async def add_quote(self, ctx: commands.GuildContext, *message_ids: str):
         """Add a message or set of messages to the quotes channel
 
         Usage:
@@ -63,36 +63,20 @@ class QuotesCog(commands.Cog):
         if not message_ids:
             return await self.send_error(ctx, error_type="NoArgs")
 
-        messages = []
         # Collect the messages
         async with ctx.channel.typing():
-            for i, elem in enumerate(message_ids):
-                # fixme: this could be improved by moving the return into the try catch
-                if len(messages) != i:
-                    return await self.send_error(
-                        ctx,
-                        custom_msg=f"Could not find message with ID `{message_ids[i - 1]}`",
-                    )
-                for channel in ctx.guild.channels:
-                    try:
-                        message = await channel.fetch_message(int(elem))
-                        messages.append(message)
-                    # Could be ValueError if the ID isn't int convertible or NotFound if it's not a valid ID
-                    except ValueError:
-                        continue
-                    except discord.NotFound:
-                        continue
+            messages = await self._get_messages(ctx, message_ids)
 
-            authors = set([m.author for m in messages])
+            if not messages:
+                return
 
-            if len(authors) > 1:
-                formatted_quote = "\n".join(
-                    map(lambda m: f"**{m.author.nick if m.author.nick else m.author.name}:** {m.content}", messages)
-                )
-            else:
-                formatted_quote = "\n".join(map(lambda m: m.content, messages))
+            quote_fragments = []
+            for message in messages:
+                quote_fragments.append(f"**{self._get_author_name(message)}:** {message.content}")
 
-            quote_embed = await self.make_quote_embed(ctx, formatted_quote, messages, authors)
+            formatted_quote = "\n".join(quote_fragments)
+
+            quote_embed = await self.make_quote_embed(ctx, formatted_quote, messages)
             quote_channel = await self.config.guild(ctx.guild).quote_channel()
 
             if not quote_channel:
@@ -107,7 +91,7 @@ class QuotesCog(commands.Cog):
             msg = await ctx.send(embed=quote_embed, content="Are you sure you want to send this quote?")
         # If sending the quote failed for any reason. For example, quote exceeded the character limit
         except Exception as err:
-            return await self.send_error(ctx, custom_msg=err)
+            return await self.send_error(ctx, custom_msg=str(err))
 
         confirmation = await self.get_confirmation(ctx, msg)
         if confirmation:
@@ -117,21 +101,53 @@ class QuotesCog(commands.Cog):
 
     # Helper functions
 
+    async def _get_author_name(self, message: discord.Message) -> str:
+        author = message.author
+        if isinstance(author, discord.Member):
+            return f"{author.nick if author.nick else author.name}"
+        return f"{author.name}"
+
+    async def _get_messages(self, ctx: commands.GuildContext, message_ids: Sequence[str]) -> List[discord.Message]:
+        messages: list[discord.Message] = []
+        errored_mids: list[str] = []
+        # NOTE: is this the best wat to do this? no clue tbh ask @Tigattack
+        for elem in message_ids:
+            for _channel in ctx.guild.channels:
+                if channel := self._is_valid_channel(_channel):
+                    try:
+                        message = await channel.fetch_message(int(elem))
+                        messages.append(message)
+                        break
+                    # Could be ValueError if the ID isn't int convertible or NotFound if it's not a valid ID
+                    except (ValueError, discord.NotFound):
+                        pass
+            else:
+                # message not found in any channel
+                errored_mids.append(elem)
+
+        if errored_mids and len(errored_mids) < len(message_ids):
+            error_msg = f"The following message IDs were not found: {', '.join(errored_mids)}"
+            await self.send_error(ctx, custom_msg=error_msg)
+        elif errored_mids and len(errored_mids) == len(message_ids):
+            await self.send_error(ctx, custom_msg="None of the provided message IDs were found!")
+        return messages
+
     async def make_quote_embed(
         self,
         ctx: commands.Context,
         formatted_quote: str,
         messages: List[discord.Message],
-        authors: List[discord.Member],
     ) -> discord.Embed:
         """Generate the quote embed to be sent"""
+        authors = [message.author for message in messages]
         author_list = " ".join([i.mention for i in authors])
         # List of channel mentions
         channels: List[str] = []
 
-        for channel in [i.channel for i in messages]:
-            if channel.mention not in channels:
+        for _channel in [i.channel for i in messages]:
+            if channel := self._is_valid_channel(_channel):
                 channels.append(channel.mention)
+        unique_channels = set(channels)
 
         return (
             discord.Embed(
@@ -140,16 +156,12 @@ class QuotesCog(commands.Cog):
             )
             .add_field(name="Authors", value=author_list, inline=False)
             .add_field(name="Submitted by", value=ctx.author.mention)
-            .add_field(
-                **{"name": "Channels", "value": "\n".join(channels)}
-                if len(channels) > 1
-                else {"name": "Channel", "value": channels[0]}
-            )
+            .add_field(name="Channels", value="\n".join(unique_channels))
             .add_field(name="Link", value=f"[Jump to quote]({messages[0].jump_url})")
             .add_field(name="Timestamp", value=f"<t:{int(messages[0].created_at.timestamp())}:F>")
         )
 
-    async def send_error(self, ctx, error_type: str = "", custom_msg: Optional[str] = None) -> discord.Embed:
+    async def send_error(self, ctx, error_type: str = "", custom_msg: str = "") -> None:
         """Generate error message embeds"""
         error_msgs = {
             "NoChannelSet": (
@@ -170,9 +182,25 @@ class QuotesCog(commands.Cog):
             error_msg = error_msgs[error_type]
         elif custom_msg:
             error_msg = custom_msg
-
+        else:
+            error_msg = "An unknown error has occurred"
         error_embed = discord.Embed(title="Error", description=error_msg, colour=await ctx.embed_colour())
         await ctx.send(embed=error_embed)
+
+    def _is_valid_channel(self, channel: discord.guild.GuildChannel | discord.abc.MessageableChannel | None):
+        if channel is not None and not isinstance(
+            channel,
+            (
+                discord.ForumChannel,
+                discord.CategoryChannel,
+                discord.DMChannel,
+                discord.ForumChannel,
+                discord.PartialMessageable,
+                discord.GroupChannel,
+            ),
+        ):
+            return channel
+        return False
 
     async def get_confirmation(self, ctx: commands.Context, msg: discord.Message) -> Optional[bool]:
         """Get confirmation from user with reactions"""
