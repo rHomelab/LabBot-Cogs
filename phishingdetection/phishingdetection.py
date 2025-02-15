@@ -48,7 +48,6 @@ async def get_updates_from_timeframe(session: aiohttp.ClientSession, num_seconds
 class PhishingDetectionCog(commands.Cog):
     """Phishing link detection cog"""
 
-    bot: Red
     predicate: Optional[Callable[[str], bool]] = None
     urls: Set[str]
     session: aiohttp.ClientSession
@@ -62,7 +61,7 @@ class PhishingDetectionCog(commands.Cog):
         )
         self.initialise_url_set.start()
 
-    def cog_unload(self):
+    async def cog_unload(self):
         self.initialise_url_set.cancel()
         self.update_urls.cancel()
         self.bot.loop.run_until_complete(self.session.close())
@@ -79,7 +78,7 @@ class PhishingDetectionCog(commands.Cog):
         self.predicate = generate_predicate_from_urls(self.urls)
 
         self.update_urls.start()
-        self.initialise_url_set.cancel()
+        self.initialise_url_set.cancel()  # type: ignore
 
     @tasks.loop(hours=1.0)
     async def update_urls(self):
