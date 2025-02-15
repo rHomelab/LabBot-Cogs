@@ -100,8 +100,11 @@ class PromExporter(commands.Cog):
         self.stat_api.start()
 
     def stop(self):
-        self.prom_server.stop()
-        self.stat_api.stop()
+        if self.prom_server:
+            self.prom_server.stop()
+        if self.stat_api:
+            self.stat_api.stop()
+
         logger.info("stopped server process")
 
     def reload(self):
@@ -110,6 +113,6 @@ class PromExporter(commands.Cog):
         self.start()
         logger.info("reloading complete")
 
-    def cog_unload(self):
+    async def cog_unload(self):
         self.stop()
         logger.info("cog unloading")
