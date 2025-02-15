@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository at the current branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Install dependencies
         uses: ./.github/actions/setup
       - uses: astral-sh/ruff-action@v3
@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository at the current branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Install dependencies
         uses: ./.github/actions/setup
       - uses: jakebailey/pyright-action@v2
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository at the current branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Install dependencies
         uses: ./.github/actions/setup
       - name: Check cog and repo JSON files against schema
@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository at the current branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Install dependencies
         uses: ./.github/actions/setup
       - name: Run unit tests
