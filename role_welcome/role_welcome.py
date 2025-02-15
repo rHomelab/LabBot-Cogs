@@ -346,7 +346,7 @@ class RoleWelcome(commands.Cog):
     # NOTE: this is a gross ugly hack for ruff false positive on line 330
     async def send_welcome_message(
         self,
-        guild: discord.Guild,  # noqa: W293 RUF100
+        guild: discord.Guild,  # noqa: W293
         channel: discord.TextChannel,
         member: discord.abc.User,
     ):
