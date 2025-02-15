@@ -47,7 +47,7 @@ class AutoReplyCog(commands.Cog):
 
     # Commands
 
-    @_autoreply.command(name="add")
+    @_autoreply.command(name="add")  # type: ignore
     async def _add(self, ctx, trigger: str = "", response: str = ""):
         """Add autoreply trigger"""
         if not trigger and not response:
@@ -83,7 +83,7 @@ class AutoReplyCog(commands.Cog):
         await ctx.send("✅ Autoreply trigger successfully added")
 
     @commands.guild_only()
-    @_autoreply.command(name="view")
+    @_autoreply.command(name="view")  # type: ignore
     async def _view(self, ctx):
         """View the configuration for the autoreply cog"""
         triggers = await self.ordered_list_from_config(ctx.guild)
@@ -110,7 +110,7 @@ class AutoReplyCog(commands.Cog):
             await ctx.send(embed=error_embed)
 
     @commands.guild_only()
-    @_autoreply.command(name="remove", aliases=["delete"])
+    @_autoreply.command(name="remove", aliases=["delete"])  # type: ignore
     async def _remove(self, ctx, num: int):
         """Remove a reaction pair
 
