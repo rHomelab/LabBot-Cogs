@@ -90,7 +90,7 @@ class RoleWelcome(commands.Cog):
 
     # Command groups
 
-    @commands.group(name="rolewelcome")
+    @commands.group(name="rolewelcome")  # type: ignore
     @commands.guild_only()
     @checks.mod()
     async def welcome(self, ctx: commands.Context):
@@ -108,7 +108,7 @@ class RoleWelcome(commands.Cog):
     # Commands
 
     @welcome.command("status")
-    async def send_welcome_status(self, ctx: commands.Context):
+    async def send_welcome_status(self, ctx: commands.GuildContext):
         """Status of the cog."""
         guild_role = "Unset"
         channel = "Unset"
@@ -153,7 +153,7 @@ class RoleWelcome(commands.Cog):
             await ctx.send("I need the `Embed links` permission to send status.")
 
     @welcome.command("role")
-    async def set_welcome_role(self, ctx: commands.Context, role: discord.Role):
+    async def set_welcome_role(self, ctx: commands.GuildContext, role: discord.Role):
         """Set the role to be watched for new users.
 
         **Example:**
@@ -180,7 +180,7 @@ class RoleWelcome(commands.Cog):
             await self.clear_welcomed_users(ctx)
 
     @welcome.command("channel")
-    async def set_welcome_channel(self, ctx: commands.Context, channel: discord.abc.GuildChannel):
+    async def set_welcome_channel(self, ctx: commands.GuildContext, channel: discord.abc.GuildChannel):
         """Set the channel to send welcome messages to.
 
         **Example:**
@@ -199,7 +199,7 @@ class RoleWelcome(commands.Cog):
     @welcome.command("message")
     async def set_welcome_message(
         self,
-        ctx: commands.Context,
+        ctx: commands.GuildContext,
         *,
         message: str,
     ):
@@ -220,7 +220,7 @@ class RoleWelcome(commands.Cog):
         await ctx.tick(message=f"Welcome message set to `{message}`.")
 
     @welcome.command("test")
-    async def test_welcome_message(self, ctx: commands.Context):
+    async def test_welcome_message(self, ctx: commands.GuildContext):
         """Test the welcome message in the current channel."""
         if not isinstance(ctx.channel, discord.TextChannel):
             await ctx.send("Test channel (current) must be a text channel.")
@@ -228,7 +228,7 @@ class RoleWelcome(commands.Cog):
         await self.send_welcome_message(ctx.guild, ctx.channel, ctx.author)
 
     @welcome.command("always_welcome")
-    async def set_always_welcome(self, ctx: commands.Context):
+    async def set_always_welcome(self, ctx: commands.GuildContext):
         """
         Toggle whether users receive a welcome message every time they are assigned the role.
 
@@ -257,7 +257,7 @@ class RoleWelcome(commands.Cog):
         await ctx.send(f"✅ Always welcome is now `{new_value}`.")
 
     @welcome.command("reset_on_leave")
-    async def set_reset_on_leave(self, ctx: commands.Context):
+    async def set_reset_on_leave(self, ctx: commands.GuildContext):
         """
         Toggle whether a user's welcome status is reset when they leave the guild.
 
@@ -287,7 +287,7 @@ class RoleWelcome(commands.Cog):
         await ctx.send(f"✅ Reset on leave is now `{new_value}`.")
 
     @welcome.command()
-    async def clear_welcomed_users(self, ctx: commands.Context):
+    async def clear_welcomed_users(self, ctx: commands.GuildContext):
         """
         Clear the list of welcomed users.
 
