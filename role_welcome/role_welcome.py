@@ -343,7 +343,6 @@ class RoleWelcome(commands.Cog):
         await ctx.send(f"✅ Added {num_added_users} members of {role.name} to the list of welcomed users.")
 
     # Helpers
-
     async def send_welcome_message(
         self,
         guild: discord.Guild,
