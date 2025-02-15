@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import List, Optional, TypedDict, Union
+from typing import List, Optional, Self, TypedDict, Union
 
 import discord
 from redbot.core import commands
@@ -50,13 +50,13 @@ class InteractiveSession:
         return (await self.get_literal_answer(question, ["y", "n"])) == "y"
 
     @classmethod
-    def from_session(cls, session: InteractiveSession) -> InteractiveSession:
+    def from_session(cls, session: InteractiveSession) -> Self:
         return cls(session.ctx)
 
     @abstractmethod
     async def confirm_sample(self) -> bool:
         """Sends the constructed payload and confirms the user is happy with it."""
-        pass
+        return False
 
 
 class MessageBuilder(InteractiveSession):
@@ -158,7 +158,7 @@ class MixedBuilder(InteractiveSession):
         return self.payload
 
     async def confirm_sample(self) -> bool:
-        pass
+        return False
 
 
 async def make_session(ctx: commands.Context) -> Payload:
