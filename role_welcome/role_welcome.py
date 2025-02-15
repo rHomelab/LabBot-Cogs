@@ -323,7 +323,7 @@ class RoleWelcome(commands.Cog):
             await ctx.send("Welcomed users list was not cleared.")
 
     @welcome.command()
-    async def backfill_welcomed_users(self, ctx: commands.Context, role: discord.Role):
+    async def backfill_welcomed_users(self, ctx: commands.GuildContext, role: discord.Role):
         """
         Backfill the list of welcomed users with all members of a role.
 
@@ -346,7 +346,7 @@ class RoleWelcome(commands.Cog):
     # NOTE: this is a gross ugly hack for ruff false positive on line 330
     async def send_welcome_message(
         self,
-        guild: discord.Guild,  # noqa: W293
+        guild: discord.Guild,
         channel: discord.TextChannel,
         member: discord.abc.User,
     ):
