@@ -11,3 +11,4 @@ line-length = 127
 # ...
 venvPath = "."
 venv = ".venv"
+exclude = [".venv", "jail", "notes", "tags"]
