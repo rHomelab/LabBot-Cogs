@@ -279,7 +279,7 @@ class Timeout(commands.Cog):
         # role, so we must ensure we avoid attempting to do so.
         booster_role = ctx.guild.premium_subscriber_role
         timeout_roleset = {timeout_role}
-        if booster_role in user.roles:
+        if booster_role is not None and booster_role in user.roles:
             timeout_roleset.add(booster_role)
 
         # Check if user already in timeout.
