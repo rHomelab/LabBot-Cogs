@@ -24,10 +24,13 @@ class RoleInfoCog(commands.Cog):
         - `[p]roleinfo verified`
         - `[p]roleinfo @verified`
         """
-        role_check = await is_mod(self.bot, ctx.author) or role <= max(ctx.author.roles)
-        if role_check:
-            embed = await self.make_role_embed(role)
-            await ctx.send(embed=embed)
+        if isinstance(ctx.author, discord.Member):
+            role_check = await is_mod(self.bot, ctx.author) or role <= max(ctx.author.roles)
+            if role_check:
+                embed = await self.make_role_embed(role)
+                await ctx.send(embed=embed)
+        else:
+            await ctx.send("You can only use this command in a server.")
 
     async def make_role_embed(self, role: discord.Role) -> discord.Embed:
         """Generate the role info embed"""
