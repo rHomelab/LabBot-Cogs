@@ -47,8 +47,7 @@ class VerifyCog(commands.Cog):
             return
 
         author = message.author
-        valid_user = isinstance(author, discord.Member) and not author.bot
-        if not valid_user:
+        if not isinstance(author, discord.Member) or author.bot or author.joined_at is None:
             # User is a bot. Ignore.
             return
 
@@ -93,10 +92,6 @@ class VerifyCog(commands.Cog):
         if await self._verify_user(guild, author):
             await self._log_verify_message(guild, author, None)
 
-            role_id = await self.config.guild(guild).role()
-            role = guild.get_role(role_id)
-            await self._cleanup(message, role)
-
     @commands.Cog.listener()
     async def on_member_update(self, before: discord.Member, after: discord.Member):
         """Verification event"""
@@ -133,11 +128,12 @@ class VerifyCog(commands.Cog):
         welcomechannel = await self.config.guild(guild).welcomechannel()
         if welcomechannel:
             welcomemsg = welcomemsg.format(user=after.mention)
-            await guild.get_channel(welcomechannel).send(welcomemsg)
+            if channel := self._is_valid_channel(guild.get_channel(welcomechannel)):
+                await channel.send(welcomemsg)
 
     # Command groups
 
-    @commands.group(name="verify")
+    @commands.group(name="verify")  # type: ignore
     @commands.guild_only()
     @checks.mod()
     async def _verify(self, ctx: commands.Context):
@@ -146,7 +142,7 @@ class VerifyCog(commands.Cog):
     # Commands
 
     @_verify.command("message")
-    async def verify_message(self, ctx: commands.Context, *, message: str):
+    async def verify_message(self, ctx: commands.GuildContext, *, message: str):
         """Sets the new verification message
 
         Example:
@@ -159,7 +155,7 @@ class VerifyCog(commands.Cog):
     @_verify.command("welcome")
     async def verify_welcome(
         self,
-        ctx: commands.Context,
+        ctx: commands.GuildContext,
         channel: Optional[discord.TextChannel] = None,
         *,
         message: Optional[str] = None,
@@ -180,7 +176,7 @@ class VerifyCog(commands.Cog):
         await ctx.send("Welcome message set.")
 
     @_verify.command("tooquick")
-    async def verify_tooquick(self, ctx: commands.Context, message: str):
+    async def verify_tooquick(self, ctx: commands.GuildContext, message: str):
         """The message to reply if they're too quick at verifying
 
         Example:
@@ -191,7 +187,7 @@ class VerifyCog(commands.Cog):
         await ctx.send("Too quick reply message set.")
 
     @_verify.command("wrongmsg")
-    async def verify_wrongmsg(self, ctx: commands.Context, message: str):
+    async def verify_wrongmsg(self, ctx: commands.GuildContext, message: str):
         """The message to reply if they input the wrong verify message.
         Using `{user}` in the message will mention the user and allow
         the message to be deleted automatically once the user is verified.
@@ -206,7 +202,7 @@ class VerifyCog(commands.Cog):
         await ctx.send("Wrong verify message reply message set.")
 
     @_verify.command("role")
-    async def verify_role(self, ctx: commands.Context, role: discord.Role):
+    async def verify_role(self, ctx: commands.GuildContext, role: discord.Role):
         """Sets the verified role
 
         Example:
@@ -216,7 +212,7 @@ class VerifyCog(commands.Cog):
         await ctx.send(f"Verify role set to `{role.name}`")
 
     @_verify.command("mintime")
-    async def verify_mintime(self, ctx: commands.Context, mintime: int):
+    async def verify_mintime(self, ctx: commands.GuildContext, mintime: int):
         """
         Sets the minimum time a user must be in the discord server
         to be verified, using seconds as a unit.
@@ -234,7 +230,7 @@ class VerifyCog(commands.Cog):
         await ctx.send(f"Verify minimum time set to {mintime} seconds")
 
     @_verify.command("channel")
-    async def verify_channel(self, ctx: commands.Context, channel: discord.TextChannel):
+    async def verify_channel(self, ctx: commands.GuildContext, channel: discord.TextChannel):
         """Sets the channel to post the message in to get the role
 
         Example:
@@ -245,7 +241,7 @@ class VerifyCog(commands.Cog):
         await ctx.send(f"Verify message channel set to `{channel.name}`")
 
     @_verify.command("logchannel")
-    async def verify_logchannel(self, ctx: commands.Context, channel: discord.TextChannel):
+    async def verify_logchannel(self, ctx: commands.GuildContext, channel: discord.TextChannel):
         """Sets the channel to post the verification logs
 
         Example:
@@ -256,7 +252,7 @@ class VerifyCog(commands.Cog):
         await ctx.send(f"Verify log message channel set to `{channel.name}`")
 
     @_verify.command("block")
-    async def verify_block(self, ctx: commands.Context, user: discord.Member):
+    async def verify_block(self, ctx: commands.GuildContext, user: discord.Member):
         """Blocks the user from verification
 
         Example:
@@ -271,7 +267,7 @@ class VerifyCog(commands.Cog):
                 await ctx.send(f"{user.mention} has already been blocked from verifying")
 
     @_verify.command("unblock")
-    async def verify_unlock(self, ctx: commands.Context, user: discord.Member):
+    async def verify_unlock(self, ctx: commands.GuildContext, user: discord.Member):
         """Unblocks the user from verification
 
         Example:
@@ -286,7 +282,7 @@ class VerifyCog(commands.Cog):
                 await ctx.send(f"{user.mention} wasn't blocked from verifying")
 
     @_verify.command("fuzziness")
-    async def _set_fuzziness(self, ctx, fuzziness: int):
+    async def _set_fuzziness(self, ctx: commands.GuildContext, fuzziness: int):
         """Sets the threshold for fuzzy matching of the verify message
         This command takes the `fuzziness` arg as a number from 0 - 100, with 0 requiring an exact match
         Verify checks are case insensitive regardless of fuzziness level
@@ -303,7 +299,7 @@ class VerifyCog(commands.Cog):
         await ctx.send(f"Fuzzy matching threshold for verification set to `{fuzziness}%`")
 
     @_verify.command("status")
-    async def verify_status(self, ctx: commands.Context):
+    async def verify_status(self, ctx: commands.GuildContext):
         """Status of the cog.
         The bot will display how many users it has verified
         since it's inception.
@@ -339,17 +335,14 @@ class VerifyCog(commands.Cog):
         embed = discord.Embed(colour=(await ctx.embed_colour()))
         embed.add_field(name="Verified", value=f"{count} users")
 
-        if role_id:
-            role = ctx.guild.get_role(role_id)
+        if role_id and (role := ctx.guild.get_role(role_id)):
             embed.add_field(name="Role", value=role.mention)
 
-        if channel_id:
-            channel = ctx.guild.get_channel(channel_id)
+        if channel_id and (channel := self._is_valid_channel(ctx.guild.get_channel(channel_id))):
             embed.add_field(name="Channel", value=channel.mention)
 
-        if log_id:
-            log = ctx.guild.get_channel(log_id)
-            embed.add_field(name="Log", value=log.mention)
+        if log_id and (log_channel := self._is_valid_channel(ctx.guild.get_channel(log_id))):
+            embed.add_field(name="Log", value=log_channel.mention)
 
         embed.add_field(name="Min Time", value=f"{mintime} secs")
         embed.add_field(name="Message", value=f"`{message}`")
@@ -358,9 +351,8 @@ class VerifyCog(commands.Cog):
         if wrongmsg:
             embed.add_field(name="Wrong Msg", value=f"`{wrongmsg}`")
 
-        if welcomechannel:
-            welcome = ctx.guild.get_channel(welcomechannel)
-            embed.add_field(name="Welcome Channel", value=welcome.mention)
+        if welcomechannel and (welcome_channel := self._is_valid_channel(ctx.guild.get_channel(welcomechannel))):
+            embed.add_field(name="Welcome Channel", value=welcome_channel.mention)
 
         if welcomemsg:
             embed.add_field(name="Welcome Msg", value=f"`{welcomemsg}`")
@@ -368,8 +360,8 @@ class VerifyCog(commands.Cog):
         if welcome_ignore_roles:
             welcome_ignore = ""
             for role in welcome_ignore_roles:
-                discord_role = ctx.guild.get_role(role)
-                welcome_ignore += f"{discord_role.name}, "
+                if discord_role := ctx.guild.get_role(role):
+                    welcome_ignore += f"{discord_role.name}, "
             embed.add_field(name="Welcome Ignore Roles", value=welcome_ignore.rstrip(", "))
 
         embed.add_field(name="# Users Blocked", value=f"`{len(blocked_users)}`")
@@ -380,10 +372,10 @@ class VerifyCog(commands.Cog):
         except discord.Forbidden:
             await ctx.send("I need the `Embed links` permission to send a verify status.")
 
-    @commands.command(name="v")
+    @commands.command(name="v")  # type: ignore
     @commands.guild_only()
     @checks.mod()
-    async def verify_manual(self, ctx: commands.Context, user: discord.Member, *, reason: Optional[str] = None):
+    async def verify_manual(self, ctx: commands.GuildContext, user: discord.Member, *, reason: Optional[str] = None):
         """Manually verifies a user
 
         Example:
@@ -406,11 +398,16 @@ class VerifyCog(commands.Cog):
 
     # Helper functions
 
+    def _is_valid_channel(self, channel: discord.guild.GuildChannel | None):
+        if channel is not None and not isinstance(channel, (discord.ForumChannel, discord.CategoryChannel)):
+            return channel
+        return False
+
     async def _log_verify_message(
         self,
         guild: discord.Guild,
         user: discord.Member,
-        verifier: discord.Member,
+        verifier: Optional[discord.Member] = None,
         **kwargs,
     ):
         """Private method for logging a message to the logchannel"""
@@ -433,10 +430,11 @@ class VerifyCog(commands.Cog):
             if reason:
                 data.add_field(name="Reason", value=reason)
             if log:
-                try:
-                    await log.send(embed=data)
-                except discord.Forbidden:
-                    await log.send(f"**{message}** - {user.id} - {user}")
+                if channel := self._is_valid_channel(log):
+                    try:
+                        await channel.send(embed=data)
+                    except discord.Forbidden:
+                        await channel.send(f"**{message}** - {user.id} - {user}")
 
     async def _verify_user(self, guild: discord.Guild, member: discord.Member):
         """Private method for verifying a user"""
@@ -444,10 +442,14 @@ class VerifyCog(commands.Cog):
             if member.id in blocked_users:
                 return False
 
+        log_id = await self.config.guild(guild).logchannel()
         role_id = await self.config.guild(guild).role()
-        role = guild.get_role(role_id)
-        await member.add_roles(role)
-        return True
+        if role := guild.get_role(role_id):
+            await member.add_roles(role)
+            return True
+        elif log_id and (log_channel := self._is_valid_channel(guild.get_channel(log_id))):
+            await log_channel.send(f"**User Not Verified Due To Error** - missing verified role. role_id: {role_id}")
+        return False
 
     @_verify.group(name="welcomeignore")
     async def welcome_ignore(self, ctx: commands.Context):
@@ -468,7 +470,7 @@ class VerifyCog(commands.Cog):
             pass
 
     @welcome_ignore.command(name="add")
-    async def welcome_ignore_add(self, ctx: commands.Context, role: discord.Role):
+    async def welcome_ignore_add(self, ctx: commands.GuildContext, role: discord.Role):
         """Add a role to the welcomeignore roles list
 
         Example:
@@ -480,7 +482,7 @@ class VerifyCog(commands.Cog):
         await ctx.tick()
 
     @welcome_ignore.command(name="remove")
-    async def welcome_ignore_remove(self, ctx: commands.Context, role: discord.Role):
+    async def welcome_ignore_remove(self, ctx: commands.GuildContext, role: discord.Role):
         """Remove a role to the welcomeignore roles list
 
         Example:
@@ -492,7 +494,7 @@ class VerifyCog(commands.Cog):
         await ctx.tick()
 
     @welcome_ignore.command(name="list")
-    async def welcome_ignore_list(self, ctx: commands.Context):
+    async def welcome_ignore_list(self, ctx: commands.GuildContext):
         """List roles in the welcomeignore roles list
 
         Example:
@@ -505,10 +507,13 @@ class VerifyCog(commands.Cog):
             embed = discord.Embed(color=(await ctx.embed_colour()))
 
             for role in roles_config:
-                discord_role = ctx.guild.get_role(role)
-                embed.add_field(name="Role Name", value=discord_role.name, inline=True)
-                embed.add_field(name="Role ID", value=discord_role.id, inline=True)
-                embed.add_field(name="\u200b", value="\u200b", inline=True)  # ZWJ field
+                if discord_role := ctx.guild.get_role(role):
+                    embed.add_field(name="Role Name", value=discord_role.name, inline=True)
+                    embed.add_field(name="Role ID", value=discord_role.id, inline=True)
+                    embed.add_field(name="\u200b", value="\u200b", inline=True)  # ZWJ field
+                else:
+                    embed.add_field(name="ERROR: Role ID missing", value=role, inline=True)
+                    embed.add_field(name="\u200b", value="\u200b", inline=True)  # ZWJ field
             await ctx.send(embed=embed)
 
         else:
