@@ -352,15 +352,13 @@ class RoleWelcome(commands.Cog):
     ):
         """Send welcome message"""
         if not channel.permissions_for(guild.me).send_messages:
-            log.error(f"Missing send messages permission for {channel.name} ({channel.id})")
+            log.error(f"Missing send messages permission for {channel.name} ({channel.id})")  # type: ignore
             return
         role_name = "role_unset"
-        welcome_role_id = await self.config.guild(guild).role()
-        if welcome_role_id:
-            role_name = "role_unknown"
-            welcome_role = guild.get_role(welcome_role_id)
-            if welcome_role:
-                role_name = welcome_role.name
+        welcome_role_id = await self.config.guild(guild).role()  # type: ignore
+        role_name = "role_unknown"
+        if welcome_role_id and (welcome_role := guild.get_role(welcome_role_id)):
+            role_name = welcome_role.name
 
         welcome_message = await self.config.guild(guild).message()
         welcome_message = welcome_message.format(user=member.mention, role=role_name, guild=guild.name)
