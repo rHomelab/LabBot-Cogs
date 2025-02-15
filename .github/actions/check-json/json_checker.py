@@ -33,13 +33,13 @@ def validate(schema_name: str, filename: str) -> bool:
             error_keys, msg_bounds = list_from_str(error.message)
             for key in error_keys:
                 line, col = get_key_pos(filename, key)
-                message = f"{error.message[:msg_bounds[0] + 1]}{key}{error.message[msg_bounds[1] - 1:]}"
+                message = f"{error.message[: msg_bounds[0] + 1]}{key}{error.message[msg_bounds[1] - 1 :]}"
                 print(format_output(level="error", file=filename, line=line, col=col, message=message))
         else:
             key_name = error.path[1]
             line, col = get_key_pos(filename, key_name)
             print(format_output(level="warning", file=filename, line=line, col=col, message=error.message))
-            return False
+        return False
 
 
 def get_key_pos(filename: str, key: str) -> Tuple[int, int]:
