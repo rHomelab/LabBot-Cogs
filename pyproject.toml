@@ -6,3 +6,8 @@ select = ["F", "E", "W", "I", "ASYNC", "PL", "RUF"]
 
 [tool.ruff]
 line-length = 127
+
+[tool.pyright]
+# ...
+venvPath = "."
+venv = ".venv"
