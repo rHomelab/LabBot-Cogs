@@ -4,6 +4,9 @@ asyncio_mode = "auto"
 [tool.ruff.lint]
 select = ["F", "E", "W", "I", "ASYNC", "PL", "RUF"]
 
+[tool.ruff.lint.per-file-ignores]
+"role_welcome/role_welcome.py" = ["W293"]
+
 [tool.ruff]
 line-length = 127
 
