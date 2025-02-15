@@ -11,6 +11,5 @@ async def setup(bot: Red):
 
 
 async def teardown(bot: Red):
-    await bot.remove_cog(FeedCog())
     bot.tree.remove_command("Feed", type=AppCommandType.message)
     bot.tree.remove_command("Feed", type=AppCommandType.user)
