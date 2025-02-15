@@ -43,7 +43,7 @@ class Markov(commands.Cog):
             data = f"No data is stored for user with ID {user_id}.\n"
         return {"user_data.txt": BytesIO(data.encode())}
 
-    async def red_delete_data_for_user(self, *, requester, user_id):
+    async def red_delete_data_for_user(self, *, requester, user_id):  # type: ignore
         """Delete a user's personal data."""
         await self.conf.member(await self.bot.fetch_user(user_id)).clear()
 
@@ -56,6 +56,8 @@ class Markov(commands.Cog):
 
         # Load the user's markov chain and settings
         _, chains, depth, mode = await self.get_user_config(message.author)
+        if not chains or not mode:
+            return
 
         model = chains.get(f"{mode}-{depth}", {})
         # Begin all state chains with the control marker
@@ -99,11 +101,15 @@ class Markov(commands.Cog):
         """New users must `enable` and say some words before using `generate`"""
 
     @markov.command()
-    async def generate(self, ctx: commands.Context, user: discord.abc.User = None):
+    async def generate(self, ctx: commands.Context, user: Optional[discord.abc.User] = None):
         """Generate text based on user language models"""
         if not isinstance(user, discord.abc.User):
             user = ctx.message.author
         enabled, chains, depth, mode = await self.get_user_config(user)
+
+        if not chains or not mode:
+            await ctx.send("Sorry, I don't have any models to use")
+            return
         if not enabled:
             await ctx.send(f"Sorry, {user} won't let me model their speech")
             return
@@ -155,7 +161,7 @@ class Markov(commands.Cog):
         await ctx.send(f"Ngram modelling depth set to {depth}.")
 
     @markov.command(aliases=["user_settings"])
-    async def show_user(self, ctx: commands.Context, user: discord.abc.User = None):
+    async def show_user(self, ctx: commands.Context, user: Optional[discord.abc.User] = None):
         """Show your current settings and models
 
         Moderators can also view the settings and models of another member if they specify one.
@@ -177,6 +183,11 @@ class Markov(commands.Cog):
 
         # Get user configs
         enabled, chains, depth, mode = await self.get_user_config(user, lazy=False)
+
+        if not chains or not mode:
+            await ctx.send("Sorry, I don't have any models to use")
+            return
+
         models = "\n".join(chains.keys())
 
         # Build & send embed
@@ -189,7 +200,7 @@ class Markov(commands.Cog):
     @checks.mod()
     @commands.guild_only()
     @markov.command(aliases=["guild_settings"])
-    async def show_guild(self, ctx: commands.Context):
+    async def show_guild(self, ctx: commands.GuildContext):
         """Show current guild settings"""
         await ctx.send(embed=await self.gen_guild_settings_embed(ctx.guild))
 
@@ -252,16 +263,20 @@ class Markov(commands.Cog):
     @checks.mod()
     @commands.guild_only()
     @markov.command()
-    async def channelenable(self, ctx: commands.Context, channel: discord.TextChannel = None):
+    async def channelenable(self, ctx: commands.GuildContext, specified_channel: Optional[discord.TextChannel] = None):
         """Enable modelling of messages in a channel for enabled users"""
-        await self.channels_update(ctx, channel or ctx.channel, True)
+        channel = specified_channel or ctx.channel
+        if not isinstance(channel, (discord.StageChannel, discord.Thread, discord.VoiceChannel)):
+            await self.channels_update(ctx, channel, True)
 
     @checks.mod()
     @commands.guild_only()
     @markov.command()
-    async def channeldisable(self, ctx: commands.Context, channel: discord.TextChannel = None):
+    async def channeldisable(self, ctx: commands.GuildContext, specified_channel: Optional[discord.TextChannel] = None):
         """Disable modelling of messages in a channel"""
-        await self.channels_update(ctx, channel or ctx.channel, False)
+        channel = specified_channel or ctx.channel
+        if not isinstance(channel, (discord.StageChannel, discord.Thread, discord.VoiceChannel)):
+            await self.channels_update(ctx, channel, False)
 
     # Markov generation functions
 
@@ -320,7 +335,7 @@ class Markov(commands.Cog):
 
     # Helper functions
 
-    async def channels_update(self, ctx: commands.Context, channel: discord.TextChannel, enable: bool):
+    async def channels_update(self, ctx: commands.GuildContext, channel: discord.TextChannel, enable: bool):
         """Update list of channels in which modelling is allowed"""
         phrase = "enable" if enable else "disable"
         updated = False
@@ -393,12 +408,12 @@ class Markov(commands.Cog):
         # Return true (i.e. should process message) if all checks passed
         return True
 
-    async def get_enabled_channels(self, guild: discord.Guild) -> list[discord.abc.GuildChannel]:
+    async def get_enabled_channels(self, guild: discord.Guild) -> list[discord.guild.GuildChannel]:
         """Retrieve a list of enabled channels in a given guild"""
         # Retrieve and iterate over enabled channels in specified guild,
         # appending each channel to the list of enabled channels.
         async with self.conf.guild(guild).channels() as channels:
-            enabled_channels = [guild.get_channel(channel) for channel in channels]
+            enabled_channels = [channel for channel_name in channels if (channel := guild.get_channel(channel_name))]
         return enabled_channels
 
     async def get_enabled_users(self, guild_id: int) -> dict:
