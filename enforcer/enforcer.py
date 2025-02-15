@@ -1,7 +1,7 @@
 """discord red-bot enforcer"""
 
 import asyncio
-from typing import ClassVar, Optional, Union
+from typing import ClassVar, Optional, Union, cast
 
 import discord
 from redbot.core import Config, checks, commands
@@ -46,8 +46,16 @@ class EnforcerCog(commands.Cog):
 
         self.config.register_guild(**default_guild_settings, force_registration=True)
 
+    def _is_valid_channel(self, channel: discord.guild.GuildChannel | None):
+        if channel is not None and not isinstance(channel, (discord.ForumChannel, discord.CategoryChannel)):
+            return channel
+        return False
+
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
+        if not isinstance(message.guild, discord.Guild):
+            # The user has DM'd us. Ignore.
+            return
         if not self.is_valid_message(message):
             return
 
@@ -65,6 +73,15 @@ class EnforcerCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_msg_enforce(self, message: discord.Message, reason: str):
+        if (
+            not isinstance(message.guild, discord.Guild)
+            or isinstance(message.channel, discord.GroupChannel)
+            or isinstance(message.channel, discord.DMChannel)
+            or isinstance(message.channel, discord.PartialMessageable)
+        ):
+            # The user has DM'd us. Ignore.
+            return
+
         await message.delete()
 
         author = message.author
@@ -77,33 +94,35 @@ class EnforcerCog(commands.Cog):
         log_id = await self.config.guild(message.guild).logchannel()
         if log_id:
             log_channel = message.guild.get_channel(log_id)
-            if log_channel:
+            if channel := self._is_valid_channel(log_channel):
                 try:
-                    await log_channel.send(embed=data)
+                    await channel.send(embed=data)
                 except discord.Forbidden:
-                    await log_channel.send(f"**Message Enforced** - {author.id} - {author} - Reason: {reason}")
+                    await channel.send(f"**Message Enforced** - {author.id} - {author} - Reason: {reason}")
 
         if not author.dm_channel:
             await author.create_dm()
-
+            dm_channel = cast(discord.DMChannel, author.dm_channel)
+        else:
+            dm_channel = author.dm_channel
         try:
-            await author.dm_channel.send(embed=data)
+            await dm_channel.send(embed=data)
         except discord.Forbidden:
             # User does not allow DMs
             inform_id = await self.config.guild(message.guild).userchannel()
             if inform_id:
                 inform_channel = message.guild.get_channel(inform_id)
-                if inform_channel:
-                    await inform_channel.send(content=author.mention, embed=data)
+                if channel := self._is_valid_channel(inform_channel):
+                    await channel.send(content=author.mention, embed=data)
 
-    @commands.group(name="enforcer")
+    @commands.group(name="enforcer")  # type: ignore
     @commands.guild_only()
     @checks.admin()
     async def _enforcer(self, ctx: commands.Context):
         pass
 
     @_enforcer.command("logchannel")
-    async def enforcer_logchannel(self, ctx: commands.Context, channel: discord.TextChannel):
+    async def enforcer_logchannel(self, ctx: commands.GuildContext, channel: discord.TextChannel):
         """Sets the channel to post the enforcer logs.
 
         Example:
@@ -114,7 +133,7 @@ class EnforcerCog(commands.Cog):
         await ctx.send(f"Enforcer log message channel set to `{channel.name}`")
 
     @_enforcer.command("userchannel")
-    async def enforcer_userchannel(self, ctx: commands.Context, channel: discord.TextChannel):
+    async def enforcer_userchannel(self, ctx: commands.GuildContext, channel: discord.TextChannel):
         """Sets the channel to inform the user of deletion reason, if DMs are unavailable.
 
         Example:
@@ -164,16 +183,16 @@ class EnforcerCog(commands.Cog):
 
         # Validate the input from the user
         try:
-            value = await self._validate_attribute_value(attribute, value)
+            validated_value = await self._validate_attribute_value(attribute, value)
         except ValueError:
             await ctx.send("The given value is invalid for that attribute.")
             return
 
-        await self._set_attribute(channel, attribute, value)
+        await self._set_attribute(channel, attribute, validated_value)
         await ctx.send(f"Channel has now configured the {attribute} attribute.")
 
     @_enforcer.command("status")
-    async def enforcer_status(self, ctx: commands.Context):
+    async def enforcer_status(self, ctx: commands.GuildContext):
         """Prints the status of the enforcement cog
 
         Example:
@@ -183,10 +202,10 @@ class EnforcerCog(commands.Cog):
         async with self.config.guild(ctx.guild).channels() as channels:
             for channel_obj in channels:
                 channel = ctx.guild.get_channel(channel_obj["id"])
+                if channel := self._is_valid_channel(channel):
+                    conf_str = "\n".join(f"{key} - {channel_obj[key]}" for key in self.ATTRIBUTES if key in channel_obj)
 
-                conf_str = "\n".join(f"{key} - {channel_obj[key]}" for key in self.ATTRIBUTES if key in channel_obj)
-
-                messages.append(f"📝{channel.mention} - Configuration\n{conf_str}")
+                    messages.append(f"📝{channel.mention} - Configuration\n{conf_str}")
 
         # Pagify implementation
         # https://github.com/Cog-Creators/Red-DiscordBot/blob/9698baf6e74f6b34f946189f05e2559a60e83706/redbot/core/utils/chat_formatting.py#L208
@@ -209,7 +228,7 @@ class EnforcerCog(commands.Cog):
                 timeout=30.0,
             )
         else:
-            ctx.send("No configurations found")
+            await ctx.send("No configurations found")
 
     async def _validate_attribute_value(self, attribute: str, value: str) -> Union[str, int, bool]:
         attribute_type = self.ATTRIBUTES[attribute]["type"]
@@ -224,9 +243,8 @@ class EnforcerCog(commands.Cog):
         if attribute_type == "number":
             if not value.isdigit():
                 raise ValueError()
-            value = int(value)
-
-            return value
+            return int(value)
+        return value
 
     async def _reset_attribute(self, channel: discord.TextChannel, attribute: str):
         async with self.config.guild(channel.guild).channels() as channels:
@@ -277,7 +295,7 @@ class EnforcerCog(commands.Cog):
                 # They breached minimum discord age
                 enforcer_error = "User account not old enough"
 
-        elif KEY_MINGUILDAGE in channel and author.joined_at:
+        elif KEY_MINGUILDAGE in channel and isinstance(author, discord.Member) and author.joined_at:
             delta = discord.utils.utcnow() - author.joined_at
             if delta.total_seconds() < channel[KEY_MINGUILDAGE]:
                 # They breached minimum guild age
