@@ -343,10 +343,11 @@ class RoleWelcome(commands.Cog):
         await ctx.send(f"✅ Added {num_added_users} members of {role.name} to the list of welcomed users.")
 
     # Helpers
+    # NOTE: this is a gross ugly hack for ruff false positive on line 330
     async def send_welcome_message(
         self,
         guild: discord.Guild,
-        channel: discord.TextChannel,
+        channel: discord.TextChannel,  # noqa: W293 RUF100
         member: discord.abc.User,
     ):
         """Send welcome message"""
