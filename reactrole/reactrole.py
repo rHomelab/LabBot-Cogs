@@ -23,6 +23,11 @@ class ReactRoleCog(commands.Cog):
 
         self.config.register_guild(**default_guild_settings)
 
+    def _is_valid_channel(self, channel: discord.guild.GuildChannel | None):
+        if channel is not None and not isinstance(channel, (discord.ForumChannel, discord.CategoryChannel)):
+            return channel
+        return False
+
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         """
@@ -78,7 +83,7 @@ class ReactRoleCog(commands.Cog):
                     role = guild.get_role(item["role"])
                     await member.remove_roles(role)
 
-    @commands.group(name="reactrole")
+    @commands.group(name="reactrole")  # type: ignore
     @commands.guild_only()
     @checks.mod()
     async def _reactrole(self, ctx: commands.Context):
@@ -88,7 +93,7 @@ class ReactRoleCog(commands.Cog):
     @checks.admin()
     async def add_reactrole(
         self,
-        ctx: commands.Context,
+        ctx: commands.GuildContext,
         message: discord.Message,
         reaction: str,
         role: discord.Role,
@@ -116,7 +121,7 @@ class ReactRoleCog(commands.Cog):
     @_reactrole.command("remove")
     async def remove_reactrole(
         self,
-        ctx: commands.Context,
+        ctx: commands.GuildContext,
         message: discord.Message,
         reaction: str,
         role: discord.Role,
@@ -141,7 +146,7 @@ class ReactRoleCog(commands.Cog):
                 return await ctx.send("React role doesn't exist.")
 
     @_reactrole.command("list")
-    async def reactrole_list(self, ctx: commands.Context):
+    async def reactrole_list(self, ctx: commands.GuildContext):
         """Shows a list of react roles configured
 
         Example:
@@ -155,9 +160,10 @@ class ReactRoleCog(commands.Cog):
             for item in roles:
                 try:
                     role = ctx.guild.get_role(item["role"])
-                    channel = ctx.guild.get_channel(item["channel"])
-                    message = await channel.fetch_message(item["message"])
-                    messages.append(f"📝 {message.jump_url} " f'- {role.name} - {item["reaction"]}\n')
+                    _channel = ctx.guild.get_channel(item["channel"])
+                    if (channel := self._is_valid_channel(_channel)) and role:
+                        message = await channel.fetch_message(item["message"])
+                        messages.append(f"📝 {message.jump_url} - {role.name} - {item['reaction']}\n")
                 except Exception as exc:
                     print(exc)
                     messages.append("Failed to retrieve 1 result.")
@@ -183,7 +189,7 @@ class ReactRoleCog(commands.Cog):
         )
 
     @_reactrole.command("enable")
-    async def reactrole_enable(self, ctx: commands.Context):
+    async def reactrole_enable(self, ctx: commands.GuildContext):
         """Enables the ReactRole's functionality
 
         Example:
@@ -193,7 +199,7 @@ class ReactRoleCog(commands.Cog):
         await ctx.send("Enabled ReactRole.")
 
     @_reactrole.command("disable")
-    async def reactrole_disable(self, ctx: commands.Context):
+    async def reactrole_disable(self, ctx: commands.GuildContext):
         """Disables the ReactRole's functionality
 
         Example:
