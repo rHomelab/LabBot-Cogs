@@ -1,4 +1,4 @@
-from typing import List, Set
+from typing import Any, AsyncGenerator, List, Set
 
 import aiohttp
 import pytest
@@ -11,7 +11,7 @@ def mutate_url(url: str) -> List[str]:
 
 
 @pytest.fixture
-async def session() -> aiohttp.ClientSession:
+async def session() -> AsyncGenerator[aiohttp.ClientSession, Any]:
     client_session: aiohttp.ClientSession = aiohttp.ClientSession(headers={"X-Identity": "Test client"})
     yield client_session
     await client_session.close()
