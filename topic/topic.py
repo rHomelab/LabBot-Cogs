@@ -8,24 +8,40 @@ class Topic(commands.Cog):
     def __init__(self):
         pass
 
+    def _is_valid_channel(self, channel: discord.abc.MessageableChannel | discord.interactions.InteractionChannel | None):
+        if channel is not None and not isinstance(
+            channel,
+            (
+                discord.VoiceChannel,
+                discord.Thread,
+                discord.DMChannel,
+                discord.PartialMessageable,
+                discord.GroupChannel,
+                discord.VoiceChannel,
+                discord.CategoryChannel,
+            ),
+        ):
+            return channel
+        return False
+
     @commands.command()
     @commands.guild_only()
-    async def topic(self, ctx: commands.Context):
+    async def topic(self, ctx: commands.GuildContext):
         """Repeats the current channel's topic as a message in the channel."""
-
-        topic = ctx.channel.topic
-        if topic:
-            await ctx.send(f"{ctx.channel.mention}: {topic}")
-        else:
-            await ctx.send("This channel does not have a topic.")
+        if channel := self._is_valid_channel(ctx.channel):
+            topic = channel.topic
+            if topic:
+                await ctx.send(f"{ctx.channel.mention}: {topic}")
+                return
+        await ctx.send("This channel does not have a topic.")
 
     @app_commands.command(name="topic")
     @app_commands.guild_only()
     async def app_topic(self, interaction: discord.Interaction):
         """Repeats the current channel's topic as a message in the channel."""
-
-        topic = interaction.channel.topic
-        if topic:
-            await interaction.response.send_message(f"{interaction.channel.mention}: {topic}")
-        else:
-            await interaction.response.send_message("This channel does not have a topic.")
+        if channel := self._is_valid_channel(interaction.channel):
+            topic = channel.topic
+            if topic:
+                await interaction.response.send_message(f"{channel.mention}: {topic}")
+                return
+        await interaction.response.send_message("This channel does not have a topic.")
