@@ -1,6 +1,7 @@
 """discord red-bot enforcer"""
 
 import asyncio
+import logging
 from typing import ClassVar, Optional, Union, cast
 
 import discord
@@ -18,6 +19,8 @@ KEY_MINDISCORDAGE = "minimumdiscordage"
 KEY_MINGUILDAGE = "minimumguildage"
 
 CUSTOM_CONTROLS = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}
+
+log = logging.getLogger("red.rhomelab.enforcer")
 
 
 class EnforcerCog(commands.Cog):
@@ -99,6 +102,11 @@ class EnforcerCog(commands.Cog):
                     await channel.send(embed=data)
                 except discord.Forbidden:
                     await channel.send(f"**Message Enforced** - {author.id} - {author} - Reason: {reason}")
+            else:
+                log.warning(
+                    f"Could not find log channel for guild {message.guild.id}, message was: **Message Enforced** "
+                    f"- {author.id} - {author} - Reason: {reason}"
+                )
 
         if not author.dm_channel:
             await author.create_dm()
@@ -114,6 +122,11 @@ class EnforcerCog(commands.Cog):
                 inform_channel = message.guild.get_channel(inform_id)
                 if channel := self._is_valid_channel(inform_channel):
                     await channel.send(content=author.mention, embed=data)
+                else:
+                    log.warning(
+                        f"Could not find inform channel for guild {message.guild.id}, message was: **Message Enforced** "
+                        f"- {author.id} - {author} - Reason: {reason}"
+                    )
 
     @commands.group(name="enforcer")  # type: ignore
     @commands.guild_only()
@@ -202,10 +215,14 @@ class EnforcerCog(commands.Cog):
         async with self.config.guild(ctx.guild).channels() as channels:
             for channel_obj in channels:
                 channel = ctx.guild.get_channel(channel_obj["id"])
-                if channel := self._is_valid_channel(channel):
-                    conf_str = "\n".join(f"{key} - {channel_obj[key]}" for key in self.ATTRIBUTES if key in channel_obj)
-
+                conf_str = "\n".join(f"{key} - {channel_obj[key]}" for key in self.ATTRIBUTES if key in channel_obj)
+                if channel:
                     messages.append(f"📝{channel.mention} - Configuration\n{conf_str}")
+                else:
+                    messages.append(
+                        f"📝Channel ID {channel_obj['id']} no longer exists but has config, remove it... "
+                        f"- Configuration\n{conf_str}"
+                    )
 
         # Pagify implementation
         # https://github.com/Cog-Creators/Red-DiscordBot/blob/9698baf6e74f6b34f946189f05e2559a60e83706/redbot/core/utils/chat_formatting.py#L208
