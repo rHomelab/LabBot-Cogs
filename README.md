@@ -421,13 +421,20 @@ This cog exposes a HTTP endpoint for exporting guild metrics in Prometheus forma
 Manage the timeout status of users.
 
 Run the command to add a user to timeout, run it again to remove them. Append a reason if you wish: `[p]timeout @someUser said a bad thing`
+
 If the user is not in timeout, they are added. If they are in timeout, they are removed.
+
 All of the member's roles will be stripped when they are added to timeout, and re-added when they are removed.
+
+This cog is designed for guilds with a private channel used to discuss infractions or otherwise with a given member 1-1.  
+This private channel should be readable only by mods, admins, and the timeout role.
+
+**Note:** This cog does not manage Discord's builtin "time out" functionality. It is unrelated.
 
 - `[p]timeout <user> [reason]` - Add/remove a user from timeout, optionally specifying a reason.
 - `[p]timeoutset list` - Print the current configuration.
 - `[p]timeoutset role <role name>` - Set the timeout role.
-- `[p]timeoutset report <bool>` - Set whether timeout reports should be logged or not.
+- `[p]timeoutset report <enable|disable>` - Set whether timeout reports should be logged or not.
 - `[p]timeoutset logchannel <channel>` - Set the log channel.
 
 ### Topic
