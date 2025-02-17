@@ -97,12 +97,9 @@ class RoleWelcome(commands.Cog):
         """
         Send a welcome message when a user is added to a role.
 
-        This cog will send a configurable welcome message to a specified channel when a user
-        receives a specified role.
+        This cog will send a configurable welcome message to a specified channel when a user receives a specified role.
 
-        The specific logic used to decide when to welcome a user can be adjusted with the
-        `always_welcome` and `reset_on_leave` settings.
-        """
+        The specific logic used to decide when to welcome a user can be adjusted with the `always_welcome` and `reset_on_leave` settings."""  # noqa: E501
         pass
 
     # Commands
