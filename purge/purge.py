@@ -1,4 +1,5 @@
 """discord red-bot purge"""
+
 import asyncio
 from datetime import datetime, timedelta
 
@@ -29,7 +30,7 @@ class PurgeCog(commands.Cog):
 
         self.purge_task = self.bot.loop.create_task(self.check_purgeable_users())
 
-    def cog_unload(self):
+    async def cog_unload(self):
         self.purge_task.cancel()
 
     async def set_crontab(self, guild, crontab):
@@ -99,14 +100,11 @@ class PurgeCog(commands.Cog):
             if not result:
                 pass
             new_list = users_kicked + "\n" + await self._get_safe_username(user)
-            if len(new_list) > 2048:
+            if len(new_list) > 2048:  # noqa: PLR2004
                 break
             users_kicked = new_list
 
-        data = discord.Embed(
-            colour=discord.Colour.orange(),
-            timestamp=datetime.utcnow()
-        )
+        data = discord.Embed(colour=discord.Colour.orange(), timestamp=datetime.utcnow())
         data.title = f"{title} Purge - Purged {len(users)}"
         data.description = users_kicked
 
@@ -156,14 +154,14 @@ class PurgeCog(commands.Cog):
 
         return members
 
-    @commands.group(name="purge")
+    @commands.group(name="purge")  # type: ignore
     @commands.guild_only()
     @checks.mod()
     async def _purge(self, ctx: commands.Context):
         pass
 
     @_purge.command("logchannel")
-    async def purge_logchannel(self, ctx: commands.Context, channel: discord.TextChannel):
+    async def purge_logchannel(self, ctx: commands.GuildContext, channel: discord.TextChannel):
         """Logs details of purging to this channel.
         The bot must have permission to write to this channel.
 
@@ -174,7 +172,7 @@ class PurgeCog(commands.Cog):
         await ctx.send("Purge log channel set.")
 
     @_purge.command("execute")
-    async def purge_execute(self, ctx: commands.Context):
+    async def purge_execute(self, ctx: commands.GuildContext):
         """Executes a purge.
         Users will be **kicked** if they haven't verified.
 
@@ -193,7 +191,7 @@ class PurgeCog(commands.Cog):
             await ctx.send("I need the `Embed links` permission to send " + "a purge board.")
 
     @_purge.command("simulate")
-    async def purge_simulate(self, ctx: commands.Context):
+    async def purge_simulate(self, ctx: commands.GuildContext):
         """Simulates a purge.
         Users will be **detected** if they haven't verified.
 
@@ -208,7 +206,7 @@ class PurgeCog(commands.Cog):
 
         for user in users:
             new_desc = data.description + "\n" + await self._get_safe_username(user)
-            if len(new_desc) > 2048:
+            if len(new_desc) > 2048:  # noqa: PLR2004
                 break
             data.description = new_desc
 
@@ -218,7 +216,7 @@ class PurgeCog(commands.Cog):
             await ctx.send("I need the `Embed links` permission to " + "send a purge simulation board.")
 
     @_purge.command("exclude")
-    async def purge_exclude_user(self, ctx: commands.Context, user: discord.Member):
+    async def purge_exclude_user(self, ctx: commands.GuildContext, user: discord.Member):
         """Excludes an otherwise eligible user from the purge.
 
         Example:
@@ -238,7 +236,7 @@ class PurgeCog(commands.Cog):
             await ctx.send("That user is already safe from pruning!")
 
     @_purge.command("include")
-    async def purge_include_user(self, ctx: commands.Context, user: discord.Member):
+    async def purge_include_user(self, ctx: commands.GuildContext, user: discord.Member):
         """Includes a possibly-eligible user in the purge checks.
 
         Example:
@@ -258,7 +256,7 @@ class PurgeCog(commands.Cog):
             await ctx.send("That user is already not safe from pruning!")
 
     @_purge.command("minage")
-    async def purge_minage(self, ctx: commands.Context, minage: int):
+    async def purge_minage(self, ctx: commands.GuildContext, minage: int):
         """Sets the number of days a user can remain in the server with no
         roles before being purged.
 
@@ -272,7 +270,7 @@ class PurgeCog(commands.Cog):
         await ctx.send(f"Set the new minimum age to {minage} days.")
 
     @_purge.command("schedule")
-    async def purge_schedule(self, ctx: commands.Context, schedule: str):
+    async def purge_schedule(self, ctx: commands.GuildContext, schedule: str):
         """Sets how often the bot should purge users.
         Accepts cron syntax. For instance `30 02 */2 * *` would be every 2
         days at 02:30.
@@ -288,7 +286,7 @@ class PurgeCog(commands.Cog):
             await ctx.send(f"Set the schedule to `{new_shedule}`.")
 
     @_purge.command("enable")
-    async def purge_enable(self, ctx: commands.Context):
+    async def purge_enable(self, ctx: commands.GuildContext):
         """Enables automated purges based on the schedule.
 
         Example:
@@ -298,7 +296,7 @@ class PurgeCog(commands.Cog):
         await ctx.send("Enabled the purge task.")
 
     @_purge.command("disable")
-    async def purge_disable(self, ctx: commands.Context):
+    async def purge_disable(self, ctx: commands.GuildContext):
         """Disables automated purges based on the schedule.
 
         Example:
@@ -308,7 +306,7 @@ class PurgeCog(commands.Cog):
         await ctx.send("Disabled the purge task.")
 
     @_purge.command("status")
-    async def purge_status(self, ctx: commands.Context):
+    async def purge_status(self, ctx: commands.GuildContext):
         """Status of the bot.
         The bot will display how many users it has kicked
         since it's inception.

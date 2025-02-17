@@ -1,7 +1,8 @@
 """discord red-bot autoreact"""
+
 import asyncio
 import logging
-from typing import Generator, Optional
+from typing import Generator, Optional, cast
 
 import discord
 import discord.utils
@@ -33,7 +34,12 @@ class AutoReactCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        if message.author.bot or not message.guild:
+        if (
+            message.author.bot
+            or not message.guild
+            or isinstance(message.channel, discord.DMChannel)
+            or isinstance(message.channel, discord.PartialMessageable)
+        ):
             return
 
         reactions = await self.config.guild(message.guild).reactions()
@@ -47,11 +53,11 @@ class AutoReactCog(commands.Cog):
                     await message.add_reaction(reaction)
                 except discord.errors.NotFound:
                     log.info(
-                        "Could not react to message %s in channel %s (%s) as the message was not found." +
-                        "Maybe the message was deleted?",
+                        "Could not react to message %s in channel %s (%s) as the message was not found."
+                        + "Maybe the message was deleted?",
                         message.id,
-                        message.channel.name,
-                        message.channel.id
+                        cast(str, message.channel.name),
+                        message.channel.id,
                     )
 
         # Do not continue if channel is whitelisted
@@ -65,11 +71,11 @@ class AutoReactCog(commands.Cog):
                         await message.add_reaction(emoji)
                     except discord.errors.NotFound:
                         log.info(
-                            "Could not react to message %s in channel %s (%s) as the message was not found." +
-                            "Maybe the message was deleted?",
+                            "Could not react to message %s in channel %s (%s) as the message was not found."
+                            + "Maybe the message was deleted?",
                             message.id,
                             message.channel.name,
-                            message.channel.id
+                            message.channel.id,
                         )
 
     # Command groups
@@ -79,16 +85,16 @@ class AutoReactCog(commands.Cog):
     async def _autoreact(self, ctx):
         """Automagically add reactions to messages containing certain phrases"""
 
-    @_autoreact.group(name="add", pass_context=True)
+    @_autoreact.group(name="add", pass_context=True)  # type: ignore
     async def _add(self, ctx):
         """Add autoreact pairs, channels, or whitelisted channels"""
 
-    @_autoreact.group(name="remove", pass_context=True)
+    @_autoreact.group(name="remove", pass_context=True)  # type: ignore
     async def _remove(self, ctx):
         """Remove autoreact pairs, channels, or whitelisted channels"""
 
     @commands.guild_only()
-    @_autoreact.command(name="view", aliases=["list"])
+    @_autoreact.command(name="view", aliases=["list"])  # type: ignore
     async def _view(self, ctx, *, object_type):
         """View the configuration for the autoreact cog
 
@@ -129,7 +135,7 @@ class AutoReactCog(commands.Cog):
     # Add commands
 
     @commands.guild_only()
-    @_add.command(name="reaction")
+    @_add.command(name="reaction")  # type: ignore
     async def _add_reaction(self, ctx, emoji, *, phrase):
         """Add an autoreact pair
 
@@ -161,7 +167,7 @@ class AutoReactCog(commands.Cog):
         await ctx.send(embed=success_embed)
 
     @commands.guild_only()
-    @_add.command(name="channel")
+    @_add.command(name="channel")  # type: ignore
     async def _add_channel(self, ctx, channel: discord.TextChannel, *emojis):
         """Adds groups of reactions to every message in a channel
 
@@ -180,7 +186,7 @@ class AutoReactCog(commands.Cog):
         await ctx.send(embed=success_embed)
 
     @commands.guild_only()
-    @_add.command(name="whitelisted_channel")
+    @_add.command(name="whitelisted_channel")  # type: ignore
     async def _add_whitelisted(self, ctx, channel: discord.TextChannel):
         """Adds a channel to the reaction whitelist
 
@@ -200,7 +206,7 @@ class AutoReactCog(commands.Cog):
     # Remove commands
 
     @commands.guild_only()
-    @_remove.command(name="reaction", aliases=["delete"])
+    @_remove.command(name="reaction", aliases=["delete"])  # type: ignore
     async def _remove_reaction(self, ctx, num: int):
         """Remove a reaction pair
 
@@ -225,7 +231,7 @@ class AutoReactCog(commands.Cog):
             await ctx.send(embed=success_embed)
 
     @commands.guild_only()
-    @_remove.command(name="channel")
+    @_remove.command(name="channel")  # type: ignore
     async def _remove_channel(self, ctx, channel: discord.TextChannel):
         """Remove reaction channels
 
@@ -233,7 +239,6 @@ class AutoReactCog(commands.Cog):
         - `[p]autoreact remove channel <channel>`
         """
         async with self.config.guild(ctx.guild).channels() as channels:
-
             if str(channel.id) not in channels.keys():
                 error_embed = await self.make_error_embed(ctx, error_type="ChannelNotFound")
                 await ctx.send(embed=error_embed)
@@ -258,7 +263,7 @@ class AutoReactCog(commands.Cog):
                 await ctx.send(embed=success_embed)
 
     @commands.guild_only()
-    @_remove.command(name="whitelisted_channel")
+    @_remove.command(name="whitelisted_channel")  # type: ignore
     async def _remove_whitelisted(self, ctx, channel: discord.TextChannel):
         """Remove whitelisted channels
 
@@ -266,7 +271,6 @@ class AutoReactCog(commands.Cog):
         - `[p]autoreact remove whitelisted_channel <channel>`
         """
         async with self.config.guild(ctx.guild).whitelisted_channels() as channels:
-
             if channel.id not in channels:
                 error_embed = await self.make_error_embed(ctx, error_type="ChannelNotFound")
                 await ctx.send(embed=error_embed)
@@ -321,7 +325,8 @@ class AutoReactCog(commands.Cog):
 
     async def make_error_embed(self, ctx, error_type: str = ""):
         error_msgs = {
-            "InvalidObjectType": "Invalid object. Please provide a valid object type from reactions, channels, whitelisted channels",
+            "InvalidObjectType": "Invalid object. Please provide a valid object "
+            "type from reactions, channels, whitelisted channels",
             "ChannelInWhitelist": "This channel is already in the whitelist",
             "ChannelNotFound": "Channel not found in config",
             "NoConfiguration": "No configuration has been set for this object",
@@ -351,7 +356,7 @@ class AutoReactCog(commands.Cog):
             for section in sectioned_list:
                 embed = discord.Embed(title=object_type.capitalize(), colour=await ctx.embed_colour())
                 for elem in section:
-                    embed.add_field(name="Index", value=count, inline=True)
+                    embed.add_field(name="Index", value=str(count), inline=True)
                     embed.add_field(name="Phrase", value=elem["phrase"], inline=True)
                     embed.add_field(name="Reaction", value=elem["reaction"], inline=True)
                     count += 1
@@ -368,7 +373,7 @@ class AutoReactCog(commands.Cog):
                         value=" ".join(elem["reactions"]),
                         inline=True,
                     )
-                    embed.add_field(name="​", value="​", inline=True)  # ZWJ field
+                    embed.add_field(name="\u200b", value="\u200b", inline=True)  # ZWJ field
                 embed_list.append(embed)
 
         elif object_type in ("whitelisted channels", "whitelisted_channels"):

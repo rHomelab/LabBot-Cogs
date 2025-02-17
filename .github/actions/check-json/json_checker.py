@@ -1,5 +1,6 @@
 import json
 import re
+import sys
 from glob import glob
 from typing import List, Tuple, Union
 
@@ -8,11 +9,7 @@ import fastjsonschema
 
 def format_output(*, level: str, file: str, line: int, col: int, message: str) -> str:
     return "::{level} file={file},line={line},col={col}::{message}".format(
-        level=level,
-        file=file,
-        line=line,
-        col=col,
-        message=message
+        level=level, file=file, line=line, col=col, message=message
     )
 
 
@@ -36,13 +33,13 @@ def validate(schema_name: str, filename: str) -> bool:
             error_keys, msg_bounds = list_from_str(error.message)
             for key in error_keys:
                 line, col = get_key_pos(filename, key)
-                message = f"{error.message[:msg_bounds[0] + 1]}{key}{error.message[msg_bounds[1] - 1:]}"
+                message = f"{error.message[: msg_bounds[0] + 1]}{key}{error.message[msg_bounds[1] - 1 :]}"
                 print(format_output(level="error", file=filename, line=line, col=col, message=message))
         else:
             key_name = error.path[1]
             line, col = get_key_pos(filename, key_name)
             print(format_output(level="warning", file=filename, line=line, col=col, message=error.message))
-            return False
+        return False
 
 
 def get_key_pos(filename: str, key: str) -> Tuple[int, int]:
@@ -72,8 +69,8 @@ def list_from_str(set_str: str) -> Tuple[List[str], Tuple[int, int]]:
 def main() -> int:
     validation_success: List[bool] = []
     for file_pattern, schema_path in {
-            "info.json": ".github/actions/check-json/repo.json",
-            "*/info.json": ".github/actions/check-json/cog.json"
+        "info.json": ".github/actions/check-json/repo.json",
+        "*/info.json": ".github/actions/check-json/cog.json",
     }.items():
         for filename in glob(file_pattern):
             validation_success.append(validate(schema_path, filename))
@@ -83,4 +80,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     exit_code = main()
-    exit(exit_code)
+    sys.exit(exit_code)

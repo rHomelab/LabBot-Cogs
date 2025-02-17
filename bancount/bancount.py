@@ -16,18 +16,14 @@ class BanCountCog(commands.Cog):
         super().__init__(*args, **kwargs)
         self.bot = bot
 
-        default_guild_config = {
-            "messages": [
-                "Total users banned: $ban!"
-            ]
-        }
+        default_guild_config = {"messages": ["Total users banned: $ban!"]}
 
         self.config = Config.get_conf(self, identifier=1289862744207523842001)
         self.config.register_guild(**default_guild_config)
 
     @commands.guild_only()
     @commands.group(name="bancount", pass_context=True, invoke_without_command=True)
-    async def _bancount(self, ctx: commands.Context):
+    async def _bancount(self, ctx: commands.GuildContext):
         """Displays the total number of users banned."""
         async with self.config.guild(ctx.guild).messages() as messages:
             if len(messages) < 1:
@@ -44,11 +40,10 @@ class BanCountCog(commands.Cog):
 
     @checks.mod()
     @_bancount.command(name="add")
-    async def _bancount_add(self, ctx: commands.Context, *, message: str):
+    async def _bancount_add(self, ctx: commands.GuildContext, *, message: str):
         """Add a message to the message list."""
         if self.REPLACER not in message:
-            await ctx.send(
-                f"You need to include `{self.REPLACER}` in your message so I know where to insert the count!")
+            await ctx.send(f"You need to include `{self.REPLACER}` in your message so I know where to insert the count!")
             return
         async with self.config.guild(ctx.guild).messages() as messages:
             messages.append(message)
@@ -56,15 +51,12 @@ class BanCountCog(commands.Cog):
 
     @checks.mod()
     @_bancount.command(name="list")
-    async def _bancount_list(self, ctx: commands.Context):
+    async def _bancount_list(self, ctx: commands.GuildContext):
         """Lists the message list."""
         async with self.config.guild(ctx.guild).messages() as messages:
             # Credit to the Notes cog author(s) for this pagify structure
             pages = list(pagify("\n".join(f"`{i}) {message}`" for i, message in enumerate(messages))))
-            embed_opts = {
-                "title": "Guild's BanCount Message List",
-                "colour": await ctx.embed_colour()
-            }
+            embed_opts = {"title": "Guild's BanCount Message List", "colour": await ctx.embed_colour()}
             embeds = [
                 discord.Embed(**embed_opts, description=page).set_footer(text=f"Page {index} of {len(pages)}")
                 for index, page in enumerate(pages, start=1)
@@ -72,14 +64,12 @@ class BanCountCog(commands.Cog):
             if len(embeds) == 1:
                 await ctx.send(embed=embeds[0])
             else:
-                ctx.bot.loop.create_task(
-                    menu(ctx=ctx, pages=embeds, controls={"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page},
-                         timeout=180.0)
-                )
+                controls = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}
+                ctx.bot.loop.create_task(menu(ctx=ctx, pages=embeds, controls=controls, timeout=180.0))
 
     @checks.mod()
     @_bancount.command(name="remove")
-    async def _bancount_remove(self, ctx: commands.Context, index: int):
+    async def _bancount_remove(self, ctx: commands.GuildContext, index: int):
         """Removes the specified message from the message list."""
         async with self.config.guild(ctx.guild).messages() as messages:
             if index >= len(messages):

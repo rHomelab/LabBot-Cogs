@@ -1,4 +1,5 @@
 """Pipeline script for extracting imports from cogs"""
+
 import json
 from glob import glob
 from typing import Set

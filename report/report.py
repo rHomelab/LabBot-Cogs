@@ -1,9 +1,13 @@
 """discord red-bot report cog"""
 
+import logging
+
 import discord
 from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import escape
+
+logger = logging.getLogger("red.rhomelab.report")
 
 
 class ReportCog(commands.Cog):
@@ -25,14 +29,19 @@ class ReportCog(commands.Cog):
 
         self.config.register_guild(**default_guild_settings)
 
-    @commands.group("reports")
+    def _is_valid_channel(self, channel: discord.guild.GuildChannel | None):
+        if channel is not None and not isinstance(channel, (discord.ForumChannel, discord.CategoryChannel)):
+            return channel
+        return False
+
+    @commands.group("reports")  # type: ignore
     @commands.guild_only()
     @checks.mod()
     async def _reports(self, ctx: commands.Context):
         pass
 
     @_reports.command("logchannel")
-    async def reports_logchannel(self, ctx: commands.Context, channel: discord.TextChannel):
+    async def reports_logchannel(self, ctx: commands.GuildContext, channel: discord.TextChannel):
         """Sets the channel to post the reports
 
         Example:
@@ -43,23 +52,23 @@ class ReportCog(commands.Cog):
         await ctx.send(f"Reports log message channel set to `{channel.name}`")
 
     @_reports.command("confirm")
-    async def reports_confirm(self, ctx: commands.Context, option: str):
+    async def reports_confirm(self, ctx: commands.GuildContext, option: str):
         """Changes if confirmations should be sent to reporters upon a report/emergency.
 
         Example:
         - `[p]reports confirm <True|False>`
         """
         try:
-            option = bool(strtobool(option))
+            confirmation = strtobool(option)
         except ValueError:
             await ctx.send("Invalid option. Use: `[p]reports confirm <True|False>`")
             return
-        await self.config.guild(ctx.guild).confirmations.set(option)
-        await ctx.send(f"Send report confirmations: `{option}`")
+        await self.config.guild(ctx.guild).confirmations.set(confirmation)
+        await ctx.send(f"Send report confirmations: `{confirmation}`")
 
     @commands.command("report")
     @commands.guild_only()
-    async def cmd_report(self, ctx: commands.Context, *, message: str = None):
+    async def cmd_report(self, ctx: commands.GuildContext, *, message: str):
         """Sends a report to the mods for possible intervention
 
         Example:
@@ -76,12 +85,18 @@ class ReportCog(commands.Cog):
         log = None
         if log_id:
             log = ctx.guild.get_channel(log_id)
+        else:
+            logger.warning(f"No log channel set for guild {ctx.guild}")
         if not log:
             # Failed to get the channel
+            logger.warning(f"Failed to get log channel {log_id}, in guild {ctx.guild}")
             return
 
         data = self.make_report_embed(ctx, message, emergency=False)
-        await log.send(embed=data)
+        if log_channel := self._is_valid_channel(log):
+            await log_channel.send(embed=data)
+        else:
+            logger.warning(f"Failed to get log channel {log_id}, is a invalid channel")
 
         confirm = await self.config.guild(ctx.guild).confirmations()
         if confirm:
@@ -93,7 +108,7 @@ class ReportCog(commands.Cog):
 
     @commands.command("emergency")
     @commands.guild_only()
-    async def cmd_emergency(self, ctx: commands.Context, *, message: str = None):
+    async def cmd_emergency(self, ctx: commands.GuildContext, *, message: str):
         """Pings the mods with a report for possible intervention
 
         Example:
@@ -110,26 +125,32 @@ class ReportCog(commands.Cog):
         log = None
         if log_id:
             log = ctx.guild.get_channel(log_id)
+        else:
+            logger.warning(f"No log channel set for guild {ctx.guild}")
         if not log:
             # Failed to get the channel
+            logger.warning(f"Failed to get log channel {log_id}, in guild {ctx.guild}")
             return
 
         data = self.make_report_embed(ctx, message, emergency=True)
-        mod_pings = " ".join([i.mention for i in log.members if not i.bot and str(i.status) in ["online", "idle"]])
-        if not mod_pings:  # If no online/idle mods
-            mod_pings = " ".join([i.mention for i in log.members if not i.bot])
-        await log.send(content=mod_pings, embed=data)
+        if channel := self._is_valid_channel(log):
+            mod_pings = " ".join([i.mention for i in channel.members if not i.bot and str(i.status) in ["online", "idle"]])
+            if not mod_pings:  # If no online/idle mods
+                mod_pings = " ".join([i.mention for i in channel.members if not i.bot])
+            await channel.send(content=mod_pings, embed=data)
 
-        confirm = await self.config.guild(ctx.guild).confirmations()
-        if confirm:
-            report_reply = self.make_reporter_reply(ctx, message, True)
-            try:
-                await ctx.author.send(embed=report_reply)
-            except discord.Forbidden:
-                pass
+            confirm = await self.config.guild(ctx.guild).confirmations()
+            if confirm:
+                report_reply = self.make_reporter_reply(ctx, message, True)
+                try:
+                    await ctx.author.send(embed=report_reply)
+                except discord.Forbidden:
+                    pass
+        else:
+            logger.warning(f"Failed to get log channel {log_id}, is a invalid channel")
 
     @_reports.command("channel")
-    async def reports_channel(self, ctx: commands.Context, rule: str, channel: discord.TextChannel):
+    async def reports_channel(self, ctx: commands.GuildContext, rule: str, channel: discord.TextChannel):
         """Allows/denies the use of reports/emergencies in specific channels
 
         Example:
@@ -157,7 +178,7 @@ class ReportCog(commands.Cog):
 
         await ctx.send("Reports {} in {}".format("allowed" if bool_conversion else "denied", channel.mention))
 
-    async def enabled_channel_check(self, ctx: commands.Context) -> bool:
+    async def enabled_channel_check(self, ctx: commands.GuildContext) -> bool:
         """Checks that reports/emergency commands are enabled in the current channel"""
         async with self.config.guild(ctx.guild).channels() as channels:
             channel = [c for c in channels if c["id"] == str(ctx.channel.id)]
@@ -169,7 +190,7 @@ class ReportCog(commands.Cog):
             channels.append({"id": str(ctx.channel.id), "allowed": True})
             return True
 
-    def make_report_embed(self, ctx: commands.Context, message: str, emergency: bool) -> discord.Embed:
+    def make_report_embed(self, ctx: commands.GuildContext, message: str, emergency: bool) -> discord.Embed:
         """Construct the embed to be sent"""
         return (
             discord.Embed(
@@ -182,7 +203,7 @@ class ReportCog(commands.Cog):
             .add_field(name="Timestamp", value=f"<t:{int(ctx.message.created_at.timestamp())}:F>")
         )
 
-    def make_reporter_reply(self, ctx: commands.Context, message: str, emergency: bool) -> discord.Embed:
+    def make_reporter_reply(self, ctx: commands.GuildContext, message: str, emergency: bool) -> discord.Embed:
         """Construct the reply embed to be sent"""
         return (
             discord.Embed(

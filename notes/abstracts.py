@@ -6,6 +6,8 @@ from redbot.core import Config, commands
 
 MAYBE_MEMBER = Union[discord.Member, discord.Object]
 
+# fixme: please use data classes
+
 
 class NoteABC(ABC):
     """Represents a note record"""

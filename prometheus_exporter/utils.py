@@ -1,10 +1,10 @@
 import asyncio
 import logging
 from functools import wraps
-from typing import TYPE_CHECKING, Awaitable, Self
+from typing import TYPE_CHECKING, Awaitable
 
 if TYPE_CHECKING:
-    from stats import Poller
+    pass
 
 
 logger = logging.getLogger("red.rhomelab.prom.utils")
@@ -18,5 +18,5 @@ def timeout(f: Awaitable):
                 return await f(self, *args, **kwargs)
             except Exception as e:
                 logger.exception(e)
-    return inner
 
+    return inner

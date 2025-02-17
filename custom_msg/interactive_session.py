@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import List, Optional, TypedDict, Union
+from typing import List, Optional, Self, TypedDict, Union
 
 import discord
 from redbot.core import commands
@@ -50,13 +50,13 @@ class InteractiveSession:
         return (await self.get_literal_answer(question, ["y", "n"])) == "y"
 
     @classmethod
-    def from_session(cls, session: InteractiveSession) -> InteractiveSession:
+    def from_session(cls, session: InteractiveSession) -> Self:
         return cls(session.ctx)
 
     @abstractmethod
     async def confirm_sample(self) -> bool:
         """Sends the constructed payload and confirms the user is happy with it."""
-        pass
+        return False
 
 
 class MessageBuilder(InteractiveSession):
@@ -77,18 +77,20 @@ class MessageBuilder(InteractiveSession):
 class EmbedBuilder(InteractiveSession):
     async def get_title(self) -> str:
         title = await self.get_response("What should the title be?")
-        if len(title) > 256:
+        if len(title) > 256:  # noqa: PLR2004
             await self.ctx.send("The title must be 256 characters or less.")
             return await self.get_title()
 
         return title
 
     async def get_description(self, *, send_tutorial: bool = True) -> str:
+        # fixme: your function is rubbish
         max_length = 4096
         if send_tutorial:
             await self.ctx.send(
                 f"The description can be up to {max_length} characters in length.\n"
-                "For this section you may send multiple messages, and you can send `retry()` to clear the description and start again.\n"
+                "For this section you may send multiple messages, and you can send"
+                "`retry()` to clear the description and start again.\n"
                 "Sending `finish()` will complete the description and move forward to the next stage."
             )
         description: List[str] = []
@@ -101,7 +103,7 @@ class EmbedBuilder(InteractiveSession):
             elif response == "finish()":
                 break
 
-            if sum(map(len, description + [response])) > max_length:
+            if sum(map(len, [*description, response])) > max_length:
                 remaining_chars = max_length - len("\n".join(description)) - 1
                 if remaining_chars == 0:
                     if not await self.get_boolean_answer("Max char limit reached. Do you want to submit this description?"):
@@ -152,14 +154,11 @@ class MixedBuilder(InteractiveSession):
         embed_payload = await EmbedBuilder.from_session(self).run()
         await self.ctx.send("Embed added.")
 
-        self.payload.update({
-            "content": message_payload["content"],
-            "embed": embed_payload["embed"]
-        })
+        self.payload.update({"content": message_payload["content"], "embed": embed_payload["embed"]})
         return self.payload
 
     async def confirm_sample(self) -> bool:
-        pass
+        return False
 
 
 async def make_session(ctx: commands.Context) -> Payload:

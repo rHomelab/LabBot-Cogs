@@ -42,6 +42,9 @@ Cogs for the [Red-DiscordBot](https://github.com/Cog-Creators/Red-DiscordBot/)-b
     - [Reactrole](#reactrole)
     - [Report](#report)
     - [role\_welcome](#role_welcome)
+      - [Welcome Message Templating](#welcome-message-templating)
+      - [Welcome Logic](#welcome-logic)
+      - [Commands](#commands)
     - [Roleinfo](#roleinfo)
     - [Sentry](#sentry)
     - [Tags](#tags)
@@ -114,7 +117,7 @@ This cog displays the number of users banned in the guild with a random selectio
 - `[p]bancount` - Displays the total ban count using a randomly selected message.
 - `[p]bancount list` - Lists all the messages that can be used in the guild.
 - `[p]bancount add <message>` - Add a message to the guild list. Use `$ban` to insert the ban count in the message.
-- `[p]bancount remove <message index>` - Deletes (by index, from the list command) the message from the guild list. 
+- `[p]bancount remove <message index>` - Deletes (by index, from the list command) the message from the guild list.
 
 ### BetterPing
 
@@ -206,14 +209,14 @@ Also availble as a slash command.
 ### Jail
 
 This cog allows users to be "jailed" in their own personal cell (channel). Also archives the channel to disk for future
-reference. 
+reference.
 
-* `[p]jail setup <#category>` - Set the jail category where jail channels will be created in. (category is the channel 
+* `[p]jail setup <#category>` - Set the jail category where jail channels will be created in. (category is the channel
 category ID of the jail category)
 * `[p]jail <@user>` - Jail the specified user.
 * `[p]jail free <@user>` - Frees the specified user and cleans up the jail channel & role, archives the channel content.
 * `[p]jail archives` - Lists the archived jails with user, date, and jail UUID.
-* `[p]jail archives fetch <export uuid>` - Sends the specified jail channel archive as a file in the current channel (be 
+* `[p]jail archives fetch <export uuid>` - Sends the specified jail channel archive as a file in the current channel (be
 careful running this in public channels)
 
 ### Latex
@@ -477,16 +480,15 @@ If you're using VSCode, this repository also includes launch configs for the bot
 
 ### Linting your code
 
-The CI will fail unless your code is [PEP8](https://www.python.org/dev/peps/pep-0008/) compliant.
+Your code must be passed by our lint & type checkers to be merged:
 
 ```bash
-pip install -r requirements-ci.txt
-isort . # This will fix the order of imports
-black . # This will auto-format and fix a lot of common mistakes
-pylint * # This will show general pep8-violations
+pip install -r requirements-dev.txt -r requirements.txt
+pre-commit install
+pre-commit run --all-files
 ```
 
-If you use [VSCode](https://code.visualstudio.com/) you can use the tasks integrated into the repo to locally run the same tasks as our CI
+If you use [VSCode](https://code.visualstudio.com/) you can use the [pre-commit-vscode](https://marketplace.visualstudio.com/items?itemName=MarkLarah.pre-commit-vscode) extension to auto generate tasks for the pre-commit hooks
 
 ### Making changes
 

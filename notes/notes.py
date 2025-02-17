@@ -1,4 +1,5 @@
 """discord red-bot notes"""
+
 from __future__ import annotations
 
 from typing import Optional
@@ -12,7 +13,8 @@ from .utils import MAYBE_MEMBER, ConfigHelper, NoteException
 
 
 def invoked_warning_cmd(ctx: commands.Context) -> bool:
-    """Useful for finding which alias triggered the command. Checks against the invoked parents attribute. Can only be used in subcommands."""
+    """Useful for finding which alias triggered the command. Checks
+    against the invoked parents attribute. Can only be used in subcommands."""
     return ctx.invoked_parents[0].startswith("warning")
 
 
@@ -138,8 +140,7 @@ class NotesCog(commands.Cog):
             await ctx.send(embed=embeds[0])
         else:
             ctx.bot.loop.create_task(
-                menu(ctx=ctx, pages=embeds, controls={"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page},
-                     timeout=180.0)
+                menu(ctx=ctx, pages=embeds, controls={"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}, timeout=180.0)
             )
 
     @checks.bot_has_permissions(embed_links=True)
@@ -154,7 +155,7 @@ class NotesCog(commands.Cog):
         await ctx.send(
             embed=(
                 discord.Embed(title="Notes Status", colour=await ctx.embed_colour())
-                    .add_field(name="Notes", value=str(len([n for n in all_notes if not n.is_warning])))
-                    .add_field(name="Warnings", value=str(len([n for n in all_notes if n.is_warning])))
+                .add_field(name="Notes", value=str(len([n for n in all_notes if not n.is_warning])))
+                .add_field(name="Warnings", value=str(len([n for n in all_notes if n.is_warning])))
             )
         )

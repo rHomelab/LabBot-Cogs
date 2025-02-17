@@ -36,7 +36,7 @@ class Note(NoteABC):
             message=data["message"],
             reporter_id=data["reporter"],
             reporter_name=data["reporterstr"],
-            created_at=int(data["date"]),  # FIXME: Migrate all stored values to int
+            created_at=int(data["date"]),  # FIXME: Migrate all stored values to int
             deleted=data["deleted"],
             is_warning=is_warning,
             _guild=ctx.guild,
@@ -46,7 +46,10 @@ class Note(NoteABC):
         icon = "\N{WARNING SIGN}" if self.is_warning else "\N{MEMO}"
         member_name = self._guild.get_member(self.member_id) or self.member_id
         reporter_name = self._guild.get_member(self.reporter_id) or self.reporter_name
-        return f"{icon} #{self.note_id} **{member_name} - Added by {reporter_name}** - <t:{int(self.created_at)}:f>\n{self.message}"
+        return (
+            f"{icon} #{self.note_id} **{member_name} - Added by {reporter_name}** "
+            "- <t:{int(self.created_at)}:f>\n{self.message}"
+        )
 
     def __lt__(self, other) -> bool:
         return self.created_at < other.created_at

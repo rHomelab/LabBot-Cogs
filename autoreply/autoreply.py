@@ -1,4 +1,5 @@
 """discord red-bot autoreply"""
+
 import asyncio
 from typing import Optional
 
@@ -9,6 +10,8 @@ from redbot.core.utils.menus import menu, next_page, prev_page, start_adding_rea
 from redbot.core.utils.predicates import ReactionPredicate
 
 CUSTOM_CONTROLS = {"⬅️": prev_page, "➡️": next_page}
+
+EMBED_TRIM_SIZE = 1010
 
 
 class AutoReplyCog(commands.Cog):
@@ -44,7 +47,7 @@ class AutoReplyCog(commands.Cog):
 
     # Commands
 
-    @_autoreply.command(name="add")
+    @_autoreply.command(name="add")  # type: ignore
     async def _add(self, ctx, trigger: str = "", response: str = ""):
         """Add autoreply trigger"""
         if not trigger and not response:
@@ -80,7 +83,7 @@ class AutoReplyCog(commands.Cog):
         await ctx.send("✅ Autoreply trigger successfully added")
 
     @commands.guild_only()
-    @_autoreply.command(name="view")
+    @_autoreply.command(name="view")  # type: ignore
     async def _view(self, ctx):
         """View the configuration for the autoreply cog"""
         triggers = await self.ordered_list_from_config(ctx.guild)
@@ -107,7 +110,7 @@ class AutoReplyCog(commands.Cog):
             await ctx.send(embed=error_embed)
 
     @commands.guild_only()
-    @_autoreply.command(name="remove", aliases=["delete"])
+    @_autoreply.command(name="remove", aliases=["delete"])  # type: ignore
     async def _remove(self, ctx, num: int):
         """Remove a reaction pair
 
@@ -149,8 +152,16 @@ class AutoReplyCog(commands.Cog):
         return error_embed
 
     async def make_removal_success_embed(self, ctx, trigger_dict: dict):
-        trigger = trigger_dict["trigger"][:1010] if len(trigger_dict["trigger"]) > 1010 else trigger_dict["trigger"]
-        response = trigger_dict["response"][:1010] if len(trigger_dict["response"]) > 1010 else trigger_dict["response"]
+        trigger = (
+            trigger_dict["trigger"][:EMBED_TRIM_SIZE]
+            if len(trigger_dict["trigger"]) > EMBED_TRIM_SIZE
+            else trigger_dict["trigger"]
+        )
+        response = (
+            trigger_dict["response"][:EMBED_TRIM_SIZE]
+            if len(trigger_dict["response"]) > EMBED_TRIM_SIZE
+            else trigger_dict["response"]
+        )
         desc = f"**Trigger:**\n{trigger}\n**Response:**\n{response}"
         embed = discord.Embed(
             title="Autoreply trigger removed",
@@ -160,8 +171,16 @@ class AutoReplyCog(commands.Cog):
         return embed
 
     async def make_trigger_embed(self, ctx, trigger_dict: dict, index=None):
-        trigger = trigger_dict["trigger"][:1010] if len(trigger_dict["trigger"]) > 1010 else trigger_dict["trigger"]
-        response = trigger_dict["response"][:1010] if len(trigger_dict["response"]) > 1010 else trigger_dict["response"]
+        trigger = (
+            trigger_dict["trigger"][:EMBED_TRIM_SIZE]
+            if len(trigger_dict["trigger"]) > EMBED_TRIM_SIZE
+            else trigger_dict["trigger"]
+        )
+        response = (
+            trigger_dict["response"][:EMBED_TRIM_SIZE]
+            if len(trigger_dict["response"]) > EMBED_TRIM_SIZE
+            else trigger_dict["response"]
+        )
         desc = f"**Trigger:**\n{trigger}\n**Response:**\n{response}"
         embed = discord.Embed(description=desc, colour=await ctx.embed_colour())
         if index:

@@ -29,7 +29,7 @@ class RoleWelcome(commands.Cog):
         self.config.register_guild(**default_guild_settings)
 
     @commands.Cog.listener()
-    async def on_member_update(self, before: discord.Member, after: discord.Member):
+    async def on_member_update(self, before: discord.Member, after: discord.Member):  # noqa: PLR0911
         """Role addition event"""
         if after.bot:
             # Member is a bot
@@ -47,9 +47,7 @@ class RoleWelcome(commands.Cog):
             # Roles haven't changed
             return
 
-        if role in [role.id for role in before.roles] or role not in [
-            role.id for role in after.roles
-        ]:
+        if role in [role.id for role in before.roles] or role not in [role.id for role in after.roles]:
             # Member already had role or does not have role
             return
 
@@ -69,9 +67,7 @@ class RoleWelcome(commands.Cog):
 
         async with self.config.guild(guild).welcomed_users() as welcomed_users:
             if after.id in welcomed_users and not always_welcome:
-                log.debug(
-                    f"User {after.id} ({after.global_name}) has already been welcomed"
-                )
+                log.debug(f"User {after.id} ({after.global_name}) has already been welcomed")
                 return
             if after.id not in welcomed_users:
                 welcomed_users.append(after.id)
@@ -94,7 +90,7 @@ class RoleWelcome(commands.Cog):
 
     # Command groups
 
-    @commands.group(name="rolewelcome")
+    @commands.group(name="rolewelcome")  # type: ignore
     @commands.guild_only()
     @checks.mod()
     async def welcome(self, ctx: commands.Context):
@@ -103,14 +99,13 @@ class RoleWelcome(commands.Cog):
 
         This cog will send a configurable welcome message to a specified channel when a user receives a specified role.
 
-        The specific logic used to decide when to welcome a user can be adjusted with the `always_welcome` and `reset_on_leave` settings.
-        """
+        The specific logic used to decide when to welcome a user can be adjusted with the `always_welcome` and `reset_on_leave` settings."""  # noqa: E501
         pass
 
     # Commands
 
     @welcome.command("status")
-    async def send_welcome_status(self, ctx: commands.Context):
+    async def send_welcome_status(self, ctx: commands.GuildContext):
         """Status of the cog."""
         guild_role = "Unset"
         channel = "Unset"
@@ -133,9 +128,7 @@ class RoleWelcome(commands.Cog):
             if guild_role:
                 guild_role = guild_role.name
             else:
-                guild_role = (
-                    f"Set to role with ID `{role_id}`, but could not find role!"
-                )
+                guild_role = f"Set to role with ID `{role_id}`, but could not find role!"
 
         if channel_id:
             guild_channel = ctx.guild.get_channel(channel_id)
@@ -157,7 +150,7 @@ class RoleWelcome(commands.Cog):
             await ctx.send("I need the `Embed links` permission to send status.")
 
     @welcome.command("role")
-    async def set_welcome_role(self, ctx: commands.Context, role: discord.Role):
+    async def set_welcome_role(self, ctx: commands.GuildContext, role: discord.Role):
         """Set the role to be watched for new users.
 
         **Example:**
@@ -166,7 +159,8 @@ class RoleWelcome(commands.Cog):
 
         ⚠️ **NOTE**
         When changing the role, you will be prompted to reset the list of welcomed users.
-        It is advisable to proceed with this to ensure all users are welcomed to the new role, however it may not be necessary in cases such as the recreation of a role or usage of a new role for the same purpose.
+        It is advisable to proceed with this to ensure all users are welcomed to the new role, however it may not be necessary
+        in cases such as the recreation of a role or usage of a new role for the same purpose.
         See `[p]rolewelcome always_welcome` and `[p]rolewelcome reset_on_leave` for more information.
         """
         old_role = await self.config.guild(ctx.guild).role()
@@ -183,9 +177,7 @@ class RoleWelcome(commands.Cog):
             await self.clear_welcomed_users(ctx)
 
     @welcome.command("channel")
-    async def set_welcome_channel(
-        self, ctx: commands.Context, channel: discord.abc.GuildChannel
-    ):
+    async def set_welcome_channel(self, ctx: commands.GuildContext, channel: discord.abc.GuildChannel):
         """Set the channel to send welcome messages to.
 
         **Example:**
@@ -196,9 +188,7 @@ class RoleWelcome(commands.Cog):
             await ctx.send("Welcome channel must be a text channel.")
             return
         if not channel.permissions_for(ctx.guild.me).send_messages:
-            await ctx.send(
-                f"I need the `Send messages` permission before I can send messages in {channel.mention}."
-            )
+            await ctx.send(f"I need the `Send messages` permission before I can send messages in {channel.mention}.")
             return
         await self.config.guild(ctx.guild).channel.set(channel.id)
         await ctx.tick(message=f"Welcome channel set to {channel.mention}.")
@@ -206,7 +196,7 @@ class RoleWelcome(commands.Cog):
     @welcome.command("message")
     async def set_welcome_message(
         self,
-        ctx: commands.Context,
+        ctx: commands.GuildContext,
         *,
         message: str,
     ):
@@ -227,7 +217,7 @@ class RoleWelcome(commands.Cog):
         await ctx.tick(message=f"Welcome message set to `{message}`.")
 
     @welcome.command("test")
-    async def test_welcome_message(self, ctx: commands.Context):
+    async def test_welcome_message(self, ctx: commands.GuildContext):
         """Test the welcome message in the current channel."""
         if not isinstance(ctx.channel, discord.TextChannel):
             await ctx.send("Test channel (current) must be a text channel.")
@@ -235,11 +225,12 @@ class RoleWelcome(commands.Cog):
         await self.send_welcome_message(ctx.guild, ctx.channel, ctx.author)
 
     @welcome.command("always_welcome")
-    async def set_always_welcome(self, ctx: commands.Context):
+    async def set_always_welcome(self, ctx: commands.GuildContext):
         """
         Toggle whether users receive a welcome message every time they are assigned the role.
 
-        - **If set to `true`**: Users will receive a welcome message **every time** they receive the role, even if they have had it before.
+        - **If set to `true`**: Users will receive a welcome message **every time** they receive the role, even if they have
+          had it before.
         - **If set to `false`**: Users will only receive a welcome message the **first time** they receive the role.
 
         **Default:** `true`
@@ -249,10 +240,12 @@ class RoleWelcome(commands.Cog):
         - `[p]rolewelcome status` - Shows the current status of this setting.
 
         ⚠️ **NOTE**
-        This offers similar functionality to `reset_on_leave`. You should review both settings carefully to understand how they interact.
+        This offers similar functionality to `reset_on_leave`. You should review both settings carefully to understand how they
+        interact.
 
         - If `always_welcome` is `false`, a user will not receive another welcome message if they lose and regain the role.
-        - If `always_welcome` is `false` but you still want users to be welcomed again after rejoining the guild, ensure that `reset_on_leave` is set to `true`.
+        - If `always_welcome` is `false` but you still want users to be welcomed again after rejoining the guild, ensure that
+          `reset_on_leave` is set to `true`.
         Run `[p]help rolewelcome reset_on_leave` for more information.
         """
         current_value = await self.config.guild(ctx.guild).always_welcome()
@@ -261,12 +254,14 @@ class RoleWelcome(commands.Cog):
         await ctx.send(f"✅ Always welcome is now `{new_value}`.")
 
     @welcome.command("reset_on_leave")
-    async def set_reset_on_leave(self, ctx: commands.Context):
+    async def set_reset_on_leave(self, ctx: commands.GuildContext):
         """
         Toggle whether a user's welcome status is reset when they leave the guild.
 
-        - **If set to `true`**: When a user leaves the guild, their welcome status is reset, meaning they will receive a welcome message again if they rejoin and receive the role again.
-        - **If `false`**: Their welcome status is retained, so they **will not** be welcomed again unless `always_welcome` is left set to the default value of `true`.
+        - **If set to `true`**: When a user leaves the guild, their welcome status is reset, meaning they will receive a
+          welcome message again if they rejoin and receive the role again.
+        - **If `false`**: Their welcome status is retained, so they **will not** be welcomed again unless `always_welcome` is
+          left set to the default value of `true`.
 
         **Default:** `true`
 
@@ -275,10 +270,12 @@ class RoleWelcome(commands.Cog):
         - `[p]rolewelcome status` - Shows the current status of this setting.
 
         ⚠️ **NOTE**
-        This offers similar functionality to `always_welcome`. You should review both settings carefully to understand how they interact.
+        This offers similar functionality to `always_welcome`. You should review both settings carefully to understand how they
+        interact.
 
         - If both `reset_on_leave` and `always_welcome` are `false`, users who leave and rejoin will **not** be welcomed again.
-        - If `always_welcome` is `true`, they will receive a welcome message each time they gain the role, regardless of the state of this setting or whether they have left and rejoined the guild.
+        - If `always_welcome` is `true`, they will receive a welcome message each time they gain the role, regardless of the
+          state of this setting or whether they have left and rejoined the guild.
         Run `[p]help rolewelcome always_welcome` for more information.
         """
         current_value = await self.config.guild(ctx.guild).reset_on_leave()
@@ -287,7 +284,7 @@ class RoleWelcome(commands.Cog):
         await ctx.send(f"✅ Reset on leave is now `{new_value}`.")
 
     @welcome.command()
-    async def clear_welcomed_users(self, ctx: commands.Context):
+    async def clear_welcomed_users(self, ctx: commands.GuildContext):
         """
         Clear the list of welcomed users.
 
@@ -307,8 +304,10 @@ class RoleWelcome(commands.Cog):
         confirm_message = f"Do you wish to clear all {num_welcomed_users} users from the welcomed users list?"
         if ctx.command.name == "clear_welcomed_users":
             confirm_message += (
-                "\n⚠️ Clearing the list of welcomed users will cause all users to be welcomed again if they receive the role again."
-                + f"\nSee `{ctx.clean_prefix}rolewelcome always_welcome` and `{ctx.clean_prefix}rolewelcome reset_on_leave` for more information on welcome logic."
+                "\n⚠️ Clearing the list of welcomed users will cause all users "
+                "to be welcomed again if they receive the role again."
+                f"\nSee `{ctx.clean_prefix}rolewelcome always_welcome` and `{ctx.clean_prefix}rolewelcome reset_on_leave`"
+                "for more information on welcome logic."
             )
 
         view = ConfirmView(ctx.author)
@@ -316,17 +315,15 @@ class RoleWelcome(commands.Cog):
         await view.wait()
         if view.result:
             await self.config.guild(ctx.guild).welcomed_users.set(value=[])
-            await ctx.send(
-                f"✅ Cleared {num_welcomed_users} entries from the list of welcomed users."
-            )
+            await ctx.send(f"✅ Cleared {num_welcomed_users} entries from the list of welcomed users.")
         else:
             await ctx.send("Welcomed users list was not cleared.")
 
     @welcome.command()
-    async def backfill_welcomed_users(self, ctx: commands.Context, role: discord.Role):
+    async def backfill_welcomed_users(self, ctx: commands.GuildContext, role: discord.Role):
         """
         Backfill the list of welcomed users with all members of a role.
-        
+
         **Example:**
         - `[p]rolewelcome backfill_welcomed_users <role>`
         - `[p]rolewelcome backfill_welcomed_users @members`
@@ -343,7 +340,6 @@ class RoleWelcome(commands.Cog):
         await ctx.send(f"✅ Added {num_added_users} members of {role.name} to the list of welcomed users.")
 
     # Helpers
-
     async def send_welcome_message(
         self,
         guild: discord.Guild,
@@ -352,20 +348,14 @@ class RoleWelcome(commands.Cog):
     ):
         """Send welcome message"""
         if not channel.permissions_for(guild.me).send_messages:
-            log.error(
-                f"Missing send messages permission for {channel.name} ({channel.id})"
-            )
+            log.error(f"Missing send messages permission for {channel.name} ({channel.id})")  # type: ignore
             return
         role_name = "role_unset"
-        welcome_role_id = await self.config.guild(guild).role()
-        if welcome_role_id:
-            role_name = "role_unknown"
-            welcome_role = guild.get_role(welcome_role_id)
-            if welcome_role:
-                role_name = welcome_role.name
+        welcome_role_id = await self.config.guild(guild).role()  # type: ignore
+        role_name = "role_unknown"
+        if welcome_role_id and (welcome_role := guild.get_role(welcome_role_id)):
+            role_name = welcome_role.name
 
         welcome_message = await self.config.guild(guild).message()
-        welcome_message = welcome_message.format(
-            user=member.mention, role=role_name, guild=guild.name
-        )
+        welcome_message = welcome_message.format(user=member.mention, role=role_name, guild=guild.name)
         await channel.send(welcome_message)

@@ -8,7 +8,7 @@ from redbot.core.bot import Red
 class BetterPing(commands.Cog):
     """Upgraded version of the built-in ping command"""
 
-    def __init__(self, bot: Red, old_ping: commands.Command):
+    def __init__(self, bot: Red, old_ping: commands.Command | None):
         self.bot = bot
         self.old_ping = old_ping
 

@@ -7,8 +7,8 @@ import discord
 from redbot.core import Config, commands
 
 
+# fixme: please use data classes
 class BaseABC(ABC):
-
     def __init__(self, **kwargs):
         if kwargs.keys() != self.__annotations__.keys():
             raise Exception("Invalid kwargs provided")
@@ -85,7 +85,7 @@ class AliasABC(BaseABC):
 
     @classmethod
     @abstractmethod
-    def new(cls, ctx: commands.Context, alias: str, creator: int, created: int, tag: str, uses: List[UseABC]):
+    def new(cls, ctx: commands.Context, alias: str, creator: int, created: int, tag: str, uses: List[UseABC]):  # noqa: PLR0913
         """Initialise the class in a command context"""
         pass
 
@@ -115,7 +115,7 @@ class TagABC(BaseABC):
 
     @classmethod
     @abstractmethod
-    def new(cls, ctx: commands.Context, creator: int, owner: int, created: int, tag: str, content: str):
+    def new(cls, ctx: commands.Context, creator: int, owner: int, created: int, tag: str, content: str):  # noqa: PLR0913
         """Initialise the class in a command context"""
         pass
 
