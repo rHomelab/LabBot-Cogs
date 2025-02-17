@@ -84,7 +84,7 @@ class EmbedBuilder(InteractiveSession):
         return title
 
     async def get_description(self, *, send_tutorial: bool = True) -> str:
-        # fixme: your function is rubbish @Issy
+        # fixme: your function is rubbish
         max_length = 4096
         if send_tutorial:
             await self.ctx.send(
