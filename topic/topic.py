@@ -8,7 +8,7 @@ class Topic(commands.Cog):
     def __init__(self):
         pass
 
-    def _is_valid_channel(self, channel: discord.abc.Messageable | discord.interactions.InteractionChannel | None):
+    def _is_valid_channel(self, channel: "discord.interactions.InteractionChannel | None"):
         if channel is not None and not isinstance(
             channel,
             (
