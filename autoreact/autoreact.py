@@ -6,7 +6,6 @@ from typing import Generator, Optional, cast
 
 import discord
 import discord.utils
-from discord import DMChannel, PartialMessageable
 from redbot.core import Config, checks, commands
 from redbot.core.utils.menus import menu, next_page, prev_page, start_adding_reactions
 from redbot.core.utils.predicates import ReactionPredicate
