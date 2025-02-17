@@ -1,9 +1,13 @@
 """discord red-bot report cog"""
 
+import logging
+
 import discord
 from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import escape
+
+logger = logging.getLogger("red.rhomelab.report")
 
 
 class ReportCog(commands.Cog):
@@ -81,13 +85,18 @@ class ReportCog(commands.Cog):
         log = None
         if log_id:
             log = ctx.guild.get_channel(log_id)
+        else:
+            logger.warning(f"No log channel set for guild {ctx.guild}")
         if not log:
             # Failed to get the channel
+            logger.warning(f"Failed to get log channel {log_id}, in guild {ctx.guild}")
             return
 
         data = self.make_report_embed(ctx, message, emergency=False)
-        if channel := self._is_valid_channel(log):
-            await channel.send(embed=data)
+        if log_channel := self._is_valid_channel(log):
+            await log_channel.send(embed=data)
+        else:
+            logger.warning(f"Failed to get log channel {log_id}, is a invalid channel")
 
         confirm = await self.config.guild(ctx.guild).confirmations()
         if confirm:
@@ -116,8 +125,11 @@ class ReportCog(commands.Cog):
         log = None
         if log_id:
             log = ctx.guild.get_channel(log_id)
+        else:
+            logger.warning(f"No log channel set for guild {ctx.guild}")
         if not log:
             # Failed to get the channel
+            logger.warning(f"Failed to get log channel {log_id}, in guild {ctx.guild}")
             return
 
         data = self.make_report_embed(ctx, message, emergency=True)
@@ -134,6 +146,8 @@ class ReportCog(commands.Cog):
                     await ctx.author.send(embed=report_reply)
                 except discord.Forbidden:
                     pass
+        else:
+            logger.warning(f"Failed to get log channel {log_id}, is a invalid channel")
 
     @_reports.command("channel")
     async def reports_channel(self, ctx: commands.GuildContext, rule: str, channel: discord.TextChannel):
