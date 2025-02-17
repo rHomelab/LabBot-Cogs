@@ -49,6 +49,8 @@ class Timeout(commands.Cog):
         # Send embed
         if channel := self._is_valid_channel(log_channel):
             await channel.send(embed=embed)
+        else:
+            log.warning(f"Failed to get log channel {log_channel_config}, in guild {ctx.guild}")
 
     async def timeout_add(
         self,
