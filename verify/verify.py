@@ -419,7 +419,7 @@ class VerifyCog(commands.Cog):
 
     # Helper functions
 
-    def _is_valid_channel(self, channel: discord.guild.GuildChannel | None):
+    def _is_valid_channel(self, channel: discord.abc.GuildChannel | None):
         if channel is not None and not isinstance(channel, (discord.ForumChannel, discord.CategoryChannel)):
             return channel
         return False
