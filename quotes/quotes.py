@@ -110,7 +110,7 @@ class QuotesCog(commands.Cog):
     async def _get_messages(self, ctx: commands.GuildContext, message_ids: Sequence[str]) -> List[discord.Message]:
         messages: list[discord.Message] = []
         errored_mids: list[str] = []
-        # NOTE: is this the best wat to do this? no clue tbh ask @Tigattack
+        # FIXME: dont do it like this
         for elem in message_ids:
             for _channel in ctx.guild.channels:
                 if channel := self._is_valid_channel(_channel):
