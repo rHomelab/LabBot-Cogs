@@ -187,7 +187,7 @@ class QuotesCog(commands.Cog):
         error_embed = discord.Embed(title="Error", description=error_msg, colour=await ctx.embed_colour())
         await ctx.send(embed=error_embed)
 
-    def _is_valid_channel(self, channel: discord.abc.GuildChannel | discord.abc.MessageableChannel | None):
+    def _is_valid_channel(self, channel: discord.abc.GuildChannel | discord.abc.Messageable | None):
         if channel is not None and not isinstance(
             channel,
             (
