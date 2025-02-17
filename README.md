@@ -465,6 +465,16 @@ Copyright (c) 2018-2023 tigattack, contributors and original authors.
 
 ## Contributing
 
+### Getting Started
+
+You can create a Red bot instance by running the [`create_dev_bot.sh` script](https://github.com/rHomelab/LabBot-Cogs/blob/main/create_dev_bot.sh) in this repo:
+
+```bash
+./create_dev_bot.sh
+```
+
+If you're using VSCode, this repository also includes launch configs for the bot, allowing you to run your dev bot with a debugger attached.
+
 ### Linting your code
 
 The CI will fail unless your code is [PEP8](https://www.python.org/dev/peps/pep-0008/) compliant.
