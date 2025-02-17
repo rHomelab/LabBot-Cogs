@@ -8,7 +8,6 @@ select = ["F", "E", "W", "I", "ASYNC", "PL", "RUF"]
 line-length = 127
 
 [tool.pyright]
-# ...
 venvPath = "."
 venv = ".venv"
 exclude = [".venv", "jail", "notes", "tags", "prometheus_exporter"]
