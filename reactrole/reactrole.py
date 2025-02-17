@@ -1,5 +1,7 @@
 """discord red-bot reactrole cog"""
 
+import logging
+
 import discord
 from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
@@ -7,6 +9,8 @@ from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.menus import close_menu, menu, next_page, prev_page
 
 CUSTOM_CONTROLS = {"⬅️": prev_page, "⏹️": close_menu, "➡️": next_page}
+
+log = logging.getLogger("red.rhomelab.reactrole")
 
 
 class ReactRoleCog(commands.Cog):
@@ -158,15 +162,18 @@ class ReactRoleCog(commands.Cog):
 
         async with self.config.guild(ctx.guild).roles() as roles:
             for item in roles:
-                try:
-                    role = ctx.guild.get_role(item["role"])
-                    _channel = ctx.guild.get_channel(item["channel"])
-                    if (channel := self._is_valid_channel(_channel)) and role:
-                        message = await channel.fetch_message(item["message"])
-                        messages.append(f"📝 {message.jump_url} - {role.name} - {item['reaction']}\n")
-                except Exception as exc:
-                    print(exc)
-                    messages.append("Failed to retrieve 1 result.")
+                role = ctx.guild.get_role(item["role"])
+                if not role:
+                    messages.append(f"Role {item['role']} not found.")
+
+                _channel = ctx.guild.get_channel(item["channel"])
+                if (channel := self._is_valid_channel(_channel)) and role:
+                    message = await channel.fetch_message(item["message"])
+                    messages.append(f"📝 {message.jump_url} - {role.name} - {item['reaction']}\n")
+                else:
+                    messages.append(
+                        f"Channel  {_channel.mention if _channel else item['channel']} is not a searchable channel."
+                    )
 
         # Pagify implementation
         # https://github.com/Cog-Creators/Red-DiscordBot/blob/9698baf6e74f6b34f946189f05e2559a60e83706/redbot/core/utils/chat_formatting.py#L208
