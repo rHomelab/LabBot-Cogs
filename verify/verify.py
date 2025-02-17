@@ -1,5 +1,6 @@
 """discord red-bot verify"""
 
+import logging
 from datetime import timedelta
 from typing import Optional
 
@@ -7,6 +8,8 @@ import discord
 import Levenshtein as lev
 from redbot.core import Config, checks, commands
 from redbot.core.utils.mod import is_mod_or_superior
+
+logger = logging.getLogger("red.rhomelab.verify")
 
 
 class VerifyCog(commands.Cog):
@@ -130,6 +133,8 @@ class VerifyCog(commands.Cog):
             welcomemsg = welcomemsg.format(user=after.mention)
             if channel := self._is_valid_channel(guild.get_channel(welcomechannel)):
                 await channel.send(welcomemsg)
+            else:
+                logger.warning(f"Failed to get welcome channel {welcomechannel}, in guild {guild}")
 
     # Command groups
 
@@ -299,7 +304,7 @@ class VerifyCog(commands.Cog):
         await ctx.send(f"Fuzzy matching threshold for verification set to `{fuzziness}%`")
 
     @_verify.command("status")
-    async def verify_status(self, ctx: commands.GuildContext):
+    async def verify_status(self, ctx: commands.GuildContext):  # noqa: PLR0912, PLR0915
         """Status of the cog.
         The bot will display how many users it has verified
         since it's inception.
@@ -335,15 +340,29 @@ class VerifyCog(commands.Cog):
         embed = discord.Embed(colour=(await ctx.embed_colour()))
         embed.add_field(name="Verified", value=f"{count} users")
 
-        if role_id and (role := ctx.guild.get_role(role_id)):
-            embed.add_field(name="Role", value=role.mention)
+        if role_id:
+            if role := ctx.guild.get_role(role_id):
+                embed.add_field(name="Role", value=role.mention)
+            else:
+                embed.add_field(name="ERROR: role with ID not found", value=role_id)
+        else:
+            embed.add_field(name="ERROR: role ID missing", value="")
 
-        if channel_id and (channel := self._is_valid_channel(ctx.guild.get_channel(channel_id))):
-            embed.add_field(name="Channel", value=channel.mention)
+        if channel_id:
+            if channel := self._is_valid_channel(ctx.guild.get_channel(channel_id)):
+                embed.add_field(name="Channel", value=channel.mention)
+            else:
+                embed.add_field(name="ERROR: Channel with ID not found", value=channel_id)
+        else:
+            embed.add_field(name="ERROR: Channel ID missing", value="")
 
-        if log_id and (log_channel := self._is_valid_channel(ctx.guild.get_channel(log_id))):
-            embed.add_field(name="Log", value=log_channel.mention)
-
+        if log_id:
+            if log_channel := self._is_valid_channel(ctx.guild.get_channel(log_id)):
+                embed.add_field(name="Log", value=log_channel.mention)
+            else:
+                embed.add_field(name="ERROR: Log channel with ID not found", value=log_id)
+        else:
+            embed.add_field(name="ERROR: Log channel ID missing", value="")
         embed.add_field(name="Min Time", value=f"{mintime} secs")
         embed.add_field(name="Message", value=f"`{message}`")
         embed.add_field(name="Too Quick Msg", value=f"`{tooquick}`")
@@ -360,8 +379,10 @@ class VerifyCog(commands.Cog):
         if welcome_ignore_roles:
             welcome_ignore = ""
             for role in welcome_ignore_roles:
-                if discord_role := ctx.guild.get_role(role):
+                if role and (discord_role := ctx.guild.get_role(role)):
                     welcome_ignore += f"{discord_role.name}, "
+                else:
+                    await ctx.send(f"ERROR: Welcome ignore role not found: {role}")
             embed.add_field(name="Welcome Ignore Roles", value=welcome_ignore.rstrip(", "))
 
         embed.add_field(name="# Users Blocked", value=f"`{len(blocked_users)}`")
@@ -449,6 +470,8 @@ class VerifyCog(commands.Cog):
             return True
         elif log_id and (log_channel := self._is_valid_channel(guild.get_channel(log_id))):
             await log_channel.send(f"**User Not Verified Due To Error** - missing verified role. role_id: {role_id}")
+        else:
+            logger.warning(f"Failed to get log channel {log_id}, in guild {guild}")
         return False
 
     @_verify.group(name="welcomeignore")
