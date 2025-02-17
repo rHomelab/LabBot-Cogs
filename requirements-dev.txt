@@ -1,3 +1,7 @@
+fastjsonschema==2.19.1
 pre-commit==3.7.0
-ruff==0.9.6
 pyright==1.1.394
+pytest-aiohttp==1.0.5
+pytest-asyncio==0.23.6
+pytest==8.2.0
+ruff==0.9.6
