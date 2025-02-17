@@ -408,7 +408,7 @@ class Markov(commands.Cog):
         # Return true (i.e. should process message) if all checks passed
         return True
 
-    async def get_enabled_channels(self, guild: discord.Guild) -> list[discord.guild.GuildChannel]:
+    async def get_enabled_channels(self, guild: discord.Guild) -> list[discord.abc.GuildChannel]:
         """Retrieve a list of enabled channels in a given guild"""
         # Retrieve and iterate over enabled channels in specified guild,
         # appending each channel to the list of enabled channels.
