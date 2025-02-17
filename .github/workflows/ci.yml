@@ -50,7 +50,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: bbugh/action-fixme-check@master # or @ the latest release
+    - uses: rippleFCL/action-fixme-annotate@v0.1.0
       with:
-        terms: 'WIP|FIXME' # optional, defaults to `FIXME`
-        case-sensitive: false  # optional, defaults to `true`
+        terms: 'WIP|FIXME'
+        case-sensitive: false
+        severity: "WARNING"
