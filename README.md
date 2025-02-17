@@ -42,6 +42,9 @@ Cogs for the [Red-DiscordBot](https://github.com/Cog-Creators/Red-DiscordBot/)-b
     - [Reactrole](#reactrole)
     - [Report](#report)
     - [role\_welcome](#role_welcome)
+      - [Welcome Message Templating](#welcome-message-templating)
+      - [Welcome Logic](#welcome-logic)
+      - [Commands](#commands)
     - [Roleinfo](#roleinfo)
     - [Sentry](#sentry)
     - [Tags](#tags)
@@ -206,14 +209,14 @@ Also availble as a slash command.
 ### Jail
 
 This cog allows users to be "jailed" in their own personal cell (channel). Also archives the channel to disk for future
-reference. 
+reference.
 
-* `[p]jail setup <#category>` - Set the jail category where jail channels will be created in. (category is the channel 
+* `[p]jail setup <#category>` - Set the jail category where jail channels will be created in. (category is the channel
 category ID of the jail category)
 * `[p]jail <@user>` - Jail the specified user.
 * `[p]jail free <@user>` - Frees the specified user and cleans up the jail channel & role, archives the channel content.
 * `[p]jail archives` - Lists the archived jails with user, date, and jail UUID.
-* `[p]jail archives fetch <export uuid>` - Sends the specified jail channel archive as a file in the current channel (be 
+* `[p]jail archives fetch <export uuid>` - Sends the specified jail channel archive as a file in the current channel (be
 careful running this in public channels)
 
 ### Latex
@@ -477,7 +480,7 @@ If you're using VSCode, this repository also includes launch configs for the bot
 
 ### Linting your code
 
-The CI will fail unless your code is [PEP8](https://www.python.org/dev/peps/pep-0008/) compliant.
+Your code must be passed by our lint & type checkers to be merged:
 
 ```bash
 pip install -r requirements-dev.txt -r requirements.txt
