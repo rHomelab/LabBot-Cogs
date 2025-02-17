@@ -38,8 +38,8 @@ class AutoReactCog(commands.Cog):
         if (
             message.author.bot
             or not message.guild
-            or isinstance(message.channel, DMChannel)
-            or isinstance(message.channel, PartialMessageable)
+            or isinstance(message.channel, discord.DMChannel)
+            or isinstance(message.channel, discord.PartialMessageable)
         ):
             return
 
