@@ -49,7 +49,7 @@ class EnforcerCog(commands.Cog):
 
         self.config.register_guild(**default_guild_settings, force_registration=True)
 
-    def _is_valid_channel(self, channel: discord.abc.GuildChannel | None):
+    def _is_valid_channel(self, channel: "discord.guild.GuildChannel | None"):
         if channel is not None and not isinstance(channel, (discord.ForumChannel, discord.CategoryChannel)):
             return channel
         return False
