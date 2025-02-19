@@ -48,7 +48,7 @@ class Note(NoteABC):
         reporter_name = self._guild.get_member(self.reporter_id) or self.reporter_name
         return (
             f"{icon} #{self.note_id} **{member_name} - Added by {reporter_name}** "
-            "- <t:{int(self.created_at)}:f>\n{self.message}"
+            f"- <t:{int(self.created_at)}:f>\n{self.message}"
         )
 
     def __lt__(self, other) -> bool:
