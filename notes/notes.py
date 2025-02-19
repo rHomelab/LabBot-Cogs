@@ -148,8 +148,7 @@ class NotesCog(commands.Cog):
     async def notes_status(self, ctx: commands.Context):
         """
         Status of the cog.
-        The bot will display how many notes it has recorded
-        since it's inception.
+        The bot will display how many notes it has recorded since it's inception.
         """
         all_notes = await self.config.get_all_notes(ctx)
         await ctx.send(
