@@ -71,7 +71,7 @@ class ReportCog(commands.Cog):
         await self.config.guild(ctx.guild).confirmations.set(confirmation)
         await ctx.send(f"✅ Report confirmations {'enabled' if confirmation else 'disabled'}")
 
-    @commands.command("report")
+    @commands.hybrid_command("report")
     @commands.guild_only()
     async def cmd_report(self, ctx: commands.GuildContext, *, message: str):
         """Sends a report to the mods for possible intervention
@@ -79,9 +79,9 @@ class ReportCog(commands.Cog):
         Example:
         - `[p]report <message>`
         """
-        await self.do_report(ctx.channel, ctx.message, message, False)
+        await self.do_report(ctx.channel, ctx.message, message, False, ctx.interaction)
 
-    @commands.command("emergency")
+    @commands.hybrid_command("emergency")
     @commands.guild_only()
     async def cmd_emergency(self, ctx: commands.GuildContext, *, message: str):
         """Pings the mods with a report for possible intervention
@@ -89,7 +89,7 @@ class ReportCog(commands.Cog):
         Example:
         - `[p]emergency <message>`
         """
-        await self.do_report(ctx.channel, ctx.message, message, True)
+        await self.do_report(ctx.channel, ctx.message, message, True, ctx.interaction)
 
     async def get_log_channel(self, guild: discord.Guild) -> TextLikeChannnel | None:
         """Gets the log channel for the guild"""
@@ -117,10 +117,12 @@ class ReportCog(commands.Cog):
         message: discord.Message,
         report_body: str,
         emergency: bool,
+        interaction: discord.Interaction | None,
     ):
         """Sends a report to the mods for possible intervention"""
         # Pre-emptively delete the message for privacy reasons
-        await message.delete()
+        if interaction is None:
+            await message.delete()
 
         log_channel = await self.get_log_channel(channel.guild)
         if log_channel is None:
@@ -156,7 +158,10 @@ class ReportCog(commands.Cog):
         if confirm:
             report_reply = self.make_reporter_reply(channel.guild, channel, report_body, emergency)
             try:
-                await message.author.send(embed=report_reply)
+                if interaction is not None:
+                    await interaction.response.send_message(embed=report_reply, ephemeral=True)
+                else:
+                    await message.author.send(embed=report_reply)
             except discord.Forbidden:
                 logger.warning(f"Failed to send report confirmation to {message.author.global_name} ({message.author.id})")
                 pass
