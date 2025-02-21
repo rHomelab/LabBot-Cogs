@@ -43,6 +43,7 @@ class ReportCog(commands.Cog):
         pass
 
     @_reports.command("logchannel")
+    @commands.guild_only()
     async def reports_logchannel(self, ctx: commands.GuildContext, channel: discord.TextChannel):
         """Sets the channel to post the reports
 
@@ -57,8 +58,9 @@ class ReportCog(commands.Cog):
         await ctx.send(f"✅ Reports log message channel set to {channel.mention}")
 
     @_reports.command("confirm")
+    @commands.guild_only()
     async def reports_confirm(self, ctx: commands.GuildContext, option: str):
-        """Changes if confirmations should be sent to reporters upon a report/emergency.
+        """Whether a confirmation should be sent to reporters.
 
         Example:
         - `[p]reports confirm <True|False>`
