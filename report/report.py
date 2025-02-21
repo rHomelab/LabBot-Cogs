@@ -74,24 +74,44 @@ class ReportCog(commands.Cog):
         await ctx.send(f"✅ Report confirmations {'enabled' if confirmation else 'disabled'}")
 
     @commands.hybrid_command("report")
+    @commands.cooldown(1, 30.0, commands.BucketType.user)
     @commands.guild_only()
     async def cmd_report(self, ctx: commands.GuildContext, *, message: str):
-        """Sends a report to the mods for possible intervention
+        """Send a report to the mods.
 
         Example:
         - `[p]report <message>`
         """
         await self.do_report(ctx.channel, ctx.message, message, False, ctx.interaction)
 
+    @cmd_report.error
+    async def on_cmd_report_error(self, ctx: commands.GuildContext, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            if ctx.interaction is not None:
+                await ctx.interaction.response.send_message(str(error), ephemeral=True)
+            else:
+                await ctx.message.delete()
+                await ctx.author.send(f"You are on cooldown. Try again in <t:{error.retry_after}:R>")
+
     @commands.hybrid_command("emergency")
+    @commands.cooldown(1, 30.0, commands.BucketType.user)
     @commands.guild_only()
     async def cmd_emergency(self, ctx: commands.GuildContext, *, message: str):
-        """Pings the mods with a report for possible intervention
+        """Pings the mods with a high-priority report.
 
         Example:
         - `[p]emergency <message>`
         """
         await self.do_report(ctx.channel, ctx.message, message, True, ctx.interaction)
+
+    @cmd_report.error
+    async def on_cmd_emergency_error(self, ctx: commands.GuildContext, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            if ctx.interaction is not None:
+                await ctx.interaction.response.send_message(str(error), ephemeral=True)
+            else:
+                await ctx.message.delete()
+                await ctx.author.send(f"You are on cooldown. Try again in <t:{error.retry_after}:R>")
 
     async def get_log_channel(self, guild: discord.Guild) -> TextLikeChannnel | None:
         """Gets the log channel for the guild"""
