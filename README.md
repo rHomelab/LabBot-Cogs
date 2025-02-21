@@ -323,6 +323,8 @@ Allows roles to be applied and removed using reactions.
 
 This cog will allow members to send a report into a channel where it can be reviewed and actioned upon by moderators.
 
+The `report` and `emergency` commands have cooldowns defined; if a user attempts to use one of these commands more than once within a 30 second period, they will be rate limited and receive a message informing them of this.
+
 - `[p]reports confirmation <true|false>` - Sets whether the bot will send users a confirmation/copy of their report.
 - `[p]reports logchannel #admin-log` - Set the channnel to which reports will be sent. ⚠️ The cog will not function without this.
 - `[p]reports status` - Output the cog's configurationn status.
