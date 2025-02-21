@@ -169,16 +169,23 @@ class ReportCog(commands.Cog):
     async def make_report_embed(
         self, channel: GuildChannelOrThread, message: discord.Message, report_body: str, emergency: bool
     ) -> discord.Embed:
-        return (
+        embed = (
             discord.Embed(
                 colour=discord.Colour.red() if emergency else discord.Colour.orange(),
-                description=escape(report_body or "<no message>"),
             )
             .set_author(name="Report", icon_url=message.author.display_avatar.url)
             .add_field(name="Reporter", value=message.author.mention)
-            .add_field(name="Channel", value=channel.mention)
             .add_field(name="Timestamp", value=f"<t:{int(message.created_at.timestamp())}:F>")
         )
+
+        if isinstance(channel, TextLikeChannnel):
+            last_msg = [msg async for msg in channel.history(limit=1, before=message.created_at)][0]  # noqa: RUF015
+            embed.add_field(name="Context Region", value=last_msg.jump_url if last_msg else "No messages found")
+        else:
+            embed.add_field(name="Channel", value=message.channel.mention)  # type: ignore
+
+        embed.add_field(name="Report Content", value=escape(report_body or "<no message>"))
+        return embed
 
     def make_reporter_reply(
         self, guild: discord.Guild, channel: GuildChannelOrThread, report_body: str, emergency: bool
@@ -188,10 +195,10 @@ class ReportCog(commands.Cog):
         return (
             discord.Embed(
                 colour=discord.Colour.red() if emergency else discord.Colour.orange(),
-                description=escape(report_body or "<no message>"),
             )
             .set_author(name="Report Received", icon_url=guild_icon.url if guild_icon else None)
             .add_field(name="Report Origin", value=channel.mention)
+            .add_field(name="Report Content", value=escape(report_body or "<no message>"))
         )
 
 
