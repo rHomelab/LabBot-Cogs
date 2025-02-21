@@ -323,15 +323,16 @@ Allows roles to be applied and removed using reactions.
 
 This cog will allow members to send a report into a channel where it can be reviewed and actioned upon by moderators.
 
-- `[p]reports logchannel #admin-log` - For reports to be able to be taken, a log channel must be set which will receive an embed upon a user using the report command.
+The `report` and `emergency` commands have cooldowns defined; if a user attempts to use one of these commands more than once within a 30 second period, they will be rate limited and receive a message informing them of this.
 
-- `[p]reports channel [allow|deny] [channel]` - Disallow the `report`/`emergency` commands to be used in certain channels
+- `[p]reports confirmation <true|false>` - Sets whether the bot will send users a confirmation/copy of their report.
+- `[p]reports logchannel #admin-log` - Set the channnel to which reports will be sent. ⚠️ The cog will not function without this.
+- `[p]reports status` - Output the cog's configurationn status.
+- `[p]report <message>` - Sends a report with the given message.
+- `[p]emergency <message>` - Sends a report with the given message, mentioning (@'ing) all users in the configured `logchannel` who are in either an online or idle state.
 
-- `[p]reports confirm [true|false]` - When a report is issued, this sets whether the bot will DM the user with confirmation or not
-
-- `[p]report [message]` - A report can be sent to the logchannel for any moderators to see and action upon when they are ready.
-
-- `[p]emergency [message]` - An emergency can be requested which will ping all members in the configured logchannel if they are online.
+> [!TIP]
+> The `report` and `emergency` commands are also implemented as slash commands.
 
 ### role\_welcome
 
