@@ -27,8 +27,6 @@ class ReportCog(commands.Cog):
         default_guild_settings = {
             "logchannel": None,
             "confirmations": True,
-            # {"id": str, "allowed": bool} bool defaults to True
-            "channels": [],
         }
 
         self.config.register_guild(**default_guild_settings)
@@ -93,47 +91,6 @@ class ReportCog(commands.Cog):
         """
         await self.do_report(ctx.channel, ctx.message, message, True)
 
-    @_reports.command("channel")
-    async def reports_channel(self, ctx: commands.GuildContext, rule: str, channel: discord.TextChannel):
-        """Allows/denies the use of reports/emergencies in specific channels
-
-        Example:
-        - `[p]reports channel <allow|deny> <channel>`
-        - `[p]reports channel deny #general
-        """
-        supported_rules = ("deny", "allow")
-        if rule.lower() not in supported_rules:
-            await ctx.send("Rule argument must be `allow` or `deny`")
-            return
-
-        bool_conversion = bool(supported_rules.index(rule.lower()))
-
-        async with self.config.guild(ctx.guild).channels() as channels:
-            data = [c for c in channels if c["id"] == str(channel.id)]
-            if data:
-                data[0]["allowed"] = bool_conversion
-            else:
-                channels.append(
-                    {
-                        "id": str(channel.id),
-                        "allowed": bool_conversion,
-                    }
-                )
-
-        await ctx.send("Reports {} in {}".format("allowed" if bool_conversion else "denied", channel.mention))
-
-    async def enabled_channel_check(self, channel: GuildChannelOrThread) -> bool:
-        """Checks that reports/emergency commands are enabled in the current channel"""
-        async with self.config.guild(channel.guild).channels() as channels:
-            report_channel = [c for c in channels if c["id"] == str(channel.id)]
-
-            if report_channel:
-                return report_channel[0]["allowed"]
-
-            # Insert an entry for this channel if it doesn't exist
-            channels.append({"id": str(channel.id), "allowed": True})
-            return True
-
     async def get_log_channel(self, guild: discord.Guild) -> TextLikeChannnel | None:
         """Gets the log channel for the guild"""
         log_id = await self.config.guild(guild).logchannel()
@@ -162,10 +119,6 @@ class ReportCog(commands.Cog):
         emergency: bool,
     ):
         """Sends a report to the mods for possible intervention"""
-        pre_check = await self.enabled_channel_check(channel)
-        if not pre_check:
-            return
-
         # Pre-emptively delete the message for privacy reasons
         await message.delete()
 
