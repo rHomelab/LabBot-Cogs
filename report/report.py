@@ -73,6 +73,31 @@ class ReportCog(commands.Cog):
         await self.config.guild(ctx.guild).confirmations.set(confirmation)
         await ctx.send(f"✅ Report confirmations {'enabled' if confirmation else 'disabled'}")
 
+    @_reports.command("status")
+    @commands.guild_only()
+    async def reports_status(self, ctx: commands.GuildContext):
+        """Status of the cog."""
+        reports_channel_id = await self.config.guild(ctx.guild).logchannel()
+        report_confirmations = await self.config.guild(ctx.guild).confirmations()
+
+        if reports_channel_id:
+            reports_channel = ctx.guild.get_channel(reports_channel_id)
+            if reports_channel:
+                reports_channel = reports_channel.mention
+            else:
+                reports_channel = f"Set to channel ID {reports_channel_id}, but channel could not be found!"
+        else:
+            reports_channel = "Unset"
+
+        try:
+            await ctx.send(
+                embed=discord.Embed(colour=await ctx.embed_colour())
+                .add_field(name="Reports Channel", value=reports_channel)
+                .add_field(name="Report Confirmations", value=report_confirmations)
+            )
+        except discord.Forbidden:
+            await ctx.send("I need the `Embed links` permission to send status.")
+
     @commands.hybrid_command("report")
     @commands.cooldown(1, 30.0, commands.BucketType.user)
     @commands.guild_only()
