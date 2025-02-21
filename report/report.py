@@ -48,8 +48,11 @@ class ReportCog(commands.Cog):
         - `[p]reports logchannel <channel>`
         - `[p]reports logchannel #admin-log`
         """
+        if channel.permissions_for(ctx.me).send_messages is False:
+            await ctx.send("❌ I do not have permission to send messages in that channel.")
+            return
         await self.config.guild(ctx.guild).logchannel.set(channel.id)
-        await ctx.send(f"Reports log message channel set to `{channel.name}`")
+        await ctx.send(f"✅ Reports log message channel set to {channel.mention}")
 
     @_reports.command("confirm")
     async def reports_confirm(self, ctx: commands.GuildContext, option: str):
@@ -61,10 +64,10 @@ class ReportCog(commands.Cog):
         try:
             confirmation = strtobool(option)
         except ValueError:
-            await ctx.send("Invalid option. Use: `[p]reports confirm <True|False>`")
+            await ctx.send("❌ Invalid option. Use: `[p]reports confirm <True|False>`")
             return
         await self.config.guild(ctx.guild).confirmations.set(confirmation)
-        await ctx.send(f"Send report confirmations: `{confirmation}`")
+        await ctx.send(f"✅ Report confirmations {'enabled' if confirmation else 'disabled'}")
 
     @commands.command("report")
     @commands.guild_only()
