@@ -6,7 +6,7 @@ from typing import Optional
 
 import discord
 from redbot.core import checks, commands
-from redbot.core.utils.chat_formatting import pagify
+from redbot.core.utils.chat_formatting import escape, pagify
 from redbot.core.utils.menus import close_menu, menu, next_page, prev_page
 
 from .utils import MAYBE_MEMBER, ConfigHelper, NoteException
@@ -123,7 +123,9 @@ class NotesCog(commands.Cog):
         pages = list(pagify("\n\n".join(str(n) for n in notes)))
 
         # Create embeds from pagified data
-        notes_target: Optional[str] = getattr(user, "display_name", str(user.id)) if user is not None else None
+        notes_target: Optional[str] = (
+            escape(getattr(user, "display_name", str(user.id)), formatting=True) if user is not None else None
+        )
         base_embed_options = {
             "title": (
                 (f"Notes for {notes_target}" if notes_target else "All notes")
