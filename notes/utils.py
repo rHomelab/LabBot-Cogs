@@ -3,6 +3,7 @@ from typing import Callable, Iterable, List, Union
 
 import discord
 from redbot.core import Config, commands
+from redbot.core.utils.chat_formatting import escape
 
 from .abstracts import ConfigHelperABC, NoteABC
 
@@ -44,7 +45,7 @@ class Note(NoteABC):
 
     def __str__(self) -> str:
         icon = "\N{WARNING SIGN}" if self.is_warning else "\N{MEMO}"
-        member_name = self._guild.get_member(self.member_id) or self.member_id
+        member_name = escape(str(self._guild.get_member(self.member_id) or self.member_id), formatting=True)
         reporter_name = self._guild.get_member(self.reporter_id) or self.reporter_name
         return (
             f"{icon} #{self.note_id} **{member_name} - Added by {reporter_name}** "
