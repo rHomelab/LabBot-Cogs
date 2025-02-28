@@ -1,6 +1,6 @@
 {
     "author": [
-        "ripple (frzen chip lova)",
+        "ripplefcl",
         "tigattack"
     ],
     "description": "Exposes a HTTP endpoint for exporting guild metrics in Prometheus format",
