@@ -161,8 +161,9 @@ class OnboardingRole(commands.Cog):
         """Send success or failure message to configured log channel"""
         log_channel_id = await self.config.guild(member.guild).log_channel()
         if not log_channel_id:
-            # Log channel not defined
-            log.warning("Attempted to send log message for onboarding completion, but a log channel has not been defined.")
+            # Log channel not defined.
+            # We won't log a warning here since we'll assume the user does not
+            # wish for onboarding events to be logged to a channel.
             return
         log_channel = member.guild.get_channel(log_channel_id)
         if not log_channel or not isinstance(log_channel, discord.TextChannel):
