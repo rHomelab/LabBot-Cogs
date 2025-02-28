@@ -10,8 +10,6 @@ from redbot.core.config import Config
 RequestType = Literal["discord_deleted_user", "owner", "user", "user_strict"]
 log = logging.getLogger("red.rhomelab.onboarding_role")
 
-# TODO: Check for missed events on startup.
-
 
 class OnboardingRole(commands.Cog):
     """
@@ -51,6 +49,28 @@ class OnboardingRole(commands.Cog):
             return
 
         await self.handle_onboarding(after)
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        """
+        Listen for on_ready event.
+        When event fires, add onboarded role to members in all guilds who meet the following criteria:
+        - Not in `onboarded_users` list.
+        - Has completed onboarding.
+        - Does not have the onboarded role.
+        """
+        for guild in self.bot.guilds:
+            onboarded_role_id = await self.config.guild(guild).role()
+            onboarded_role = guild.get_role(onboarded_role_id)
+            if not onboarded_role:
+                # Role not found
+                log.warning(f"Role ID {onboarded_role_id} not found in guild {guild.name} (ID {guild.id}).")
+                continue
+
+            onboarded_users = await self.config.guild(guild).onboarded_users()
+            for member in guild.members:
+                if member not in onboarded_users and member.flags.completed_onboarding and onboarded_role not in member.roles:
+                    await self.handle_onboarding(member)
 
     # Commands
 
