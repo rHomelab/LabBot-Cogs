@@ -151,6 +151,12 @@ class OnboardingRole(commands.Cog):
         try:
             await member.add_roles(role)
             log.info(f"User '{member.name}' (ID {member.id}) completed onboarding and was added to the onboarding role.")
+
+            async with self.config.guild(guild).onboarded_users() as onboarded_users:
+                if member.id not in onboarded_users:
+                    onboarded_users.append(member.id)
+                    log.debug(f"User '{member.name}' (ID {member.id}) added to internal list of onboarded users.")
+
             await self.send_log_message(member)
         except discord.Forbidden:
             error_msg = f"Adding onboarding role to {member.name} (ID {member.id}) was forbidden."
