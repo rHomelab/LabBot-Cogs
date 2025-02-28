@@ -35,6 +35,7 @@ Cogs for the [Red-DiscordBot](https://github.com/Cog-Creators/Red-DiscordBot/)-b
       - [Mod Commands](#mod-commands)
       - [Owner Commands](#owner-commands)
     - [Notes](#notes)
+    - [onboarding\_role](#onboarding_role)
     - [Penis](#penis)
     - [Phishingdetection](#phishingdetection)
     - [Purge](#purge)
@@ -81,6 +82,7 @@ A massive thank you to [all who've helped with this project](https://github.com/
 - **[LaTeX](#latex):** Render a LaTeX statement.
 - **[Letters](#letters):** Outputs large emote letters/numbers from input text.
 - **[Notes](#notes):** Manage notes and warnings against users.
+- **[onboarding\_role](#onboarding_role):** Apply a role to users who complete onboarding.
 - **[Penis](#penis):** Allows users to check the size of their penis.
 - **[prometheus_exporter](#prometheus_exporter):** Exposes a HTTP endpoint for exporting guild metrics in Prometheus format.
 - **[Purge](#purge):** This will purge users based on criteria.
@@ -278,6 +280,25 @@ It is possible to add notes to a user who has left or not yet joined. Notes are 
 Deleting a note does not actually delete the note. It simply marks it in the datastore as deleted and does not show it in normal use. This can allow future recovery of notes (using the `restore` subcommand) if a bad party is attempting to wipe existing notes.
 
 Notes and warnings can be edited using the `edit` subcommand.
+
+### onboarding\_role
+
+Apply a role to users who complete onboarding.
+
+When a user completes onboarding, this cog will add them to the configured role. If a log channel is configured, the cog will log such events to that channel.
+
+On bot startup, the bot will process any missed onboarding events by looking for members in all guilds who meet the following criteria:
+* Has completed onboarding.
+* Does not have the onboarded role.
+* Is not in the internal list of onboarded users.
+
+If any such member is found, they will be granted the onboarding role.
+
+#### Commands
+
+* `[p]onboarding_role status` - Status of the cog.
+* `[p]onboarding_role role <role name or ID>` - Set the role to be granted to users once they complete onboarding.
+* `[p]onboarding_role logchannel <text channel name or ID>` - Set the channel to which onboarding events should be logged.
 
 ### Penis
 
