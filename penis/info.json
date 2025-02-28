@@ -1,11 +1,12 @@
 {
     "author": [
         "baiumbg",
+        "Twentysix",
         "TheDevFreak",
-        "Twentysix"
+        "tigattack"
     ],
     "description": "Usage: [p]penis <user>\nThis is 100% accurate.",
-    "short": "Detects users' penis size with maximum accuracy. Ported to V3 by baiumbg.",
+    "short": "Detects users' penis size with maximum accuracy.",
     "name": "Penis",
     "tags": [
         "fun"
