@@ -235,6 +235,9 @@ pythonenv*
 .dmypy.json
 dmypy.json
 
+# ruff
+.ruff_cache
+
 # Pyre type checker
 .pyre/
 
@@ -291,3 +294,5 @@ GitHub.sublime-settings
 
 # End of https://www.toptal.com/developers/gitignore/api/python,jupyternotebooks,vscode,pycharm+all,sublimetext
 .red_data
+
+test.sh
