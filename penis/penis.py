@@ -44,7 +44,7 @@ class Penis(commands.Cog):
             elif len(dong) <= BIG_DONG_CONST:
                 msg += "**{}'s size:**\n{}\n".format(user.display_name, dong)
             else:
-                if len(dong) == VIP_DONG_CONST:
+                if len(dong) >= VIP_DONG_CONST:
                     msg += "**{}'s size:**\n{}\nYou thought you could dick measure your way out of this one?\n"\
                         .format(user.display_name, dong)
                 else:
