@@ -9,6 +9,8 @@ DONG_DISTRIBUTION_CONST = 30
 SMALL_DONG_CONST = 6
 BIG_DONG_CONST = DONG_DISTRIBUTION_CONST - SMALL_DONG_CONST
 VIP_DONG_CONST = DONG_DISTRIBUTION_CONST + 5
+SPECIAL_DONG_CONST = 100
+SPECIAL_USER_IDS = [223453942003138562]
 
 
 class Penis(commands.Cog):
@@ -33,7 +35,12 @@ class Penis(commands.Cog):
 
         for user in users:
             random.seed(user.id)
-            dongs[user] = "8{}D".format("=" * (random.randint(0, DONG_DISTRIBUTION_CONST), VIP_DONG_CONST)[await is_mod_or_superior(ctx.bot, user)])
+            if user.id in SPECIAL_USER_IDS:
+                dongs[user] = "8{}D".format("=" * SPECIAL_DONG_CONST)
+            else:
+                is_vip = await is_mod_or_superior(ctx.bot, user)
+                length = VIP_DONG_CONST if is_vip else random.randint(0, DONG_DISTRIBUTION_CONST)
+                dongs[user] = "8{}D".format("=" * length)
 
         random.setstate(state)
         dongs = sorted(dongs.items(), key=lambda x: x[1])
