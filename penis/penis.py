@@ -33,8 +33,7 @@ class Penis(commands.Cog):
 
         for user in users:
             random.seed(user.id)
-            dongs[user] = ("8{}D".format("=" * random.randint(0, DONG_DISTRIBUTION_CONST)),
-                           VIP_DONG_CONST)[await is_mod_or_superior(ctx.bot, user)]
+            dongs[user] = "8{}D".format("=" * (random.randint(0, DONG_DISTRIBUTION_CONST), VIP_DONG_CONST)[await is_mod_or_superior(ctx.bot, user)])
 
         random.setstate(state)
         dongs = sorted(dongs.items(), key=lambda x: x[1])
