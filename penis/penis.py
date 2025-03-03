@@ -43,12 +43,11 @@ class Penis(commands.Cog):
                 msg += "**{}'s size:**\n{}\nlol small\n".format(user.display_name, dong)
             elif len(dong) <= BIG_DONG_CONST:
                 msg += "**{}'s size:**\n{}\n".format(user.display_name, dong)
+            elif len(dong) >= VIP_DONG_CONST:
+                msg += "**{}'s size:**\n{}\nYou thought you could dick measure your way out of this one?\n"\
+                    .format(user.display_name, dong)
             else:
-                if len(dong) >= VIP_DONG_CONST:
-                    msg += "**{}'s size:**\n{}\nYou thought you could dick measure your way out of this one?\n"\
-                        .format(user.display_name, dong)
-                else:
-                    msg += "**{}'s size:**\n{}\nwow, now that's a dong!\n".format(user.display_name, dong)
+                msg += "**{}'s size:**\n{}\nwow, now that's a dong!\n".format(user.display_name, dong)
 
         for page in pagify(msg):
             await ctx.send(page)
