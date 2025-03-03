@@ -3,10 +3,13 @@ import random
 import discord
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import pagify
+from redbot.core.utils.mod import is_mod_or_superior
 
 DONG_DISTRIBUTION_CONST = 30
 SMALL_DONG_CONST = 6
 BIG_DONG_CONST = DONG_DISTRIBUTION_CONST - SMALL_DONG_CONST
+VIP_DONG_CONST = DONG_DISTRIBUTION_CONST + 5
+
 
 class Penis(commands.Cog):
     """Penis related commands."""
@@ -30,7 +33,8 @@ class Penis(commands.Cog):
 
         for user in users:
             random.seed(user.id)
-            dongs[user] = "8{}D".format("=" * random.randint(0, DONG_DISTRIBUTION_CONST))
+            dongs[user] = ("8{}D".format("=" * random.randint(0, DONG_DISTRIBUTION_CONST)),
+                           VIP_DONG_CONST)[await is_mod_or_superior(ctx.bot, user)]
 
         random.setstate(state)
         dongs = sorted(dongs.items(), key=lambda x: x[1])
@@ -41,7 +45,11 @@ class Penis(commands.Cog):
             elif len(dong) <= BIG_DONG_CONST:
                 msg += "**{}'s size:**\n{}\n".format(user.display_name, dong)
             else:
-                msg += "**{}'s size:**\n{}\nwow, now that's a dong!\n".format(user.display_name, dong)
+                if len(dong) == VIP_DONG_CONST:
+                    msg += "**{}'s size:**\n{}\nYou thought you could dick measure your way out of this one?\n"\
+                        .format(user.display_name, dong)
+                else:
+                    msg += "**{}'s size:**\n{}\nwow, now that's a dong!\n".format(user.display_name, dong)
 
         for page in pagify(msg):
             await ctx.send(page)
