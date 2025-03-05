@@ -28,7 +28,7 @@ Cogs for the [Red-DiscordBot](https://github.com/Cog-Creators/Red-DiscordBot/)-b
     - [Google](#google)
     - [IsItReadOnlyFriday](#isitreadonlyfriday)
     - [Jail](#jail)
-    - [Latex](#latex)
+    - [LaTeX](#latex)
     - [Letters](#letters)
     - [Markov](#markov)
       - [User commands](#user-commands)
@@ -224,7 +224,7 @@ category ID of the jail category)
 * `[p]jail archives fetch <export uuid>` - Sends the specified jail channel archive as a file in the current channel (be
 careful running this in public channels)
 
-### Latex
+### LaTeX
 
 This cog allows users to display complex mathematical information using LaTeX renderings.
 
@@ -350,8 +350,8 @@ This cog will allow members to send a report into a channel where it can be revi
 The `report` and `emergency` commands have cooldowns defined; if a user attempts to use one of these commands more than once within a 30 second period, they will be rate limited and receive a message informing them of this.
 
 - `[p]reports confirmation <true|false>` - Sets whether the bot will send users a confirmation/copy of their report.
-- `[p]reports logchannel #admin-log` - Set the channnel to which reports will be sent. ⚠️ The cog will not function without this.
-- `[p]reports status` - Output the cog's configurationn status.
+- `[p]reports logchannel #admin-log` - Set the channel to which reports will be sent. ⚠️ The cog will not function without this.
+- `[p]reports status` - Output the cog's configuration status.
 - `[p]report <message>` - Sends a report with the given message.
 - `[p]emergency <message>` - Sends a report with the given message, mentioning (@'ing) all users in the configured `logchannel` who are in either an online or idle state.
 
