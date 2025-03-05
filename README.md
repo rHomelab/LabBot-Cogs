@@ -28,7 +28,7 @@ Cogs for the [Red-DiscordBot](https://github.com/Cog-Creators/Red-DiscordBot/)-b
     - [Google](#google)
     - [IsItReadOnlyFriday](#isitreadonlyfriday)
     - [Jail](#jail)
-    - [Latex](#latex)
+    - [LaTeX](#latex)
     - [Letters](#letters)
     - [Markov](#markov)
       - [User commands](#user-commands)
@@ -38,6 +38,7 @@ Cogs for the [Red-DiscordBot](https://github.com/Cog-Creators/Red-DiscordBot/)-b
     - [onboarding\_role](#onboarding_role)
     - [Penis](#penis)
     - [Phishingdetection](#phishingdetection)
+    - [prometheus\_exporter](#prometheus_exporter)
     - [Purge](#purge)
     - [Quotes](#quotes)
     - [Reactrole](#reactrole)
@@ -49,7 +50,6 @@ Cogs for the [Red-DiscordBot](https://github.com/Cog-Creators/Red-DiscordBot/)-b
     - [Roleinfo](#roleinfo)
     - [Sentry](#sentry)
     - [Tags](#tags)
-    - [prometheus\_exporter](#prometheus_exporter)
     - [Timeout](#timeout)
     - [Topic](#topic)
     - [Verify](#verify)
@@ -71,6 +71,7 @@ A massive thank you to [all who've helped with this project](https://github.com/
 
 - **[AutoReact](#autoreact):** React to specific phrases with one or more emotes.
 - **[AutoReply](#autoreply):** Automatically replies to messages that match a trigger phrase.
+- **[BanCount](#bancount):**
 - **[BetterPing](#betterping):** Outputs the current channel topic as a message in the channel.
 - **[Convert](#convert):** Converts any unit to any another unit.
 - **[Custom-msg](#custom-msg):** Allows moderators to send/edit messages from the bot.
@@ -81,10 +82,12 @@ A massive thank you to [all who've helped with this project](https://github.com/
 - **[Jail](#jail):** Jails users in an isolated channel.
 - **[LaTeX](#latex):** Render a LaTeX statement.
 - **[Letters](#letters):** Outputs large emote letters/numbers from input text.
+- **[Markov](#markov):**
 - **[Notes](#notes):** Manage notes and warnings against users.
 - **[onboarding\_role](#onboarding_role):** Apply a role to users who complete onboarding.
 - **[Penis](#penis):** Allows users to check the size of their penis.
-- **[prometheus_exporter](#prometheus_exporter):** Exposes a HTTP endpoint for exporting guild metrics in Prometheus format.
+- **[Phishingdetection](#phishingdetection):**
+- **[prometheus\_exporter](#prometheus_exporter):** Exposes a HTTP endpoint for exporting guild metrics in Prometheus format.
 - **[Purge](#purge):** This will purge users based on criteria.
 - **[Quotes](#quotes):** Allows users to quote other users' messages in a quotes channel.
 - **[Reactrole](#reactrole):** Allows roles to be applied and removed using reactions.
@@ -221,7 +224,7 @@ category ID of the jail category)
 * `[p]jail archives fetch <export uuid>` - Sends the specified jail channel archive as a file in the current channel (be
 careful running this in public channels)
 
-### Latex
+### LaTeX
 
 This cog allows users to display complex mathematical information using LaTeX renderings.
 
@@ -347,8 +350,8 @@ This cog will allow members to send a report into a channel where it can be revi
 The `report` and `emergency` commands have cooldowns defined; if a user attempts to use one of these commands more than once within a 30 second period, they will be rate limited and receive a message informing them of this.
 
 - `[p]reports confirmation <true|false>` - Sets whether the bot will send users a confirmation/copy of their report.
-- `[p]reports logchannel #admin-log` - Set the channnel to which reports will be sent. ⚠️ The cog will not function without this.
-- `[p]reports status` - Output the cog's configurationn status.
+- `[p]reports logchannel #admin-log` - Set the channel to which reports will be sent. ⚠️ The cog will not function without this.
+- `[p]reports status` - Output the cog's configuration status.
 - `[p]report <message>` - Sends a report with the given message.
 - `[p]emergency <message>` - Sends a report with the given message, mentioning (@'ing) all users in the configured `logchannel` who are in either an online or idle state.
 
