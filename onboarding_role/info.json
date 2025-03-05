@@ -1,6 +1,5 @@
 {
-    "$schema": "https://raw.githubusercontent.com/Cog-Creators/Red-DiscordBot/V3/develop/schema/red_cog.schema.json",
-    "name": "OnboardingRole",
+    "name": "onboarding_role",
     "short": "Apply a role to users who complete onboarding.",
     "description": "Apply a role to users who complete onboarding.",
     "end_user_data_statement": "This cog does not persistently store any data or metadata about users.",
