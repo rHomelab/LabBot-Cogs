@@ -38,6 +38,7 @@ Cogs for the [Red-DiscordBot](https://github.com/Cog-Creators/Red-DiscordBot/)-b
     - [onboarding\_role](#onboarding_role)
     - [Penis](#penis)
     - [Phishingdetection](#phishingdetection)
+    - [prometheus\_exporter](#prometheus_exporter)
     - [Purge](#purge)
     - [Quotes](#quotes)
     - [Reactrole](#reactrole)
@@ -49,7 +50,6 @@ Cogs for the [Red-DiscordBot](https://github.com/Cog-Creators/Red-DiscordBot/)-b
     - [Roleinfo](#roleinfo)
     - [Sentry](#sentry)
     - [Tags](#tags)
-    - [prometheus\_exporter](#prometheus_exporter)
     - [Timeout](#timeout)
     - [Topic](#topic)
     - [Verify](#verify)
@@ -71,6 +71,7 @@ A massive thank you to [all who've helped with this project](https://github.com/
 
 - **[AutoReact](#autoreact):** React to specific phrases with one or more emotes.
 - **[AutoReply](#autoreply):** Automatically replies to messages that match a trigger phrase.
+- **[BanCount](#bancount):**
 - **[BetterPing](#betterping):** Outputs the current channel topic as a message in the channel.
 - **[Convert](#convert):** Converts any unit to any another unit.
 - **[Custom-msg](#custom-msg):** Allows moderators to send/edit messages from the bot.
@@ -81,10 +82,12 @@ A massive thank you to [all who've helped with this project](https://github.com/
 - **[Jail](#jail):** Jails users in an isolated channel.
 - **[LaTeX](#latex):** Render a LaTeX statement.
 - **[Letters](#letters):** Outputs large emote letters/numbers from input text.
+- **[Markov](#markov):**
 - **[Notes](#notes):** Manage notes and warnings against users.
 - **[onboarding\_role](#onboarding_role):** Apply a role to users who complete onboarding.
 - **[Penis](#penis):** Allows users to check the size of their penis.
-- **[prometheus_exporter](#prometheus_exporter):** Exposes a HTTP endpoint for exporting guild metrics in Prometheus format.
+- **[Phishingdetection](#phishingdetection):**
+- **[prometheus\_exporter](#prometheus_exporter):** Exposes a HTTP endpoint for exporting guild metrics in Prometheus format.
 - **[Purge](#purge):** This will purge users based on criteria.
 - **[Quotes](#quotes):** Allows users to quote other users' messages in a quotes channel.
 - **[Reactrole](#reactrole):** Allows roles to be applied and removed using reactions.
