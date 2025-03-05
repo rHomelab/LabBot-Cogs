@@ -44,7 +44,8 @@ def validate(schema_name: str, filename: str) -> bool:
 
 def get_key_pos(filename: str, key: str) -> Tuple[int, int]:
     """Returns the position of a key in a json file"""
-    reg_match = re.compile(f'"{key}"\\s?:')
+    escaped_key = re.escape(key)
+    reg_match = re.compile(f'"{escaped_key}"\\s?:')
     with open(filename, "r") as f:
         lines = f.read().split("\n")
     for i, line in enumerate(lines, start=1):
