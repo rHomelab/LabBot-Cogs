@@ -1,0 +1,20 @@
+{
+    "name": "onboarding_role",
+    "short": "Apply a role to users who complete onboarding.",
+    "description": "Apply a role to users who complete onboarding.",
+    "end_user_data_statement": "This cog does not persistently store any data or metadata about users.",
+    "install_msg": "Usage: `[p]onboarding_role`",
+    "author": [
+        "tigattack"
+    ],
+    "required_cogs": {},
+    "requirements": [],
+    "tags": [
+        "utility",
+        "mod"
+    ],
+    "min_bot_version": "3.5.0",
+    "hidden": false,
+    "disabled": false,
+    "type": "COG"
+}
