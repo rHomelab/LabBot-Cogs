@@ -61,7 +61,15 @@ class InteractiveSession:
 
 class MessageBuilder(InteractiveSession):
     async def run(self) -> Payload:
-        content = await self.get_response("Please enter the message you want to send.")
+        max_length = 2000
+        while True:
+            content = await self.get_response("Please enter the message you want to send.")
+            content_length = len(content)
+            if content_length > max_length:
+                await self.ctx.send(f"Message must be {max_length} characters or less. Please try again.")
+                continue
+            break
+
         self.payload.update({"content": content})
         if await self.confirm_sample():
             return self.payload
