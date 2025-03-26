@@ -39,7 +39,6 @@ class SentryCog(commands.Cog):
         bot.after_invoke(self.after_invoke)
         self.logger.debug("Registered before/after hooks")
 
-    # pylint: disable=unused-argument
     async def ensure_client_init(self, context: commands.context.Context):
         """Ensure client is initialised"""
         if self.client:
