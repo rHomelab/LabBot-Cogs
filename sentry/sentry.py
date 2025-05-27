@@ -8,7 +8,7 @@ from discord.ext.commands.errors import CommandInvokeError
 from redbot.core import checks, commands
 from redbot.core.bot import Config, Red
 from sentry_sdk.client import Client
-from sentry_sdk.hub import Hub
+from sentry_sdk.scope import Scope, use_isolation_scope
 from sentry_sdk.tracing import Transaction
 from sentry_sdk.utils import BadDsn
 
@@ -39,7 +39,6 @@ class SentryCog(commands.Cog):
         bot.after_invoke(self.after_invoke)
         self.logger.debug("Registered before/after hooks")
 
-    # pylint: disable=unused-argument
     async def ensure_client_init(self, context: commands.context.Context):
         """Ensure client is initialised"""
         if self.client:
@@ -126,15 +125,16 @@ class SentryCog(commands.Cog):
         """Method invoked before any red command. Start a transaction."""
         await self.ensure_client_init(context)
         msg: Message = context.message
-        with Hub(self.client) as hub:
+        client_scope = Scope(client=self.client)
+        with use_isolation_scope(client_scope) as scope:
             # set_user applies to the current scope, so it also applies to the transaction
-            hub.scope.set_user(
+            scope.set_user(
                 {
                     "id": msg.author.id,
                     "username": msg.author.display_name,
                 }
             )
-            transaction = hub.start_transaction(op="command", name=f"Command {context.command.name}")
+            transaction = scope.start_transaction(op="command", name=f"Command {context.command.name}")
             transaction.set_tag("discord_message", msg.content)
             if context.command:
                 transaction.set_tag("discord_command", context.command.name)
@@ -153,37 +153,38 @@ class SentryCog(commands.Cog):
         if not transaction:
             self.logger.debug("post-command: no transaction, discarding")
             return
-        with Hub(self.client) as hub:
+        client_scope = Scope(client=self.client)
+        with use_isolation_scope(client_scope) as scope:
             transaction.set_status("ok")
             msg: Message = context.message
-            hub.scope.set_user(
+            scope.set_user(
                 {
                     "id": msg.author.id,
                     "username": msg.author.display_name,
                 }
             )
-            hub.scope.set_tag("discord_message", msg.content)
+            scope.set_tag("discord_message", msg.content)
             if context.command:
-                hub.scope.set_tag("discord_command", context.command.name)
+                scope.set_tag("discord_command", context.command.name)
             if msg.guild:
-                hub.scope.set_tag("discord_guild", msg.guild.name)
+                scope.set_tag("discord_guild", msg.guild.name)
             if isinstance(msg.channel, TextChannel):
-                hub.scope.set_tag("discord_channel", msg.channel.name)
-                hub.scope.set_tag("discord_channel_id", msg.channel.id)
+                scope.set_tag("discord_channel", msg.channel.name)
+                scope.set_tag("discord_channel_id", msg.channel.id)
 
             if not context.command_failed:
                 self.logger.debug("post-command: sending successful transaction")
-                transaction.finish(hub)
+                transaction.finish(scope)
                 return
             exc_type, value, _ = sys.exc_info()
             if not exc_type:
-                transaction.finish(hub)
+                transaction.finish(scope)
                 return
             if isinstance(value, CommandInvokeError):
                 value = value.original
 
             transaction.set_status("unknown_error")
             self.logger.debug("post-command: capturing error")
-            hub.capture_exception(value)
+            scope.capture_exception(value)
 
-            transaction.finish(hub)
+            transaction.finish(scope)
