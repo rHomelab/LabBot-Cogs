@@ -26,6 +26,7 @@ Cogs for the [Red-DiscordBot](https://github.com/Cog-Creators/Red-DiscordBot/)-b
       - [Configure Enforcer](#configure-enforcer)
     - [Feed](#feed)
     - [Google](#google)
+    - [guild_profiles](#guild_profiles)
     - [IsItReadOnlyFriday](#isitreadonlyfriday)
     - [Jail](#jail)
     - [LaTeX](#latex)
@@ -78,6 +79,7 @@ A massive thank you to [all who've helped with this project](https://github.com/
 - **[Enforcer](#enforcer):** Allows you to enforce certain characteristics on a channel.
 - **[Feed](#feed):** This allows users to feed each other.
 - **[Google](#google):** Send a google link to someone.
+- **[guild_profiles](#guild_profiles):** Create profiles to manage a guild's icon and banner.
 - **[IsItReadOnlyFriday](#isitreadonlyfriday):** Answers if it's read-only Friday (or December).
 - **[Jail](#jail):** Jails users in an isolated channel.
 - **[LaTeX](#latex):** Render a LaTeX statement.
@@ -199,6 +201,19 @@ This cog allows users to feed each other.
 This cog allows users to send google links to each other.
 
 `[p]google <query>`
+
+### guild_profiles
+
+This cog enables management of a guild's icon and banner with profiles. Profiles can be managed and applied at-will by admins or users with the "Manage Guild" permission.
+
+* `[p]guildprofile list` - Lists all available guild profiles.
+* `[p]guildprofile create <name>` - Creates a new guild profile with the attached assets.  
+  **Note:** The icon and banner must be attached to the message **in this order**.
+* `[p]guildprofile info <name>` - Shows details of a specific profile.
+* `[p]guildprofile delete <name>` - Deletes a guild profile.
+* `[p]guildprofile update <name>` - Updates a guild profile with the attached assets.  
+  **Note:** The icon and banner must be attached to the message **in this order**.
+* `[p]guildprofile apply <name>` - Applies a profile to the guild.
 
 ### IsItReadOnlyFriday
 

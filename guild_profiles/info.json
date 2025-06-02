@@ -1,0 +1,16 @@
+{
+    "author": [
+        "tigattack"
+    ],
+    "short": "Create profiles to manage a guild's icon and banner.",
+    "description": "Create, read, update, delete, and apply guild profiles. Each profile consists of a guild icon and banner.",
+    "name": "guild_profiles",
+    "tags": [
+        "utility"
+    ],
+    "requirements": [
+        "aiofiles>=24.1.0"
+    ],
+    "install_msg": "Usage: `[p]guildprofile`",
+    "min_bot_version": "3.5.1"
+}
