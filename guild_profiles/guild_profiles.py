@@ -1,4 +1,5 @@
 import pathlib
+import re
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -33,6 +34,26 @@ class GuildProfilesCog(commands.Cog):
         self.profiles_path = self.data_path / "profiles"
         self.profiles_path.mkdir(exist_ok=True, parents=True)
 
+    def validate_string_safe(self, name: str) -> bool:
+        """
+        Validate a string to ensure it is safe for use as a profile name.
+
+        Args:
+            name: The profile name to validate
+        Returns:
+            True if the name is valid, False otherwise.
+        """
+        # Validate profile name
+        if not name or len(name) > self.MAX_PROFILE_NAME_LENGTH:
+            return False
+        # Must not be '.', '..', or contain path separators
+        if not name or name in {".", ".."} or "/" in name or "\\" in name:
+            return False
+        # Must match allowed characters only
+        if not re.fullmatch(r"[a-zA-Z0-9._-]+", name):
+            return False
+        return True
+
     async def _save_attachment(
         self, attachment: discord.Attachment, guild_id: int, profile_name: str, file_type: str
     ) -> Optional[str]:
@@ -55,8 +76,12 @@ class GuildProfilesCog(commands.Cog):
         guild_path = self.profiles_path / str(guild_id)
         guild_path.mkdir(exist_ok=True)
 
-        # Create profile directory if it doesn't exist
-        profile_path = guild_path / profile_name.lower()
+        # Validate profile name to prevent path traversal attacks
+        profile_path = (guild_path / profile_name.lower()).resolve()
+        if not str(profile_path).startswith(str(guild_path)):
+            raise ValueError("Invalid profile name: potential path traversal attempt.")
+
+        # Ensure profile directory exists
         profile_path.mkdir(exist_ok=True)
 
         # Determine file extension
@@ -88,19 +113,31 @@ class GuildProfilesCog(commands.Cog):
     @_guildprofile.command(name="create")
     async def _create(self, ctx: commands.GuildContext, name: str):
         """
-        Create a new guild profile with the specified name.
+        Create a new guild profile with the specified name and assets.
 
-        You must attach both an icon and a banner image, **in this order**, to the message.
+        To create a profile, you must attach two images to the message:
+        - The first attachment will be used as the guild icon.
+        - The second attachment will be used as the guild banner.
+
+        The profile name must be unique and follow the naming rules:
+        - Must be 1-32 characters long.
+        - Can contain upper or lowercase letters, numbers, underscores, hyphens, and full stops.
+        - Must not be `.`, `..`, or contain path separators.
+        - Must not already exist in the guild's profiles.
+
+        **Note:**
+        The profile name is case-insensitive, meaning "Profile" and "profile" are considered the same.
         """
-        # Validate profile name
-        if not name or len(name) > self.MAX_PROFILE_NAME_LENGTH:
-            await ctx.send(f"Profile name must be between 1 and {self.MAX_PROFILE_NAME_LENGTH} characters.")
-            return
-
         # Check for attachments
         if len(ctx.message.attachments) < self.REQUIRED_ATTACHMENTS:
-            await ctx.send("You must attach both an icon and a banner image, **in this order**, to the message.")
-            return
+            return await ctx.send("You must attach both an icon and a banner image, **in this order**, to the message.")
+
+        profile_name = name.lower()
+        if not self.validate_string_safe(profile_name):
+            return await ctx.send(
+                "Invalid profile name. Please ensure it meets the requirements "
+                + f"detailed in `{ctx.prefix}help guildprofile create`."
+            )
 
         # Assumes first attachment is icon, second is banner
         icon_attachment = ctx.message.attachments[0]
@@ -116,9 +153,8 @@ class GuildProfilesCog(commands.Cog):
             return
 
         async with self.config.guild(ctx.guild).profiles() as profiles:
-            if name.lower() in profiles:
-                await ctx.send(f"A profile named '{name}' already exists. Please use a different name.")
-                return
+            if profile_name in profiles:
+                return await ctx.send(f"A profile named '{name}' already exists. Please use a different name.")
 
             # Save the attachments
             icon_path = await self._save_attachment(icon_attachment, ctx.guild.id, name, "icon")
@@ -129,7 +165,7 @@ class GuildProfilesCog(commands.Cog):
                 return
 
             # Create the profile
-            profiles[name.lower()] = {
+            profiles[profile_name] = {
                 "creator": ctx.author.id,
                 "created": int(datetime.now(timezone.utc).timestamp()),
                 "icon_path": icon_path,
