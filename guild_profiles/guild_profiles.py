@@ -56,7 +56,7 @@ class GuildProfilesCog(commands.Cog):
 
     async def _save_attachment(
         self, attachment: discord.Attachment, guild_id: int, profile_name: str, file_type: str
-    ) -> Optional[str]:
+    ) -> str:
         """
         Save an attachment to the cog's data directory.
 
@@ -70,10 +70,10 @@ class GuildProfilesCog(commands.Cog):
             The path to the saved file relative to the profiles directory, or None if saving failed
         """
         if not attachment.content_type or not attachment.content_type.startswith("image/"):
-            return None
+            raise ValueError("The attachment could not be identified as an image.")
 
         # Create guild directory if it doesn't exist
-        guild_path = self.profiles_path / str(guild_id)
+        guild_path = (self.profiles_path / str(guild_id)).resolve()
         guild_path.mkdir(exist_ok=True)
 
         # Validate profile name to prevent path traversal attacks
@@ -91,13 +91,9 @@ class GuildProfilesCog(commands.Cog):
         file_path = profile_path / f"{file_type}.{file_ext}"
 
         # Save the file
-        try:
-            await attachment.save(file_path)
-            # Return relative path from profiles directory
-            return str(file_path.relative_to(self.profiles_path))
-        except Exception:
-            # In a real-world scenario, you might want to log this error
-            return None
+        await attachment.save(file_path)
+        # Return relative path from profiles directory
+        return str(file_path.relative_to(self.profiles_path))
 
     def _get_file_path(self, rel_path: str) -> pathlib.Path:
         """Convert a relative path to an absolute path within the profiles directory."""
@@ -157,12 +153,11 @@ class GuildProfilesCog(commands.Cog):
                 return await ctx.send(f"A profile named '{name}' already exists. Please use a different name.")
 
             # Save the attachments
-            icon_path = await self._save_attachment(icon_attachment, ctx.guild.id, name, "icon")
-            banner_path = await self._save_attachment(banner_attachment, ctx.guild.id, name, "banner")
-
-            if not icon_path or not banner_path:
-                await ctx.send("Failed to save one or both images. Please try again.")
-                return
+            try:
+                icon_path = await self._save_attachment(icon_attachment, ctx.guild.id, name, "icon")
+                banner_path = await self._save_attachment(banner_attachment, ctx.guild.id, name, "banner")
+            except Exception as e:
+                return await ctx.send(f"Failed to save images: {e!s}")
 
             # Create the profile
             profiles[profile_name] = {
@@ -290,10 +285,10 @@ class GuildProfilesCog(commands.Cog):
                 await ctx.send("The first attachment must be an image for the guild icon.")
                 return
 
-            icon_path = await self._save_attachment(icon_attachment, ctx.guild.id, name, "icon")
-            if not icon_path:
-                await ctx.send("Failed to save the icon image. Please try again.")
-                return
+            try:
+                icon_path = await self._save_attachment(icon_attachment, ctx.guild.id, name, "icon")
+            except Exception as e:
+                return await ctx.send(f"Failed to save the icon image: {e!s}")
 
             async with self.config.guild(ctx.guild).profiles() as profiles:
                 profiles[name.lower()]["icon_path"] = icon_path
@@ -305,10 +300,10 @@ class GuildProfilesCog(commands.Cog):
                 await ctx.send("The second attachment must be an image for the guild banner.")
                 return
 
-            banner_path = await self._save_attachment(banner_attachment, ctx.guild.id, name, "banner")
-            if not banner_path:
-                await ctx.send("Failed to save the banner image. Please try again.")
-                return
+            try:
+                banner_path = await self._save_attachment(banner_attachment, ctx.guild.id, name, "banner")
+            except Exception as e:
+                return await ctx.send(f"Failed to save the banner image: {e!s}")
 
             async with self.config.guild(ctx.guild).profiles() as profiles:
                 profiles[name.lower()]["banner_path"] = banner_path
