@@ -206,6 +206,9 @@ This cog allows users to send google links to each other.
 
 This cog enables management of a guild's icon and banner with profiles. Profiles can be managed and applied at-will by admins or users with the "Manage Guild" permission.
 
+> [!TIP]
+> Users must be moderators or higher or hold the `manage_guild` permission to interact with this cog.
+
 #### Profile Management Commands
 
 * `[p]guildprofile profile create <name> <icon> <banner>` - Creates a new guild profile with the specified asset IDs.

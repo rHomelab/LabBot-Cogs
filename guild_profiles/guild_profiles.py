@@ -191,7 +191,7 @@ class GuildProfilesCog(commands.Cog):
 
     @commands.group(name="guildprofile")  # type: ignore
     @commands.guild_only()
-    @checks.admin_or_permissions(manage_guild=True)
+    @checks.mod_or_permissions(manage_guild=True)
     async def guildprofile_cmd(self, ctx: commands.GuildContext):
         """Manage guild profiles and assets."""
         pass
@@ -305,6 +305,9 @@ class GuildProfilesCog(commands.Cog):
                 + f"attempted to view a non-existent profile: {name}"
             )
             return await ctx.send(f"No profile named '{name}' exists.")
+
+        # Show typing indicator while processing
+        await ctx.typing()
 
         profile = profiles[name]
         creator = ctx.guild.get_member(profile["creator"])
@@ -436,6 +439,9 @@ class GuildProfilesCog(commands.Cog):
                 + f"attempted to apply a non-existent profile: {name}"
             )
             return await ctx.send(f"No profile named '{name}' exists.")
+
+        # Show typing indicator while processing
+        await ctx.typing()
 
         profile = profiles[name]
 
@@ -593,6 +599,9 @@ class GuildProfilesCog(commands.Cog):
             asset = await self._get_asset(ctx.guild, id)
         except (ValueError, FileNotFoundError) as e:
             return await ctx.send(f"Failed to retrieve asset: {e!s}")
+
+        # Show typing indicator while processing
+        await ctx.typing()
 
         creator = ctx.guild.get_member(asset.creator)
         creator_name = creator.mention if creator else "Unknown User"
