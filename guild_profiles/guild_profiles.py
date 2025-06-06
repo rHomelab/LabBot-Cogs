@@ -191,7 +191,7 @@ class GuildProfilesCog(commands.Cog):
 
     @commands.group(name="guildprofile")  # type: ignore
     @commands.guild_only()
-    @checks.admin_or_permissions(manage_guild=True)
+    @checks.mod_or_permissions(manage_guild=True)
     async def guildprofile_cmd(self, ctx: commands.GuildContext):
         """Manage guild profiles and assets."""
         pass
