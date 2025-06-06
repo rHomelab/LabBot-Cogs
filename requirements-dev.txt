@@ -1,3 +1,4 @@
+aiofiles>=24.1.0
 chat_exporter>=2.8.1
 fastjsonschema==2.19.1
 pre-commit==3.7.0
