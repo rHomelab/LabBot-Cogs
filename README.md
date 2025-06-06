@@ -206,14 +206,22 @@ This cog allows users to send google links to each other.
 
 This cog enables management of a guild's icon and banner with profiles. Profiles can be managed and applied at-will by admins or users with the "Manage Guild" permission.
 
-* `[p]guildprofile list` - Lists all available guild profiles.
-* `[p]guildprofile create <name>` - Creates a new guild profile with the attached assets.  
-  **Note:** The icon and banner must be attached to the message **in this order**.
-* `[p]guildprofile info <name>` - Shows details of a specific profile.
-* `[p]guildprofile delete <name>` - Deletes a guild profile.
-* `[p]guildprofile update <name>` - Updates a guild profile with the attached assets.  
-  **Note:** The icon and banner must be attached to the message **in this order**.
-* `[p]guildprofile apply <name>` - Applies a profile to the guild.
+#### Profile Management Commands
+
+* `[p]guildprofile profile create <name> <icon> <banner>` - Creates a new guild profile with the specified asset IDs.
+* `[p]guildprofile profile list` - Lists all available guild profiles.
+* `[p]guildprofile profile info <name>` - Shows details of a specific profile.
+* `[p]guildprofile profile delete <name>` - Deletes a guild profile.
+* `[p]guildprofile profile update [icon] [banner]` - Updates the icon and/or banner asset IDs assigned to a profile.
+* `[p]guildprofile profile apply <name>` - Applies a profile to the guild.
+
+#### Asset Management Commands
+
+* `[p]guildprofile asset create [name]` - Creates a new asset with the attached image.
+* `[p]guildprofile asset list` - Lists all available assets.
+* `[p]guildprofile asset info <ID>` - Shows details of a specific asset.
+* `[p]guildprofile asset delete <ID>` - Deletes an asset.
+* `[p]guildprofile asset delete_all_unused` - Deletes all assets that are not assigned to a profile.
 
 ### IsItReadOnlyFriday
 
