@@ -80,6 +80,17 @@ class Timeout(commands.Cog):
 
         await self.config.member(user).roles.set(user_roles)
 
+        # Disconnect user from voice channel if they are in one
+        if user.voice and user.voice.channel:
+            try:
+                await user.move_to(None)
+            except discord.Forbidden:
+                await ctx.send("I don't have permission to disconnect users from voice channels.")
+                log.warning(f"Missing permissions to disconnect {user} from voice channel.")
+            except Exception as e:
+                await ctx.send(f"An error occurred while disconnecting {user.display_name} from voice: {e}")
+                log.exception(f"Error disconnecting {user} from voice: {e}")
+
         # Replace all of a user's roles with timeout roleset
         try:
             await user.edit(roles=timeout_roleset)
