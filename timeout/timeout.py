@@ -88,7 +88,7 @@ class Timeout(commands.Cog):
                 await ctx.send("I don't have permission to disconnect users from voice channels.")
                 log.warning(f"Missing permissions to disconnect {user} from voice channel.")
             except Exception as e:
-                await ctx.send(f"An error occurred while disconnecting {user.display_name} from voice: {e}")
+                await ctx.send(f"An error occurred while disconnecting {user.display_name} from voice")
                 log.exception(f"Error disconnecting {user} from voice: {e}")
 
         # Replace all of a user's roles with timeout roleset
