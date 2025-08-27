@@ -141,17 +141,27 @@ class OnboardingRole(commands.Cog):
             await ctx.send(f"❌ I need the `Send Messages` and `Embed Links` permissions to send logs to {channel.mention}.")
 
     @onboarding_role.command("process")
-    async def manual_onboarding(self, ctx: commands.GuildContext):
+    async def manual_onboarding(self, ctx: commands.GuildContext, dry_run: bool = False):
         """
         Manually process onboarding for all eligible members in this guild.
 
         This will check all members in the guild and assign the onboarding role
         to those who have completed onboarding but don't have the role yet.
+
+        Args:
+            dry_run: If True, only show what would be done without making changes.
         """
         async with ctx.typing():
-            processed_count = await self.process_onboarding_for_guild(ctx.guild)
+            processed_count = await self.process_onboarding_for_guild(ctx.guild, dry_run=dry_run)
 
-        if processed_count == 0:
+        if dry_run:
+            if processed_count == 0:
+                await ctx.send("🔍 **Dry Run**: No members would need onboarding role assignment.")
+            elif processed_count == 1:
+                await ctx.send("🔍 **Dry Run**: 1 member would be processed for onboarding role assignment.")
+            else:
+                await ctx.send(f"🔍 **Dry Run**: {processed_count} members would be processed for onboarding role assignment.")
+        elif processed_count == 0:
             await ctx.send("✅ No members needed onboarding role assignment.")
         elif processed_count == 1:
             await ctx.send("✅ Processed onboarding for 1 member.")
@@ -160,7 +170,7 @@ class OnboardingRole(commands.Cog):
 
     # Helpers
 
-    async def process_onboarding_for_guild(self, guild: discord.Guild) -> int:
+    async def process_onboarding_for_guild(self, guild: discord.Guild, dry_run: bool = False) -> int:
         """
         Process onboarding for members in a specific guild who meet the following criteria:
         - Not in `onboarded_users` list.
@@ -169,9 +179,10 @@ class OnboardingRole(commands.Cog):
 
         Args:
             guild: The Discord guild to process onboarding for.
+            dry_run: If True, only count eligible members without making changes.
 
         Returns:
-            int: Number of members processed.
+            int: Number of members processed (or would be processed in dry run).
         """
         onboarded_role_id = await self.config.guild(guild).role()
         if not onboarded_role_id:
@@ -189,7 +200,8 @@ class OnboardingRole(commands.Cog):
 
         for member in guild.members:
             if member not in onboarded_users and member.flags.completed_onboarding and onboarded_role not in member.roles:
-                await self.process_onboarding_for_member(member)
+                if not dry_run:
+                    await self.process_onboarding_for_member(member)
                 processed_count += 1
 
         return processed_count
