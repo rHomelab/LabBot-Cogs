@@ -23,10 +23,11 @@ jobs:
       - name: Checkout the repository at the current branch
         uses: actions/checkout@v4
       - name: Install dependencies
+        id: setup_deps
         uses: ./.github/actions/setup
       - uses: jakebailey/pyright-action@v2
         with:
-          python-version: "3.11"
+          python-version: ${{ steps.setup_deps.outputs.python-version }}
 
   check-json:
     runs-on: ubuntu-latest
