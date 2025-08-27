@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: rippleFCL/action-fixme-annotate@v0.1.0
+    - uses: rippleFCL/action-fixme-annotate@v0.1.1
       with:
         terms: 'WIP|FIXME'
         case-sensitive: false
