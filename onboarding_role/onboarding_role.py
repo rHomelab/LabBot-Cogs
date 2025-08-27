@@ -98,7 +98,7 @@ class OnboardingRole(commands.Cog):
         embed = (
             discord.Embed(colour=(await ctx.embed_colour()))
             .add_field(name="Onboarded Role", value=onboarded_role)
-            .add_field(name="Log Channnel", value=log_channel)
+            .add_field(name="Log Channel", value=log_channel)
             .add_field(name="Onboarded User Count", value=num_onboarded_users, inline=False)
         )
 
@@ -222,7 +222,7 @@ class OnboardingRole(commands.Cog):
             # Welcome role is not found
             log.warning(
                 f"Cannot grant onboarding role to '{member.name}' (ID {member.id}): "
-                + f"Onboarding role set to ID {role_id} but could not found."
+                + f"Onboarding role set to ID {role_id} but could not be found."
             )
             return
 
