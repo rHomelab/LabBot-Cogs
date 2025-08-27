@@ -59,19 +59,14 @@ class ReportCog(commands.Cog):
 
     @_reports.command("confirmation")
     @commands.guild_only()
-    async def reports_confirm(self, ctx: commands.GuildContext, option: str):
+    async def reports_confirm(self, ctx: commands.GuildContext, option: bool):
         """Whether a confirmation should be sent to reporters.
 
         Example:
         - `[p]reports confirm <True|False>`
         """
-        try:
-            confirmation = strtobool(option)
-        except ValueError:
-            await ctx.send("❌ Invalid option. Use: `[p]reports confirm <True|False>`")
-            return
-        await self.config.guild(ctx.guild).confirmations.set(confirmation)
-        await ctx.send(f"✅ Report confirmations {'enabled' if confirmation else 'disabled'}")
+        await self.config.guild(ctx.guild).confirmations.set(option)
+        await ctx.send(f"✅ Report confirmations {'enabled' if option else 'disabled'}")
 
     @_reports.command("status")
     @commands.guild_only()
@@ -247,10 +242,3 @@ class ReportCog(commands.Cog):
             .add_field(name="Report Origin", value=channel.mention)
             .add_field(name="Report Content", value=escape(report_body or "<no message>"))
         )
-
-
-def strtobool(value: str) -> bool:
-    value = value.lower()
-    if value in ("y", "yes", "on", "1", "true", "t"):
-        return True
-    return False
