@@ -59,8 +59,15 @@ class OnboardingRole(commands.Cog):
         - Has completed onboarding.
         - Does not have the onboarded role.
         """
+        # Wait until Red is fully ready and cache is populated
+        await self.bot.wait_until_red_ready()
+
         for guild in self.bot.guilds:
             onboarded_role_id = await self.config.guild(guild).role()
+            if not onboarded_role_id:
+                # No role configured for this guild
+                continue
+
             onboarded_role = guild.get_role(onboarded_role_id)
             if not onboarded_role:
                 # Role not found
