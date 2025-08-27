@@ -117,7 +117,7 @@ class OnboardingRole(commands.Cog):
         - `[p]onboarding_role role 1253932390562590999`
         """
         await self.config.guild(ctx.guild).role.set(role.id)
-        log.debug(f"Onboarded role set to {role.name} (ID {role.id})")
+        log.debug(f"Onboarded role set to '{role.name}' (ID {role.id})")
         await ctx.tick()
         await ctx.send(
             f"Onboarding role has been set to {role.mention}. All eligible members will be assigned this role "
@@ -135,7 +135,7 @@ class OnboardingRole(commands.Cog):
         """
         if channel.permissions_for(ctx.me).send_messages and channel.permissions_for(ctx.me).embed_links:
             await self.config.guild(ctx.guild).log_channel.set(channel.id)
-            log.debug(f"Log channel set to {channel.name} (ID {channel.id})")
+            log.debug(f"Log channel set to '{channel.name}' (ID {channel.id})")
             await ctx.tick()
         else:
             await ctx.send(f"❌ I need the `Send Messages` and `Embed Links` permissions to send logs to {channel.mention}.")
@@ -192,7 +192,7 @@ class OnboardingRole(commands.Cog):
         onboarded_role = guild.get_role(onboarded_role_id)
         if not onboarded_role:
             # Role not found
-            log.warning(f"Role ID {onboarded_role_id} not found in guild {guild.name} (ID {guild.id}).")
+            log.warning(f"Role ID {onboarded_role_id} not found in guild '{guild.name}' (ID {guild.id}).")
             return 0
 
         onboarded_users = await self.config.guild(guild).onboarded_users()
@@ -237,7 +237,7 @@ class OnboardingRole(commands.Cog):
 
             await self.send_log_message(member)
         except discord.Forbidden:
-            error_msg = f"Adding onboarding role to {member.name} (ID {member.id}) was forbidden."
+            error_msg = f"Adding onboarding role to '{member.name}' (ID {member.id}) was forbidden."
             log.warning(error_msg)
             await self.send_log_message(member, error_msg)
 
@@ -277,7 +277,7 @@ class OnboardingRole(commands.Cog):
         try:
             await log_channel.send(embed=embed)
         except discord.Forbidden:
-            log.warning(f"Sending onboarding log to {log_channel.name} (ID {log_channel_id}) was forbidden.")
+            log.warning(f"Sending onboarding log to '{log_channel.name}' (ID {log_channel_id}) was forbidden.")
 
 
 def humanise_timedelta(delta: timedelta) -> str:
