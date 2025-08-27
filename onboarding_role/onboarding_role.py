@@ -54,30 +54,47 @@ class OnboardingRole(commands.Cog):
     async def on_ready(self):
         """
         Listen for on_ready event.
-        When event fires, add onboarded role to members in all guilds who meet the following criteria:
-        - Not in `onboarded_users` list.
-        - Has completed onboarding.
-        - Does not have the onboarded role.
+        When event fires, process onboarding for all eligible members.
         """
         # Wait until Red is fully ready and cache is populated
         await self.bot.wait_until_red_ready()
 
         for guild in self.bot.guilds:
-            onboarded_role_id = await self.config.guild(guild).role()
-            if not onboarded_role_id:
-                # No role configured for this guild
-                continue
+            await self.process_onboarding_for_guild(guild)
 
-            onboarded_role = guild.get_role(onboarded_role_id)
-            if not onboarded_role:
-                # Role not found
-                log.warning(f"Role ID {onboarded_role_id} not found in guild {guild.name} (ID {guild.id}).")
-                continue
+    async def process_onboarding_for_guild(self, guild: discord.Guild) -> int:
+        """
+        Process onboarding for members in a specific guild who meet the following criteria:
+        - Not in `onboarded_users` list.
+        - Has completed onboarding.
+        - Does not have the onboarded role.
 
-            onboarded_users = await self.config.guild(guild).onboarded_users()
-            for member in guild.members:
-                if member not in onboarded_users and member.flags.completed_onboarding and onboarded_role not in member.roles:
-                    await self.handle_onboarding(member)
+        Args:
+            guild: The Discord guild to process onboarding for.
+
+        Returns:
+            int: Number of members processed.
+        """
+        onboarded_role_id = await self.config.guild(guild).role()
+        if not onboarded_role_id:
+            # No role configured for this guild
+            return 0
+
+        onboarded_role = guild.get_role(onboarded_role_id)
+        if not onboarded_role:
+            # Role not found
+            log.warning(f"Role ID {onboarded_role_id} not found in guild {guild.name} (ID {guild.id}).")
+            return 0
+
+        onboarded_users = await self.config.guild(guild).onboarded_users()
+        processed_count = 0
+
+        for member in guild.members:
+            if member not in onboarded_users and member.flags.completed_onboarding and onboarded_role not in member.roles:
+                await self.handle_onboarding(member)
+                processed_count += 1
+
+        return processed_count
 
     # Commands
 
