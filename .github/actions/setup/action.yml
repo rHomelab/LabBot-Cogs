@@ -7,7 +7,7 @@ runs:
       id: find_pyver
       shell: bash
       run: |
-        PYVER=$(bash .github/actions/setup/find_latest_red_pyver.sh)
+        PYVER=$(bash "$GITHUB_WORKSPACE/.github/find_latest_red_pyver.sh")
         echo "python-version=$PYVER" >> "$GITHUB_OUTPUT"
     - name: Set up Python
       uses: actions/setup-python@v5
