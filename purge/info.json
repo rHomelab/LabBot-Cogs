@@ -11,7 +11,7 @@
         "inactive"
     ],
     "requirements": [
-        "croniter>=6.0.0"
+        "croniter~=6.0.0"
     ],
     "install_msg": "Usage: `[p]purge`",
     "min_bot_version": "3.5.1"
