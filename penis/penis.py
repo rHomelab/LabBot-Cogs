@@ -8,6 +8,7 @@ DONG_DISTRIBUTION_CONST = 30
 SMALL_DONG_CONST = 6
 BIG_DONG_CONST = DONG_DISTRIBUTION_CONST - SMALL_DONG_CONST
 
+
 class Penis(commands.Cog):
     """Penis related commands."""
 
