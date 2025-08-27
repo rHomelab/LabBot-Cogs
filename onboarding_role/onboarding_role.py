@@ -199,7 +199,7 @@ class OnboardingRole(commands.Cog):
         processed_count = 0
 
         for member in guild.members:
-            if member not in onboarded_users and member.flags.completed_onboarding and onboarded_role not in member.roles:
+            if member.id not in onboarded_users and member.flags.completed_onboarding and onboarded_role not in member.roles:
                 if not dry_run:
                     await self.process_onboarding_for_member(member)
                 processed_count += 1
