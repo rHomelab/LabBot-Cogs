@@ -6,6 +6,11 @@ on:
     paths:
       - "*/info.json"
       - ".github/compile_cog_requirements.py"
+  pull_request:
+    branches: [main]
+    paths:
+      - "*/info.json"
+      - ".github/compile_cog_requirements.py"
   workflow_dispatch:
 
 jobs:
