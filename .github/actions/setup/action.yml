@@ -3,10 +3,16 @@ description: Installs project dependencies
 runs:
   using: composite
   steps:
+    - name: Find latest Python supported by Red-DiscordBot
+      id: find_pyver
+      shell: bash
+      run: |
+        PYVER=$(bash .github/actions/setup/find_latest_red_pyver.sh)
+        echo "python-version=$PYVER" >> "$GITHUB_OUTPUT"
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: "3.11"
+        python-version: ${{ steps.find_pyver.outputs.python-version }}
     - name: Install base dependencies
       shell: bash
       run: pip install --quiet --upgrade --requirement requirements.txt
