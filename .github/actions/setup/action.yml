@@ -16,11 +16,6 @@ runs:
     - name: Install base dependencies
       shell: bash
       run: pip install --quiet --upgrade --requirement requirements.txt
-    - name: Install CI dependencies
+    - name: Install CI & cog dependencies
       shell: bash
       run: pip install --quiet --upgrade --requirement requirements-dev.txt
-    - name: Install cog dependencies
-      shell: bash
-      run: |
-        python3 .github/actions/setup/compile_requirements.py
-        pip install --quiet --upgrade --requirement requirements-cogs.txt
