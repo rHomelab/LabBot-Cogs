@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 import discord
 from croniter import croniter
-from croniter.croniter import CroniterError
+from croniter.croniter import CroniterBadCronError
 from redbot.core import Config, checks, commands
 
 
@@ -38,7 +38,7 @@ class PurgeCog(commands.Cog):
             croniter(crontab)
             await self.config.guild(guild).schedule.set(crontab)
             return crontab
-        except CroniterError:
+        except CroniterBadCronError:
             return False
 
     async def check_purgeable_users(self):
