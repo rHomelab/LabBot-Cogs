@@ -7,4 +7,4 @@ fastjsonschema~=2.21.2
 pre-commit~=4.3.0
 pytest-aiohttp~=1.0.5
 pytest-asyncio~=0.23.6
-pytest~=8.2.0
+pytest~=8.4.1
