@@ -9,7 +9,7 @@
         "utility"
     ],
     "requirements": [
-        "aiofiles>=24.1.0"
+        "aiofiles~=24.1.0"
     ],
     "install_msg": "Usage: `[p]guildprofile`",
     "min_bot_version": "3.5.1"

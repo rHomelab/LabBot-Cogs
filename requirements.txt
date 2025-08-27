@@ -1,3 +1,6 @@
-pip
-wheel
-Red-DiscordBot
+aiofiles~=24.1.0
+chat_exporter~=2.8.1
+croniter~=6.0.0
+prometheus-client~=0.22.1
+python-Levenshtein~=0.27.1
+sentry-sdk~=2.22.0
