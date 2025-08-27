@@ -328,6 +328,7 @@ If any such member is found, they will be granted the onboarding role.
 * `[p]onboarding_role status` - Status of the cog.
 * `[p]onboarding_role role <role name or ID>` - Set the role to be granted to users once they complete onboarding.
 * `[p]onboarding_role logchannel <text channel name or ID>` - Set the channel to which onboarding events should be logged.
+* `[p]onboarding_role process [dry_run]` - Manually process onboarding for all eligible members in the current guild. This checks all members and assigns the onboarding role to those who have completed onboarding but don't have the role yet. Use `True` for `dry_run` to see what would happen without making changes.
 
 ### Penis
 

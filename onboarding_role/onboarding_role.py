@@ -48,36 +48,19 @@ class OnboardingRole(commands.Cog):
             # Onboarding state is not changed or onboarding is not complete
             return
 
-        await self.handle_onboarding(after)
+        await self.process_onboarding_for_member(after)
 
     @commands.Cog.listener()
     async def on_ready(self):
         """
         Listen for on_ready event.
-        When event fires, add onboarded role to members in all guilds who meet the following criteria:
-        - Not in `onboarded_users` list.
-        - Has completed onboarding.
-        - Does not have the onboarded role.
+        When event fires, process onboarding for all eligible members.
         """
         # Wait until Red is fully ready and cache is populated
         await self.bot.wait_until_red_ready()
 
         for guild in self.bot.guilds:
-            onboarded_role_id = await self.config.guild(guild).role()
-            if not onboarded_role_id:
-                # No role configured for this guild
-                continue
-
-            onboarded_role = guild.get_role(onboarded_role_id)
-            if not onboarded_role:
-                # Role not found
-                log.warning(f"Role ID {onboarded_role_id} not found in guild {guild.name} (ID {guild.id}).")
-                continue
-
-            onboarded_users = await self.config.guild(guild).onboarded_users()
-            for member in guild.members:
-                if member not in onboarded_users and member.flags.completed_onboarding and onboarded_role not in member.roles:
-                    await self.handle_onboarding(member)
+            await self.process_onboarding_for_guild(guild)
 
     # Commands
 
@@ -115,7 +98,7 @@ class OnboardingRole(commands.Cog):
         embed = (
             discord.Embed(colour=(await ctx.embed_colour()))
             .add_field(name="Onboarded Role", value=onboarded_role)
-            .add_field(name="Log Channnel", value=log_channel)
+            .add_field(name="Log Channel", value=log_channel)
             .add_field(name="Onboarded User Count", value=num_onboarded_users, inline=False)
         )
 
@@ -134,8 +117,12 @@ class OnboardingRole(commands.Cog):
         - `[p]onboarding_role role 1253932390562590999`
         """
         await self.config.guild(ctx.guild).role.set(role.id)
-        log.debug(f"Onboarded role set to {role.name} (ID {role.id})")
+        log.debug(f"Onboarded role set to '{role.name}' (ID {role.id})")
         await ctx.tick()
+        await ctx.send(
+            f"Onboarding role has been set to {role.mention}. All eligible members will be assigned this role "
+            f"next time the bot starts, or it can be triggered now with `{ctx.prefix}onboarding_role process`."
+        )
 
     @onboarding_role.command("logchannel")
     async def set_log_channel(self, ctx: commands.GuildContext, channel: discord.TextChannel):
@@ -148,14 +135,78 @@ class OnboardingRole(commands.Cog):
         """
         if channel.permissions_for(ctx.me).send_messages and channel.permissions_for(ctx.me).embed_links:
             await self.config.guild(ctx.guild).log_channel.set(channel.id)
-            log.debug(f"Log channel set to {channel.name} (ID {channel.id})")
+            log.debug(f"Log channel set to '{channel.name}' (ID {channel.id})")
             await ctx.tick()
         else:
             await ctx.send(f"❌ I need the `Send Messages` and `Embed Links` permissions to send logs to {channel.mention}.")
 
+    @onboarding_role.command("process")
+    async def manual_onboarding(self, ctx: commands.GuildContext, dry_run: bool = False):
+        """
+        Manually process onboarding for all eligible members in this guild.
+
+        This will check all members in the guild and assign the onboarding role
+        to those who have completed onboarding but don't have the role yet.
+
+        Args:
+            dry_run: If True, only show what would be done without making changes.
+        """
+        async with ctx.typing():
+            processed_count = await self.process_onboarding_for_guild(ctx.guild, dry_run=dry_run)
+
+        if dry_run:
+            if processed_count == 0:
+                await ctx.send("🔍 **Dry Run**: No members would need onboarding role assignment.")
+            elif processed_count == 1:
+                await ctx.send("🔍 **Dry Run**: 1 member would be processed for onboarding role assignment.")
+            else:
+                await ctx.send(f"🔍 **Dry Run**: {processed_count} members would be processed for onboarding role assignment.")
+        elif processed_count == 0:
+            await ctx.send("✅ No members needed onboarding role assignment.")
+        elif processed_count == 1:
+            await ctx.send("✅ Processed onboarding for 1 member.")
+        else:
+            await ctx.send(f"✅ Processed onboarding for {processed_count} members.")
+
     # Helpers
 
-    async def handle_onboarding(self, member: discord.Member):
+    async def process_onboarding_for_guild(self, guild: discord.Guild, dry_run: bool = False) -> int:
+        """
+        Process onboarding for members in a specific guild who meet the following criteria:
+        - Not in `onboarded_users` list.
+        - Has completed onboarding.
+        - Does not have the onboarded role.
+
+        Args:
+            guild: The Discord guild to process onboarding for.
+            dry_run: If True, only count eligible members without making changes.
+
+        Returns:
+            int: Number of members processed (or would be processed in dry run).
+        """
+        onboarded_role_id = await self.config.guild(guild).role()
+        if not onboarded_role_id:
+            # No role configured for this guild
+            return 0
+
+        onboarded_role = guild.get_role(onboarded_role_id)
+        if not onboarded_role:
+            # Role not found
+            log.warning(f"Role ID {onboarded_role_id} not found in guild '{guild.name}' (ID {guild.id}).")
+            return 0
+
+        onboarded_users = await self.config.guild(guild).onboarded_users()
+        processed_count = 0
+
+        for member in guild.members:
+            if member.id not in onboarded_users and member.flags.completed_onboarding and onboarded_role not in member.roles:
+                if not dry_run:
+                    await self.process_onboarding_for_member(member)
+                processed_count += 1
+
+        return processed_count
+
+    async def process_onboarding_for_member(self, member: discord.Member):
         """Handle onboarding completed event"""
         log.debug(f"User '{member.name}' (ID {member.id}) completed onboarding")
         guild = member.guild
@@ -171,7 +222,7 @@ class OnboardingRole(commands.Cog):
             # Welcome role is not found
             log.warning(
                 f"Cannot grant onboarding role to '{member.name}' (ID {member.id}): "
-                + f"Onboarding role set to ID {role_id} but could not found."
+                + f"Onboarding role set to ID {role_id} but could not be found."
             )
             return
 
@@ -186,7 +237,7 @@ class OnboardingRole(commands.Cog):
 
             await self.send_log_message(member)
         except discord.Forbidden:
-            error_msg = f"Adding onboarding role to {member.name} (ID {member.id}) was forbidden."
+            error_msg = f"Adding onboarding role to '{member.name}' (ID {member.id}) was forbidden."
             log.warning(error_msg)
             await self.send_log_message(member, error_msg)
 
@@ -226,7 +277,7 @@ class OnboardingRole(commands.Cog):
         try:
             await log_channel.send(embed=embed)
         except discord.Forbidden:
-            log.warning(f"Sending onboarding log to {log_channel.name} (ID {log_channel_id}) was forbidden.")
+            log.warning(f"Sending onboarding log to '{log_channel.name}' (ID {log_channel_id}) was forbidden.")
 
 
 def humanise_timedelta(delta: timedelta) -> str:
