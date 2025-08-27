@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository at the current branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install dependencies
         uses: ./.github/actions/setup
       - uses: astral-sh/ruff-action@v3
@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository at the current branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install dependencies
         id: setup_deps
         uses: ./.github/actions/setup
@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository at the current branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install dependencies
         uses: ./.github/actions/setup
       - name: Check cog and repo JSON files against schema
@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository at the current branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install dependencies
         uses: ./.github/actions/setup
       - name: Run unit tests
@@ -53,7 +53,7 @@ jobs:
     name: FIXME check
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: rippleFCL/action-fixme-annotate@v0.1.1
       with:
         terms: 'WIP|FIXME'
