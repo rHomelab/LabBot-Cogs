@@ -385,7 +385,7 @@ When a user triggers the emergency command, all online/idle users in the log cha
 
 #### Configuration Commands
 
-- `[p]reports confirmation <true|false>` - Sets whether the bot will send users a confirmation/copy of their report.
+- `[p]reports confirmation <true|false>` - Sets whether the bot will DM users a confirmation/copy of their report. Confirmations are always provided when the slash command is used.
 - `[p]reports logchannel #admin-log` - Set the channel to which reports will be sent. ⚠️ The cog will not function without this.
 - `[p]reports maxmentions <number>` - Set the maximum number of users to mention in emergency reports (1-100, default: 20).
 - `[p]reports status` - Output the cog's configuration status.

@@ -272,17 +272,19 @@ class ReportCog(commands.Cog):
         if was_truncated:
             await self.notify_truncation(message, interaction, original_length, len(report_body))
 
-        confirm = await self.config.guild(channel.guild).confirmations()
-        if confirm:
-            report_reply = self.make_reporter_reply(channel.guild, channel, report_body, emergency)
+        # Construct the report reply embed
+        report_reply = self.make_reporter_reply(channel.guild, channel, report_body, emergency)
+
+        # Send interaction response if this is a slash command
+        if interaction is not None:
+            await interaction.response.send_message(embed=report_reply, ephemeral=True)
+
+        # Else send a DM if DM confirmations are enabled
+        elif self.config.guild(channel.guild).confirmations():
             try:
-                if interaction is not None:
-                    await interaction.response.send_message(embed=report_reply, ephemeral=True)
-                else:
-                    await message.author.send(embed=report_reply)
+                await message.author.send(embed=report_reply)
             except discord.Forbidden:
                 logger.warning(f"Failed to send report confirmation to {message.author.global_name} ({message.author.id})")
-                pass
 
     async def make_report_embed(
         self, channel: GuildChannelOrThread, message: discord.Message, report_body: str, emergency: bool
