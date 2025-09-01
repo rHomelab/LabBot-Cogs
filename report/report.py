@@ -62,6 +62,9 @@ class ReportCog(commands.Cog):
         if channel.permissions_for(ctx.me).send_messages is False:
             await ctx.send("❌ I do not have permission to send messages in that channel.")
             return
+
+        logger.debug(f"Setting log channel for guild {ctx.guild.name} ({ctx.guild.id}) to {channel.name} ({channel.id})")
+
         await self.config.guild(ctx.guild).logchannel.set(channel.id)
         await ctx.send(f"✅ Reports log message channel set to {channel.mention}")
 
@@ -73,6 +76,8 @@ class ReportCog(commands.Cog):
         Example:
         - `[p]reports confirm <True|False>`
         """
+        logger.debug(f"Setting report confirmations for guild {ctx.guild.name} ({ctx.guild.id}) to {option}")
+
         await self.config.guild(ctx.guild).confirmations.set(option)
         await ctx.send(f"✅ Report confirmations {'enabled' if option else 'disabled'}")
 
@@ -91,6 +96,8 @@ class ReportCog(commands.Cog):
         if max_mentions > MAX_ALLOWED_MENTIONS:
             await ctx.send(f"❌ Maximum mentions cannot exceed {MAX_ALLOWED_MENTIONS}.")
             return
+
+        logger.debug(f"Setting max emergency mentions for guild {ctx.guild.name} ({ctx.guild.id}) to {max_mentions}")
 
         await self.config.guild(ctx.guild).max_emergency_mentions.set(max_mentions)
         await ctx.send(f"✅ Maximum emergency mentions set to {max_mentions}")
@@ -131,16 +138,32 @@ class ReportCog(commands.Cog):
         Example:
         - `[p]report <message>`
         """
+        logger.info(
+            f"Report received from {ctx.author.name} ({ctx.author.id}) in {ctx.guild.name} "
+            f"({ctx.guild.id}) #{ctx.channel.name} ({ctx.channel.id})"
+        )
+        logger.debug(f"Report content: {message}")
+        logger.debug(f"Report content length: {len(message)} characters")
         await self.do_report(ctx.channel, ctx.message, message, False, ctx.interaction)
 
     @cmd_report.error
     async def on_cmd_report_error(self, ctx: commands.GuildContext, error):
         if isinstance(error, commands.CommandOnCooldown):
-            if ctx.interaction is not None:
+            logger.debug(
+                f"Report command on cooldown for {ctx.author.name} ({ctx.author.id}) in guild "
+                f"{ctx.guild.name} ({ctx.guild.id}), ends in {error.retry_after:.1f}s"
+            )
+            if ctx.interaction is not None and not ctx.interaction.response.is_done():
                 await ctx.interaction.response.send_message(str(error), ephemeral=True)
             else:
                 await ctx.message.delete()
                 await ctx.author.send(f"You are on cooldown. Try again in <t:{error.retry_after}:R>")
+        else:
+            logger.error(f"Unexpected error occurred: {error}")
+            try:
+                await ctx.bot.send_to_owners(error)
+            except Exception as e:
+                logger.error(f"Failed to send error to owners: {e}")
 
     @commands.hybrid_command("emergency")
     @commands.cooldown(1, 30.0, commands.BucketType.user)
@@ -151,16 +174,32 @@ class ReportCog(commands.Cog):
         Example:
         - `[p]emergency <message>`
         """
+        logger.info(
+            f"Emergency report received from {ctx.author.name} ({ctx.author.id}) in {ctx.guild.name} "
+            f"({ctx.guild.id}) #{ctx.channel.name} ({ctx.channel.id})"
+        )
+        logger.debug(f"Emergency report content: {message}")
+        logger.debug(f"Emergency report content length: {len(message)} characters")
         await self.do_report(ctx.channel, ctx.message, message, True, ctx.interaction)
 
     @cmd_report.error
     async def on_cmd_emergency_error(self, ctx: commands.GuildContext, error):
         if isinstance(error, commands.CommandOnCooldown):
-            if ctx.interaction is not None:
+            logger.debug(
+                f"Emergency command on cooldown for {ctx.author.name} ({ctx.author.id}) in guild "
+                f"{ctx.guild.name} ({ctx.guild.id}), ends in {error.retry_after:.1f}s"
+            )
+            if ctx.interaction is not None and not ctx.interaction.response.is_done():
                 await ctx.interaction.response.send_message(str(error), ephemeral=True)
             else:
                 await ctx.message.delete()
                 await ctx.author.send(f"You are on cooldown. Try again in <t:{error.retry_after}:R>")
+        else:
+            logger.error(f"Unexpected error occurred: {error}")
+            try:
+                await ctx.bot.send_to_owners(error)
+            except Exception as e:
+                logger.error(f"Failed to send error to owners: {e}")
 
     async def get_log_channel(self, guild: discord.Guild) -> TextLikeChannel | None:
         """Gets the log channel for the guild"""
@@ -182,8 +221,8 @@ class ReportCog(commands.Cog):
             logger.warning(f"Failed to get log channel {log_id}, is a invalid channel")
             return
 
-    async def send_emergency_mentions(self, log_channel: TextLikeChannel, embed: discord.Embed):
-        """Send emergency mentions, splitting across multiple messages if necessary."""
+    async def send_emergency_report(self, log_channel: TextLikeChannel, embed: discord.Embed):
+        """Send emergency report, splitting across multiple messages if necessary."""
         # Get the configured maximum mentions limit
         max_mentions = await self.config.guild(log_channel.guild).max_emergency_mentions()
 
@@ -191,6 +230,7 @@ class ReportCog(commands.Cog):
         log_channel_members = [
             log_channel.guild.get_member(i.id) if isinstance(i, discord.ThreadMember) else i for i in log_channel.members
         ]
+        logger.debug(f"Found {len(log_channel_members)} total members in log channel {log_channel.name}")
 
         # Get mentions for online/idle members, or all members if none online/idle
         online_idle_mentions = [
@@ -200,13 +240,17 @@ class ReportCog(commands.Cog):
         ]
         all_mentions = [i.mention for i in log_channel_members if i is not None and not i.bot]
 
+        logger.debug(f"Found {len(online_idle_mentions)} online/idle members, {len(all_mentions)} total non-bot members")
+
         mentions_to_use = online_idle_mentions or all_mentions
 
         # Limit the number of mentions to the configured maximum
         if len(mentions_to_use) > max_mentions:
             mentions_to_use = mentions_to_use[:max_mentions]
+            logger.info(f"Limited mentions to configured maximum of {max_mentions}")
 
         if not mentions_to_use:
+            logger.warning(f"Could not find any members to mention in emergency report for guild {log_channel.guild.name}")
             # No mentions to send, just send the embed
             await log_channel.send(embed=embed)
             return
@@ -233,8 +277,10 @@ class ReportCog(commands.Cog):
         for idx, chunk in enumerate(mention_chunks):
             if idx == 0:
                 # Send the first message with the embed and first chunk of mentions
+                logger.debug(f"Sending emergency report with embed and {len(chunk)} character mention block")
                 await log_channel.send(content=chunk, embed=embed)
             else:
+                logger.debug(f"Sending additional mention block {idx + 1}/{len(mention_chunks)} ({len(chunk)} characters)")
                 await log_channel.send(content=chunk)
 
     async def do_report(
@@ -246,45 +292,57 @@ class ReportCog(commands.Cog):
         interaction: discord.Interaction | None,
     ):
         """Sends a report to the mods for possible intervention"""
+        report_type = "emergency" if emergency else "regular"
+        logger.debug(f"Processing {report_type} report from {message.author.name} ({message.author.id})")
+
         # Pre-emptively delete the message for privacy reasons
         if interaction is None:
+            logger.debug("Deleting original report message for privacy")
             await message.delete()
 
         # Check if report body needs truncation
         original_length = len(report_body)
         if was_truncated := len(report_body) > EMBED_FIELD_VALUE_LIMIT:
             report_body = report_body[:EMBED_FIELD_VALUE_LIMIT]
+            logger.info(f"Report content truncated from {original_length} to {len(report_body)} characters")
 
         log_channel = await self.get_log_channel(channel.guild)
         if log_channel is None:
+            logger.warning(f"No log channel configured for guild {channel.guild.name} ({channel.guild.id})")
             await self.notify_guild_owner_config_error(channel, message, report_body)
             return
 
         embed = await self.make_report_embed(channel, message, report_body, emergency)
 
+        logger.info(f"Sending {report_type} report to log channel {log_channel.name} ({log_channel.id})")
         if isinstance(channel, TextLikeChannel) and emergency:
-            await self.send_emergency_mentions(log_channel, embed)
+            await self.send_emergency_report(log_channel, embed)
         else:
             # Not an emergency or not a text-like channel (maybe can't retrieve members), just send the embed
             await log_channel.send(embed=embed)
 
         # Notify user if their report was truncated
         if was_truncated:
+            logger.debug("Notifying user about report truncation")
             await self.notify_truncation(message, interaction, original_length, len(report_body))
 
         # Construct the report reply embed
         report_reply = self.make_reporter_reply(channel.guild, channel, report_body, emergency)
 
         # Send interaction response if this is a slash command
-        if interaction is not None:
+        if interaction is not None and not interaction.response.is_done():
+            logger.debug("Sending confirmation via interaction response")
             await interaction.response.send_message(embed=report_reply, ephemeral=True)
 
         # Else send a DM if DM confirmations are enabled
         elif self.config.guild(channel.guild).confirmations():
+            logger.debug("Sending confirmation via DM")
             try:
                 await message.author.send(embed=report_reply)
-            except discord.Forbidden:
-                logger.warning(f"Failed to send report confirmation to {message.author.global_name} ({message.author.id})")
+            except discord.Forbidden as exc:
+                logger.warning(
+                    f"Failed to send report confirmation to {message.author.global_name} ({message.author.id}): {exc}"
+                )
 
     async def make_report_embed(
         self, channel: GuildChannelOrThread, message: discord.Message, report_body: str, emergency: bool
@@ -325,29 +383,32 @@ class ReportCog(commands.Cog):
         self, message: discord.Message, interaction: discord.Interaction | None, original_length: int, truncated_length: int
     ):
         """Notify user that their report was truncated."""
+        logger.debug(f"Notifying {message.author.name} ({message.author.id}) about report truncation")
         try:
             truncation_msg = (
                 f"⚠️ Your report was truncated from {original_length} to {truncated_length} characters "
                 f"due to Discord's limits. The report was still sent successfully."
             )
-            if interaction is not None:
-                # If this was a slash command, we need to handle the interaction response differently
-                try:
-                    await interaction.followup.send(truncation_msg, ephemeral=True)
-                except discord.InteractionResponded:
-                    # Interaction already responded to, send as DM instead
-                    await message.author.send(truncation_msg)
+            if interaction is not None and not interaction.response.is_done():
+                await interaction.followup.send(truncation_msg, ephemeral=True)
+                logger.debug("Truncation notification sent via interaction followup message")
             else:
                 await message.author.send(truncation_msg)
-        except discord.Forbidden:
-            logger.warning(f"Failed to notify {message.author.global_name} ({message.author.id}) about report truncation")
+                logger.debug("Truncation notification sent via DM")
+        except discord.Forbidden as exc:
+            logger.error(f"Failed to notify {message.author.global_name} ({message.author.id}) about report truncation: {exc}")
 
     async def notify_guild_owner_config_error(
         self, channel: "discord.guild.GuildChannel | discord.Thread", message: discord.Message, report_body: str
     ):
         """Notify guild owner about misconfigured report log channel."""
         if channel.guild.owner is None:
+            logger.warning(
+                f"Can't find an owner of guild {channel.guild.name} ({channel.guild.id}) to notify about config error"
+            )
             return
+
+        logger.info(f"Notifying guild owner about misconfigured reports for guild {channel.guild.name} ({channel.guild.id})")
 
         base_msg = (
             f"⚠️ User {message.author.mention} attempted to make a report in {channel.jump_url}, "
@@ -365,5 +426,10 @@ class ReportCog(commands.Cog):
                 if max_report_length > 0:
                     truncated = report_body[:max_report_length]
                     base_msg += f"\nUser report: {truncated}..."
+                    logger.debug(f"Truncated report body for guild owner notification ({len(truncated)} chars)")
 
-        await channel.guild.owner.send(base_msg)
+        try:
+            await channel.guild.owner.send(base_msg)
+            logger.info("Successfully notified guild owner about config error")
+        except discord.Forbidden:
+            logger.error("Failed to send config error notification to guild owner - no DM permissions")
