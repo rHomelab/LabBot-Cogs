@@ -179,11 +179,12 @@ class ReportCog(commands.Cog):
 
         embed = await self.make_report_embed(channel, message, report_body, emergency)
         msg_body = None
-        if isinstance(channel, TextLikeChannel):
+        if isinstance(log_channel, TextLikeChannel):
             # Ping online and idle mods or all mods if none with such a status are found.
             if emergency:
                 channel_members = [
-                    channel.guild.get_member(i.id) if isinstance(i, discord.ThreadMember) else i for i in channel.members
+                    log_channel.guild.get_member(i.id) if isinstance(i, discord.ThreadMember) else i
+                    for i in log_channel.members
                 ]
                 msg_body = " ".join(
                     [
