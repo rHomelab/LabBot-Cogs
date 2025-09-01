@@ -378,7 +378,7 @@ The `report` and `emergency` commands have cooldowns defined; if a user attempts
 
 #### Emergency Reports
 
-When a user triggers the emergency command, all online/idle users in the log channel, with the following conditions:
+When a user triggers the emergency command, the bot will mention all online/idle users in the log channel with the user's report. The following conditions apply:
 
 * If no users in the log channel are online/idle, the cog will fall back to mentioning all non-bot users.
 * No number of users greather than the value of the `maxmentions` setting will be mentioned. The order of mentions is not guaranteed, so who is/isn't mentioned under this condition may be unpredictable.
