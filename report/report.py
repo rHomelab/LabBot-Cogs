@@ -12,6 +12,11 @@ logger = logging.getLogger("red.rhomelab.report")
 
 # Discord's message content character limit is 4000, use a buffer for safety
 MAX_MESSAGE_LENGTH = 3900
+
+# Discord character limits
+EMBED_FIELD_VALUE_LIMIT = 1024
+MESSAGE_BODY_LIMIT = 2000
+
 # Maximum allowed mentions to prevent abuse
 MAX_ALLOWED_MENTIONS = 100
 
@@ -248,15 +253,14 @@ class ReportCog(commands.Cog):
         if interaction is None:
             await message.delete()
 
+        # Check if report body needs truncation
+        original_length = len(report_body)
+        if was_truncated := len(report_body) > EMBED_FIELD_VALUE_LIMIT:
+            report_body = report_body[:EMBED_FIELD_VALUE_LIMIT]
+
         log_channel = await self.get_log_channel(channel.guild)
         if log_channel is None:
-            if channel.guild.owner is not None:
-                report_msg = f"\nUser report: {report_body}" if report_body else ""
-                await channel.guild.owner.send(
-                    f"⚠️ User {message.author.mention} attempted to make a report in {channel.jump_url}, "
-                    + "but the cog is misconfigured. Please check the logs."
-                    + report_msg
-                )
+            await self.notify_guild_owner_config_error(channel, message, report_body)
             return
 
         embed = await self.make_report_embed(channel, message, report_body, emergency)
@@ -266,6 +270,10 @@ class ReportCog(commands.Cog):
         else:
             # Not an emergency or not a text-like channel (maybe can't retrieve members), just send the embed
             await log_channel.send(embed=embed)
+
+        # Notify user if their report was truncated
+        if was_truncated:
+            await self.notify_truncation(message, interaction, original_length, len(report_body))
 
         confirm = await self.config.guild(channel.guild).confirmations()
         if confirm:
@@ -313,3 +321,50 @@ class ReportCog(commands.Cog):
             .add_field(name="Report Origin", value=channel.mention)
             .add_field(name="Report Content", value=escape(report_body or "<no message>"))
         )
+
+    async def notify_truncation(
+        self, message: discord.Message, interaction: discord.Interaction | None, original_length: int, truncated_length: int
+    ):
+        """Notify user that their report was truncated."""
+        try:
+            truncation_msg = (
+                f"⚠️ Your report was truncated from {original_length} to {truncated_length} characters "
+                f"due to Discord's limits. The report was still sent successfully."
+            )
+            if interaction is not None:
+                # If this was a slash command, we need to handle the interaction response differently
+                try:
+                    await interaction.followup.send(truncation_msg, ephemeral=True)
+                except discord.InteractionResponded:
+                    # Interaction already responded to, send as DM instead
+                    await message.author.send(truncation_msg)
+            else:
+                await message.author.send(truncation_msg)
+        except discord.Forbidden:
+            logger.warning(f"Failed to notify {message.author.global_name} ({message.author.id}) about report truncation")
+
+    async def notify_guild_owner_config_error(
+        self, channel: "discord.guild.GuildChannel | discord.Thread", message: discord.Message, report_body: str
+    ):
+        """Notify guild owner about misconfigured report log channel."""
+        if channel.guild.owner is None:
+            return
+
+        base_msg = (
+            f"⚠️ User {message.author.mention} attempted to make a report in {channel.jump_url}, "
+            + "but the cog is misconfigured. Please check the logs."
+        )
+
+        # Add report body if it fits within Discord's 2000 char limit
+        if report_body:
+            report_addition = f"\nUser report: {report_body}"
+            if len(base_msg + report_addition) <= MESSAGE_BODY_LIMIT:
+                base_msg += report_addition
+            else:
+                # Truncate report to fit
+                max_report_length = MESSAGE_BODY_LIMIT - len(base_msg) - len("\nUser report: ...")
+                if max_report_length > 0:
+                    truncated = report_body[:max_report_length]
+                    base_msg += f"\nUser report: {truncated}..."
+
+        await channel.guild.owner.send(base_msg)
