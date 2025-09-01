@@ -10,7 +10,7 @@ from redbot.core.utils.chat_formatting import escape
 
 logger = logging.getLogger("red.rhomelab.report")
 
-TextLikeChannnel: TypeAlias = discord.VoiceChannel | discord.StageChannel | discord.TextChannel | discord.Thread
+TextLikeChannel: TypeAlias = discord.VoiceChannel | discord.StageChannel | discord.TextChannel | discord.Thread
 GuildChannelOrThread: TypeAlias = "discord.guild.GuildChannel | discord.Thread"
 
 
@@ -31,7 +31,7 @@ class ReportCog(commands.Cog):
 
         self.config.register_guild(**default_guild_settings)
 
-    def _is_valid_channel(self, channel: "GuildChannelOrThread | None") -> TextLikeChannnel | Literal[False]:
+    def _is_valid_channel(self, channel: "GuildChannelOrThread | None") -> TextLikeChannel | Literal[False]:
         if channel is not None and not isinstance(channel, (discord.ForumChannel, discord.CategoryChannel)):
             return channel
         return False
@@ -133,7 +133,7 @@ class ReportCog(commands.Cog):
                 await ctx.message.delete()
                 await ctx.author.send(f"You are on cooldown. Try again in <t:{error.retry_after}:R>")
 
-    async def get_log_channel(self, guild: discord.Guild) -> TextLikeChannnel | None:
+    async def get_log_channel(self, guild: discord.Guild) -> TextLikeChannel | None:
         """Gets the log channel for the guild"""
         log_id = await self.config.guild(guild).logchannel()
         log = None
@@ -179,7 +179,7 @@ class ReportCog(commands.Cog):
 
         embed = await self.make_report_embed(channel, message, report_body, emergency)
         msg_body = None
-        if isinstance(channel, TextLikeChannnel):
+        if isinstance(channel, TextLikeChannel):
             # Ping online and idle mods or all mods if none with such a status are found.
             if emergency:
                 channel_members = [
@@ -220,7 +220,7 @@ class ReportCog(commands.Cog):
             .add_field(name="Timestamp", value=f"<t:{int(message.created_at.timestamp())}:F>")
         )
 
-        if isinstance(channel, TextLikeChannnel):
+        if isinstance(channel, TextLikeChannel):
             last_msg = [msg async for msg in channel.history(limit=1, before=message.created_at)][0]  # noqa: RUF015
             embed.add_field(name="Context Region", value=last_msg.jump_url if last_msg else "No messages found")
         else:
