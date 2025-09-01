@@ -12,6 +12,8 @@ logger = logging.getLogger("red.rhomelab.report")
 
 # Discord's message content character limit is 4000, use a buffer for safety
 MAX_MESSAGE_LENGTH = 3900
+# Maximum allowed mentions to prevent abuse
+MAX_ALLOWED_MENTIONS = 100
 
 TextLikeChannel: TypeAlias = discord.VoiceChannel | discord.StageChannel | discord.TextChannel | discord.Thread
 GuildChannelOrThread: TypeAlias = "discord.guild.GuildChannel | discord.Thread"
@@ -30,6 +32,7 @@ class ReportCog(commands.Cog):
         default_guild_settings = {
             "logchannel": None,
             "confirmations": True,
+            "max_emergency_mentions": 20,
         }
 
         self.config.register_guild(**default_guild_settings)
@@ -71,12 +74,32 @@ class ReportCog(commands.Cog):
         await self.config.guild(ctx.guild).confirmations.set(option)
         await ctx.send(f"✅ Report confirmations {'enabled' if option else 'disabled'}")
 
+    @_reports.command("maxmentions")
+    @commands.guild_only()
+    async def reports_max_mentions(self, ctx: commands.GuildContext, max_mentions: int):
+        """Set the maximum number of users to mention in emergency reports.
+
+        Example:
+        - `[p]reports maxmentions 15`
+        - `[p]reports maxmentions 30`
+        """
+        if max_mentions < 1:
+            await ctx.send("❌ Maximum mentions must be at least 1.")
+            return
+        if max_mentions > MAX_ALLOWED_MENTIONS:
+            await ctx.send(f"❌ Maximum mentions cannot exceed {MAX_ALLOWED_MENTIONS}.")
+            return
+
+        await self.config.guild(ctx.guild).max_emergency_mentions.set(max_mentions)
+        await ctx.send(f"✅ Maximum emergency mentions set to {max_mentions}")
+
     @_reports.command("status")
     @commands.guild_only()
     async def reports_status(self, ctx: commands.GuildContext):
         """Status of the cog."""
         reports_channel_id = await self.config.guild(ctx.guild).logchannel()
         report_confirmations = await self.config.guild(ctx.guild).confirmations()
+        max_emergency_mentions = await self.config.guild(ctx.guild).max_emergency_mentions()
 
         if reports_channel_id:
             reports_channel = ctx.guild.get_channel(reports_channel_id)
@@ -92,6 +115,7 @@ class ReportCog(commands.Cog):
                 embed=discord.Embed(colour=await ctx.embed_colour())
                 .add_field(name="Reports Channel", value=reports_channel)
                 .add_field(name="Report Confirmations", value=report_confirmations)
+                .add_field(name="Max Emergency Mentions", value=max_emergency_mentions)
             )
         except discord.Forbidden:
             await ctx.send("I need the `Embed links` permission to send status.")
@@ -158,7 +182,10 @@ class ReportCog(commands.Cog):
 
     async def send_emergency_mentions(self, log_channel: TextLikeChannel, embed: discord.Embed):
         """Send emergency mentions, splitting across multiple messages if necessary."""
-        # Get members from the log channel (where staff/mods are assumed to be)
+        # Get the configured maximum mentions limit
+        max_mentions = await self.config.guild(log_channel.guild).max_emergency_mentions()
+
+        # Get members from the LOG CHANNEL (where staff/mods are), not the original channel
         log_channel_members = [
             log_channel.guild.get_member(i.id) if isinstance(i, discord.ThreadMember) else i for i in log_channel.members
         ]
@@ -172,6 +199,10 @@ class ReportCog(commands.Cog):
         all_mentions = [i.mention for i in log_channel_members if i is not None and not i.bot]
 
         mentions_to_use = online_idle_mentions or all_mentions
+
+        # Limit the number of mentions to the configured maximum
+        if len(mentions_to_use) > max_mentions:
+            mentions_to_use = mentions_to_use[:max_mentions]
 
         if not mentions_to_use:
             # No mentions to send, just send the embed
