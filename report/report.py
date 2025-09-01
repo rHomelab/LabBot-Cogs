@@ -10,6 +10,9 @@ from redbot.core.utils.chat_formatting import escape
 
 logger = logging.getLogger("red.rhomelab.report")
 
+# Discord's message content character limit is 4000, use a buffer for safety
+MAX_MESSAGE_LENGTH = 3900
+
 TextLikeChannel: TypeAlias = discord.VoiceChannel | discord.StageChannel | discord.TextChannel | discord.Thread
 GuildChannelOrThread: TypeAlias = "discord.guild.GuildChannel | discord.Thread"
 
@@ -153,6 +156,54 @@ class ReportCog(commands.Cog):
             logger.warning(f"Failed to get log channel {log_id}, is a invalid channel")
             return
 
+    async def send_emergency_mentions(self, log_channel: TextLikeChannel, embed: discord.Embed):
+        """Send emergency mentions, splitting across multiple messages if necessary."""
+        # Get members from the log channel (where staff/mods are assumed to be)
+        log_channel_members = [
+            log_channel.guild.get_member(i.id) if isinstance(i, discord.ThreadMember) else i for i in log_channel.members
+        ]
+
+        # Get mentions for online/idle members, or all members if none online/idle
+        online_idle_mentions = [
+            i.mention
+            for i in log_channel_members
+            if i is not None and not i.bot and i.status in [discord.Status.online, discord.Status.idle]
+        ]
+        all_mentions = [i.mention for i in log_channel_members if i is not None and not i.bot]
+
+        mentions_to_use = online_idle_mentions or all_mentions
+
+        if not mentions_to_use:
+            # No mentions to send, just send the embed
+            await log_channel.send(embed=embed)
+            return
+
+        # Split mentions into chunks that fit within Discord's character limit
+        mention_chunks = []
+        current_chunk = ""
+
+        for mention in mentions_to_use:
+            test_chunk = f"{current_chunk} {mention}".strip()
+            if len(test_chunk) > MAX_MESSAGE_LENGTH:
+                # Current chunk is full, start a new one
+                if current_chunk:
+                    mention_chunks.append(current_chunk)
+                current_chunk = mention
+            else:
+                current_chunk = test_chunk
+
+        # Add the last chunk if it has content
+        if current_chunk:
+            mention_chunks.append(current_chunk)
+
+        # Send message(s)
+        for idx, chunk in enumerate(mention_chunks):
+            if idx == 0:
+                # Send the first message with the embed and first chunk of mentions
+                await log_channel.send(content=chunk, embed=embed)
+            else:
+                await log_channel.send(content=chunk)
+
     async def do_report(
         self,
         channel: "discord.guild.GuildChannel | discord.Thread",
@@ -178,24 +229,12 @@ class ReportCog(commands.Cog):
             return
 
         embed = await self.make_report_embed(channel, message, report_body, emergency)
-        msg_body = None
-        if isinstance(log_channel, TextLikeChannel):
-            # Ping online and idle mods or all mods if none with such a status are found.
-            if emergency:
-                channel_members = [
-                    log_channel.guild.get_member(i.id) if isinstance(i, discord.ThreadMember) else i
-                    for i in log_channel.members
-                ]
-                msg_body = " ".join(
-                    [
-                        i.mention
-                        for i in channel_members
-                        if i is not None and not i.bot and i.status in [discord.Status.online, discord.Status.idle]
-                    ]
-                    or [i.mention for i in channel_members if i is not None and not i.bot]
-                )
 
-        await log_channel.send(content=msg_body, embed=embed)
+        if isinstance(channel, TextLikeChannel) and emergency:
+            await self.send_emergency_mentions(log_channel, embed)
+        else:
+            # Not an emergency or not a text-like channel (maybe can't retrieve members), just send the embed
+            await log_channel.send(embed=embed)
 
         confirm = await self.config.guild(channel.guild).confirmations()
         if confirm:
