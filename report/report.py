@@ -10,9 +10,6 @@ from redbot.core.utils.chat_formatting import escape
 
 logger = logging.getLogger("red.rhomelab.report")
 
-# Discord's message content character limit is 4000, use a buffer for safety
-MAX_MESSAGE_LENGTH = 3900
-
 # Discord character limits
 EMBED_FIELD_VALUE_LIMIT = 1024
 MESSAGE_BODY_LIMIT = 2000
@@ -220,7 +217,7 @@ class ReportCog(commands.Cog):
 
         for mention in mentions_to_use:
             test_chunk = f"{current_chunk} {mention}".strip()
-            if len(test_chunk) > MAX_MESSAGE_LENGTH:
+            if len(test_chunk) > MESSAGE_BODY_LIMIT:
                 # Current chunk is full, start a new one
                 if current_chunk:
                     mention_chunks.append(current_chunk)
