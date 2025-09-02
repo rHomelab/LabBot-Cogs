@@ -158,7 +158,7 @@ class QuotesCog(commands.Cog):
             .add_field(name="Submitted by", value=ctx.author.mention)
             .add_field(name="Channels", value="\n".join(unique_channels))
             .add_field(name="Link", value=f"[Jump to quote]({messages[0].jump_url})")
-            .add_field(name="Timestamp", value=f"<t:{int(messages[0].created_at.timestamp())}:F>")
+            .add_field(name="Timestamp", value=discord.utils.format_dt(messages[0].created_at, "F"))
         )
 
     async def send_error(self, ctx, error_type: str = "", custom_msg: str = "") -> None:
