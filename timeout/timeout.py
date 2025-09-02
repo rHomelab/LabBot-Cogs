@@ -1,4 +1,3 @@
-import datetime
 import logging
 from typing import Optional
 
@@ -36,7 +35,7 @@ class Timeout(commands.Cog):
 
         # Build embed
         embed = discord.Embed(
-            description=f"{user.mention} ({user.id})", color=(await ctx.embed_colour()), timestamp=datetime.datetime.utcnow()
+            description=f"{user.mention} ({user.id})", color=(await ctx.embed_colour()), timestamp=discord.utils.utcnow()
         )
         embed.add_field(name="Moderator", value=ctx.author.mention, inline=False)
         embed.add_field(name="Reason", value=action_info["reason"], inline=False)
