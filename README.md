@@ -376,11 +376,24 @@ This cog will allow members to send a report into a channel where it can be revi
 
 The `report` and `emergency` commands have cooldowns defined; if a user attempts to use one of these commands more than once within a 30 second period, they will be rate limited and receive a message informing them of this.
 
-- `[p]reports confirmation <true|false>` - Sets whether the bot will send users a confirmation/copy of their report.
+#### Emergency Reports
+
+When a user triggers the emergency command, the bot will mention all online/idle users in the log channel with the user's report. The following conditions apply:
+
+* If no users in the log channel are online/idle, the cog will fall back to mentioning all non-bot users.
+* No number of users greather than the value of the `maxmentions` setting will be mentioned. The order of mentions is not guaranteed, so who is/isn't mentioned under this condition may be unpredictable.
+
+#### Configuration Commands
+
+- `[p]reports confirmation <true|false>` - Sets whether the bot will DM users a confirmation/copy of their report. Confirmations are always provided when the slash command is used.
 - `[p]reports logchannel #admin-log` - Set the channel to which reports will be sent. ⚠️ The cog will not function without this.
+- `[p]reports maxmentions <number>` - Set the maximum number of users to mention in emergency reports (1-100, default: 20).
 - `[p]reports status` - Output the cog's configuration status.
+
+#### User Commands
+
 - `[p]report <message>` - Sends a report with the given message.
-- `[p]emergency <message>` - Sends a report with the given message, mentioning (@'ing) all users in the configured `logchannel` who are in either an online or idle state.
+- `[p]emergency <message>` - Sends a high-priority report with the given message, mentioning (@'ing) users in the configured `logchannel` who are in either an online or idle state.
 
 > [!TIP]
 > The `report` and `emergency` commands are also implemented as slash commands.
