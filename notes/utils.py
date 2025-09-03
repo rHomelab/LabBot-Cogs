@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Callable, Iterable, List, Union
 
 import discord
@@ -23,7 +22,7 @@ class Note(NoteABC):
             message=message,
             reporter_id=ctx.author.id,
             reporter_name=ctx.author.name,
-            created_at=int(datetime.utcnow().timestamp()),
+            created_at=int(discord.utils.utcnow().timestamp()),
             deleted=False,
             is_warning=is_warning,
             _guild=ctx.guild,

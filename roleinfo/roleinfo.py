@@ -42,5 +42,5 @@ class RoleInfoCog(commands.Cog):
             .add_field(name="Mentionable", value="Yes" if role.mentionable else "No")
             .add_field(name="Position", value=len(role.guild.roles) - role.position)
             .add_field(name="ID", value=role.id)
-            .add_field(name="Created at", value=f"<t:{int(role.created_at.timestamp())}:F>")
+            .add_field(name="Created at", value=discord.utils.format_dt(role.created_at, "F"))
         )

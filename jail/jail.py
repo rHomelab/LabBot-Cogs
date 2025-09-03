@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime
 from io import BytesIO
 from os import path
 from typing import Optional
@@ -28,7 +27,7 @@ class JailCog(commands.Cog):
     @commands.group("jail", pass_context=True, invoke_without_command=True)
     async def _jail(self, ctx: commands.Context, member: discord.Member):
         """Jails the specified user."""
-        jail = await self.config.create_jail(ctx, int(datetime.utcnow().timestamp()), member)
+        jail = await self.config.create_jail(ctx, int(discord.utils.utcnow().timestamp()), member)
         if jail is None:
             await ctx.send("Sorry, there was an error with jail category. Make sure things are setup correctly!")
             return

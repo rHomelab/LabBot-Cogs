@@ -1,7 +1,6 @@
 import logging
 import re
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Type
 
@@ -251,7 +250,7 @@ class GuildProfilesCog(commands.Cog):
             # Create the profile
             profiles[profile_name] = {
                 "creator": ctx.author.id,
-                "created": int(datetime.now(timezone.utc).timestamp()),
+                "created": int(discord.utils.utcnow().timestamp()),
                 "icon_id": icon_id,
                 "banner_id": banner_id,
             }
@@ -541,7 +540,7 @@ class GuildProfilesCog(commands.Cog):
         asset = GuildAsset(
             name=name.lower(),
             creator=ctx.author.id,
-            created=int(datetime.now(timezone.utc).timestamp()),
+            created=int(discord.utils.utcnow().timestamp()),
             path=file_path,
         )
 

@@ -353,7 +353,7 @@ class ReportCog(commands.Cog):
             )
             .set_author(name="Report", icon_url=message.author.display_avatar.url)
             .add_field(name="Reporter", value=message.author.mention)
-            .add_field(name="Timestamp", value=f"<t:{int(message.created_at.timestamp())}:F>")
+            .add_field(name="Timestamp", value=discord.utils.format_dt(message.created_at, "F"))
         )
 
         if isinstance(channel, TextLikeChannel):

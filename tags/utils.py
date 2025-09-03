@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import List, Optional
 
 import discord
@@ -93,7 +92,7 @@ class TagConfigHelper(TagConfigHelperABC):
         return self.config.guild(ctx.guild).log().uses.transfers(log)
 
     async def create_tag(self, ctx: commands.Context, trigger: str, content: str) -> Tag:
-        time = int(datetime.utcnow().timestamp())
+        time = int(discord.utils.utcnow().timestamp())
         tag = Tag.new(ctx, ctx.author.id, ctx.author.id, time, trigger, content)
         async with self.config.guild(ctx.guild).tags() as tags:
             tags[trigger] = tag.to_dict()

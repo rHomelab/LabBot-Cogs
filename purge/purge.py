@@ -1,7 +1,7 @@
 """discord red-bot purge"""
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import discord
 from croniter import croniter
@@ -50,7 +50,7 @@ class PurgeCog(commands.Cog):
                     continue
 
                 # Is it time to run?
-                cur_epoch = datetime.utcnow()
+                cur_epoch = discord.utils.utcnow()
                 last_run = await self.config.guild(guild).lastrun()
                 last_run = last_run or 0
                 crontab = await self.config.guild(guild).schedule()
@@ -104,7 +104,7 @@ class PurgeCog(commands.Cog):
                 break
             users_kicked = new_list
 
-        data = discord.Embed(colour=discord.Colour.orange(), timestamp=datetime.utcnow())
+        data = discord.Embed(colour=discord.Colour.orange(), timestamp=discord.utils.utcnow())
         data.title = f"{title} Purge - Purged {len(users)}"
         data.description = users_kicked
 
@@ -141,7 +141,7 @@ class PurgeCog(commands.Cog):
 
             # If user is not older than the minimum age, they're safe
             timelimit = await self.config.guild(guild).minage()
-            cutoff_date = datetime.utcnow() - timedelta(days=timelimit)
+            cutoff_date = discord.utils.utcnow() - timedelta(days=timelimit)
             if member.joined_at > cutoff_date:
                 continue
 
@@ -339,12 +339,12 @@ class PurgeCog(commands.Cog):
 
         last_run_friendly = "Never"
         if purge_last_run is not None:
-            last_run = datetime.utcfromtimestamp(purge_last_run)
+            last_run = datetime.fromtimestamp(purge_last_run, tz=timezone.utc)
             last_run_friendly = last_run.strftime("%Y-%m-%d %H:%M:%SZ")
         data.add_field(name="Last Run", value=f"{last_run_friendly}")
 
         if (purge_last_run is not None or purge_enabled) and purge_schedule is not None:
-            next_date = croniter(purge_schedule, purge_last_run or datetime.utcnow()).get_next(datetime)
+            next_date = croniter(purge_schedule, purge_last_run or discord.utils.utcnow()).get_next(datetime)
             next_run_friendly = next_date.strftime("%Y-%m-%d %H:%M:%SZ")
 
             data.add_field(name="Next Run", value=f"{next_run_friendly}")

@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Optional
 
 import discord
@@ -54,7 +53,7 @@ class TagCog(commands.Cog):
         """Manage tags and aliases."""
         tag, alias = await self.config.get_tag_or_alias(ctx, trigger)
 
-        time = int(datetime.utcnow().timestamp())
+        time = int(discord.utils.utcnow().timestamp())
 
         if tag is None and alias is None:
             await ctx.send("That's not a valid tag or alias!")
@@ -162,7 +161,9 @@ class TagCog(commands.Cog):
                         f"wants to transfer it to you."
                     )
                 else:
-                    await self.config.transfer_tag(ctx, trigger, ctx.author.id, "Claim", int(datetime.utcnow().timestamp()))
+                    await self.config.transfer_tag(
+                        ctx, trigger, ctx.author.id, "Claim", int(discord.utils.utcnow().timestamp())
+                    )
                     await ctx.send("Tag successfully claimed!")
         else:
             await ctx.send("Sorry, that isn't a valid tag so you can't claim it. Good news! You can create it!")
@@ -182,7 +183,7 @@ class TagCog(commands.Cog):
                 reason = f"Mod-initiated by {ctx.author.mention}"
             if allowable:
                 await self.config.transfer_tag(
-                    ctx, trigger, member.id, f"Transfer: {reason}", int(datetime.utcnow().timestamp())
+                    ctx, trigger, member.id, f"Transfer: {reason}", int(discord.utils.utcnow().timestamp())
                 )
                 await ctx.send("Tag successfully transferred!")
             else:
@@ -253,7 +254,7 @@ class TagCog(commands.Cog):
             await ctx.send("You can't alias to another alias! That gets messy.")
             return
 
-        await self.config.create_alias(ctx, alias, tag, ctx.author.id, int(datetime.utcnow().timestamp()))
+        await self.config.create_alias(ctx, alias, tag, ctx.author.id, int(discord.utils.utcnow().timestamp()))
         await ctx.send("Alias created!")
 
     @_alias.command("delete")
