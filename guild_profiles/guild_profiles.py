@@ -1,6 +1,7 @@
 import logging
 import re
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Type
 
@@ -35,6 +36,35 @@ class GuildAsset:
     def to_dict(self) -> dict:
         """Convert a GuildAsset to a dictionary for storage."""
         return {k: str(v) if isinstance(v, Path) else v for k, v in asdict(self).items()}
+
+
+@dataclass
+class GuildProfile:
+    name: str
+    creator: int
+    created: datetime
+    icon_id: int
+    banner_id: int
+
+    @classmethod
+    def from_dict(cls: Type["GuildProfile"], name: str, data: dict) -> "GuildProfile":
+        """Create a GuildProfile from a dictionary."""
+        return cls(
+            name=name,
+            creator=int(data["creator"]),
+            created=datetime.fromtimestamp(int(data["created"]), tz=timezone.utc),
+            icon_id=int(data["icon_id"]),
+            banner_id=int(data["banner_id"]),
+        )
+
+    def to_dict(self) -> dict:
+        """Convert a GuildProfile to a dictionary for storage (excluding name)."""
+        profile_dict = asdict(self)
+        # Remove name from the dict since it's used as the key in storage
+        profile_dict.pop("name", None)
+        # Convert datetime to timestamp for storage
+        profile_dict["created"] = int(self.created.timestamp())
+        return profile_dict
 
 
 class GuildProfilesCog(commands.Cog):
@@ -171,6 +201,31 @@ class GuildProfilesCog(commands.Cog):
                 raise ValueError(f"Asset ID {asset_id} does not exist in the guild's assets.")
             del assets[asset_id]
 
+    async def _get_profile(self, guild: discord.Guild, name: str) -> GuildProfile:
+        """Get a GuildProfile object for a given profile name.
+
+        Args:
+            guild: The guild to which the profile belongs.
+            name: The name of the profile to retrieve.
+
+        Returns:
+            A GuildProfile object containing the profile's details.
+
+        Raises:
+            ValueError: If the profile name does not exist in the guild's profiles.
+        """
+        profile_name = name.lower()
+
+        profiles = await self.config.guild(guild).profiles()
+        if profile_name not in profiles:
+            log.error(f"Profile '{profile_name}' does not exist in guild {guild.id}.")
+            raise ValueError(f"Profile '{profile_name}' does not exist in the guild's profiles.")
+
+        profile_data = profiles[profile_name]
+        log.debug(f"Retrieved profile: {profile_name} for guild {guild.id}")
+
+        return GuildProfile.from_dict(profile_name, profile_data)
+
     async def _check_asset_assigned_profiles(self, guild: discord.Guild, id: int) -> list[str]:
         """Check if an asset ID is currently in use by any guild profile.
 
@@ -184,8 +239,9 @@ class GuildProfilesCog(commands.Cog):
         asset_assigned_profiles = []
         async with self.config.guild(guild).profiles() as profiles:
             for profile_name, profile_data in profiles.items():
-                if int(profile_data.get("icon_id")) == id or int(profile_data.get("banner_id")) == id:
-                    asset_assigned_profiles.append(profile_name)
+                profile = GuildProfile.from_dict(profile_name, profile_data)
+                if id in (profile.icon_id, profile.banner_id):
+                    asset_assigned_profiles.append(profile.name)
         return asset_assigned_profiles
 
     @commands.group(name="guildprofile")  # type: ignore
@@ -248,12 +304,14 @@ class GuildProfilesCog(commands.Cog):
                 return await ctx.send(f"A profile named '{name}' already exists. Please use a different name.")
 
             # Create the profile
-            profiles[profile_name] = {
-                "creator": ctx.author.id,
-                "created": int(discord.utils.utcnow().timestamp()),
-                "icon_id": icon_id,
-                "banner_id": banner_id,
-            }
+            new_profile = GuildProfile(
+                name=profile_name,
+                creator=ctx.author.id,
+                created=discord.utils.utcnow(),
+                icon_id=icon_id,
+                banner_id=banner_id,
+            )
+            profiles[profile_name] = new_profile.to_dict()
 
         log.info(
             f"User {ctx.author.global_name} ({ctx.author.id}) in guild {ctx.guild.name} ({ctx.guild.id}) "
@@ -268,14 +326,16 @@ class GuildProfilesCog(commands.Cog):
         profiles = await self.config.guild(ctx.guild).profiles()
 
         if not profiles:
-            return await ctx.send("No guild profiles have been created yet.")
+            await ctx.send("No guild profiles have been created yet.")
+            return
 
         profile_list = []
         for name, data in profiles.items():
-            creator = ctx.guild.get_member(data["creator"])
+            profile = GuildProfile.from_dict(name, data)
+            creator = ctx.guild.get_member(profile.creator)
             creator_name = creator.display_name if creator else "Unknown User"
-            created_time = f"<t:{data['created']}:R>"
-            profile_list.append(f"- **{name}** - Created by {creator_name} {created_time}")
+            created_time = f"<t:{int(profile.created.timestamp())}:R>"
+            profile_list.append(f"- **{profile.name}** - Created by {creator_name} {created_time}")
 
         profile_chunks = [
             profile_list[i : i + self.EMBED_PAGE_LENGTH] for i in range(0, len(profile_list), self.EMBED_PAGE_LENGTH)
@@ -295,10 +355,9 @@ class GuildProfilesCog(commands.Cog):
     @profile_cmd.command(name="info")
     async def profile_info_cmd(self, ctx: commands.GuildContext, name: str):
         """View information about a specific guild profile."""
-        profiles = await self.config.guild(ctx.guild).profiles()
-        name = name.lower()
-
-        if name not in profiles:
+        try:
+            profile = await self._get_profile(ctx.guild, name)
+        except ValueError:
             log.debug(
                 f"User {ctx.author.global_name} ({ctx.author.id}) in guild {ctx.guild.name} ({ctx.guild.id}) "
                 + f"attempted to view a non-existent profile: {name}"
@@ -308,18 +367,17 @@ class GuildProfilesCog(commands.Cog):
         # Show typing indicator while processing
         await ctx.typing()
 
-        profile = profiles[name]
-        creator = ctx.guild.get_member(profile["creator"])
+        creator = ctx.guild.get_member(profile.creator)
         creator_name = creator.mention if creator else "Unknown User"
 
-        embed = discord.Embed(title=f"Guild Profile: {name}", color=await ctx.embed_colour())
+        embed = discord.Embed(title=f"Guild Profile: {profile.name}", color=await ctx.embed_colour())
         embed.add_field(name="Creator", value=creator_name, inline=True)
-        embed.add_field(name="Created", value=f"<t:{profile['created']}:F>", inline=True)
+        embed.add_field(name="Created", value=f"<t:{int(profile.created.timestamp())}:F>", inline=True)
 
         # Get file paths for icon and banner
         try:
-            icon_asset = await self._get_asset(ctx.guild, profile["icon_id"])
-            banner_asset = await self._get_asset(ctx.guild, profile["banner_id"])
+            icon_asset = await self._get_asset(ctx.guild, profile.icon_id)
+            banner_asset = await self._get_asset(ctx.guild, profile.banner_id)
         except (ValueError, FileNotFoundError) as e:
             return await ctx.send(f"Failed to retrieve asset: {e!s}")
 
@@ -345,10 +403,9 @@ class GuildProfilesCog(commands.Cog):
         - An icon asset ID to update the profile's icon.
         - A banner asset ID to update the profile's banner.
         """
-        profiles = await self.config.guild(ctx.guild).profiles()
-        name = name.lower()
-
-        if name not in profiles:
+        try:
+            profile = await self._get_profile(ctx.guild, name)
+        except ValueError:
             log.debug(
                 f"User {ctx.author.global_name} ({ctx.author.id}) in guild {ctx.guild.name} ({ctx.guild.id}) "
                 + f"attempted to update a non-existent profile: {name}"
@@ -362,12 +419,10 @@ class GuildProfilesCog(commands.Cog):
             except (ValueError, FileNotFoundError) as e:
                 return await ctx.send(f"Failed to retrieve asset: {e!s}")
 
-            async with self.config.guild(ctx.guild).profiles() as profiles:
-                profiles[name]["icon_id"] = icon_id
-
+            profile.icon_id = icon_id
             log.info(
                 f"User {ctx.author.global_name} ({ctx.author.id}) in guild {ctx.guild.name} ({ctx.guild.id}) "
-                + f"updated the icon for profile {name} to asset ID {icon_id}"
+                + f"updated the icon for profile {profile.name} to asset ID {icon_id}"
             )
 
         # Update banner if provided
@@ -377,50 +432,50 @@ class GuildProfilesCog(commands.Cog):
             except (ValueError, FileNotFoundError) as e:
                 return await ctx.send(f"Failed to retrieve asset: {e!s}")
 
-            async with self.config.guild(ctx.guild).profiles() as profiles:
-                profiles[name]["banner_id"] = banner_id
-
+            profile.banner_id = banner_id
             log.info(
                 f"User {ctx.author.global_name} ({ctx.author.id}) in guild {ctx.guild.name} ({ctx.guild.id}) "
-                + f"updated the banner for profile {name} to asset ID {banner_id}"
+                + f"updated the banner for profile {profile.name} to asset ID {banner_id}"
             )
 
-        await ctx.send(f"Guild profile '{name}' updated successfully.")
+        # Save the updated profile back to config
+        async with self.config.guild(ctx.guild).profiles() as profiles:
+            profiles[profile.name] = profile.to_dict()
+
+        await ctx.send(f"Guild profile '{profile.name}' updated successfully.")
 
     @profile_cmd.command(name="delete")
     async def delete_profile_cmd(self, ctx: commands.GuildContext, name: str):
         """Delete a guild profile."""
-        name = name.lower()
+        try:
+            profile = await self._get_profile(ctx.guild, name)
+        except ValueError:
+            log.debug(
+                f"User {ctx.author.global_name} ({ctx.author.id}) in guild {ctx.guild.name} ({ctx.guild.id}) "
+                + f"attempted to delete a non-existent profile: {name}"
+            )
+            return await ctx.send(f"No profile named '{name}' exists.")
 
+        # Check if user is creator or has admin privileges
+        if profile.creator != ctx.author.id and not await is_admin_or_superior(self.bot, ctx.author):
+            log.warning(
+                f"User {ctx.author.global_name} ({ctx.author.id}) in guild {ctx.guild.name} ({ctx.guild.id}) "
+                + f"attempted to delete profile {profile.name} without the necessary permissions."
+            )
+            return await ctx.send(
+                "You don't have permission to delete this profile. " + "Only the creator or admins can delete it."
+            )
+
+        # Remove the profile from config
         async with self.config.guild(ctx.guild).profiles() as profiles:
-            if name not in profiles:
-                log.debug(
-                    f"User {ctx.author.global_name} ({ctx.author.id}) in guild {ctx.guild.name} ({ctx.guild.id}) "
-                    + f"attempted to delete a non-existent profile: {name}"
-                )
-                return await ctx.send(f"No profile named '{name}' exists.")
-
-            profile = profiles[name]
-
-            # Check if user is creator or has admin privileges
-            if profile["creator"] != ctx.author.id and not await is_admin_or_superior(self.bot, ctx.author):
-                log.warning(
-                    f"User {ctx.author.global_name} ({ctx.author.id}) in guild {ctx.guild.name} ({ctx.guild.id}) "
-                    + f"attempted to delete profile {name} without the necessary permissions."
-                )
-                return await ctx.send(
-                    "You don't have permission to delete this profile. " + "Only the creator or admins can delete it."
-                )
-
-            # Remove the profile from config
-            del profiles[name]
+            del profiles[profile.name]
 
         log.info(
             f"User {ctx.author.global_name} ({ctx.author.id}) in guild {ctx.guild.name} ({ctx.guild.id}) "
-            + f"deleted the profile {name}"
+            + f"deleted the profile {profile.name}"
         )
 
-        await ctx.send(f"Guild profile '{name}' deleted successfully.")
+        await ctx.send(f"Guild profile '{profile.name}' deleted successfully.")
 
     @profile_cmd.command(name="apply")
     async def apply_profile_cmd(self, ctx: commands.GuildContext, name: str):
@@ -429,10 +484,9 @@ class GuildProfilesCog(commands.Cog):
 
         This will update the guild's icon and banner to match the profile.
         """
-        profiles = await self.config.guild(ctx.guild).profiles()
-        name = name.lower()
-
-        if name not in profiles:
+        try:
+            profile = await self._get_profile(ctx.guild, name)
+        except ValueError:
             log.debug(
                 f"User {ctx.author.global_name} ({ctx.author.id}) in guild {ctx.guild.name} ({ctx.guild.id}) "
                 + f"attempted to apply a non-existent profile: {name}"
@@ -442,39 +496,40 @@ class GuildProfilesCog(commands.Cog):
         # Show typing indicator while processing
         await ctx.typing()
 
-        profile = profiles[name]
-
         # Get file paths
         try:
-            icon_asset = await self._get_asset(ctx.guild, profile["icon_id"])
-            banner_asset = await self._get_asset(ctx.guild, profile["banner_id"])
+            icon_asset = await self._get_asset(ctx.guild, profile.icon_id)
+            banner_asset = await self._get_asset(ctx.guild, profile.banner_id)
         except (ValueError, FileNotFoundError) as e:
             return await ctx.send(f"Failed to retrieve asset: {e!s}")
 
         # Apply changes
         try:
             async with aio_open(icon_asset.path, "rb") as icon_file:
-                icon_data = await icon_file.read()
+                icon_bytes = await icon_file.read()
 
             async with aio_open(banner_asset.path, "rb") as banner_file:
-                banner_data = await banner_file.read()
+                banner_bytes = await banner_file.read()
 
-            await ctx.guild.edit(icon=icon_data, banner=banner_data, reason=f"Guild profile '{name}' applied by {ctx.author}")
+            await ctx.guild.edit(
+                icon=icon_bytes, banner=banner_bytes, reason=f"Guild profile '{profile.name}' applied by {ctx.author}"
+            )
             log.info(
                 f"User {ctx.author.global_name} ({ctx.author.id}) in guild {ctx.guild.name} ({ctx.guild.id}) "
-                + f"applied profile '{name}' to the guild."
+                + f"applied profile '{profile.name}' to the guild."
             )
-            await ctx.send(f"Guild profile '{name}' has been applied to the guild.")
+            await ctx.send(f"Guild profile '{profile.name}' has been applied to the guild.")
         except discord.Forbidden:
             log.error(
                 f"User {ctx.author.global_name} ({ctx.author.id}) in guild {ctx.guild.name} ({ctx.guild.id}) "
-                + f"attempted to apply profile '{name}' but I don't have permission to change the guild's icon and banner."
+                + f"attempted to apply profile '{profile.name}' but I don't have permission to change the guild's "
+                + "icon and banner."
             )
             await ctx.send("I don't have permission to change the guild's icon and banner.")
         except discord.HTTPException as e:
             log.error(
                 f"User {ctx.author.global_name} ({ctx.author.id}) in guild {ctx.guild.name} ({ctx.guild.id}) "
-                + f"attempted to apply profile '{name}' but an HTTP error occurred: {e!s}"
+                + f"attempted to apply profile '{profile.name}' but an HTTP error occurred: {e!s}"
             )
             await ctx.send(f"An error occurred while updating the guild: {e!s}")
 
