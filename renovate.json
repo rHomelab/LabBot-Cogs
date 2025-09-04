@@ -20,6 +20,11 @@
   ],
   "packageRules": [
     {
+      "matchFileNames": ["requirements.txt"],
+      "commitMessageTopic": "cog requirement {{depName}}",
+      "commitMessageExtra": "to {{newValue}}"
+    },
+    {
       "matchManagers": ["custom.jsonata"],
       "commitMessageTopic": "cog requirement {{depName}}",
       "commitMessageExtra": "to {{newValue}}"
