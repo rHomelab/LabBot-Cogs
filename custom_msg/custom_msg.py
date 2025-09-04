@@ -39,6 +39,9 @@ class CustomMsgCog(commands.Cog):
 
     @msg_cmd.command(name="edit")  # type: ignore
     async def msg_edit(self, ctx: commands.Context, message: discord.Message):
+        """Use message link when specifying what message to edit.
+        Message ID will likely not work."""
+        
         if message.author != ctx.me:
             return await ctx.send("You must specify a message that was sent by the bot.")
 
