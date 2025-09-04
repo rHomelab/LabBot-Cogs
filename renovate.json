@@ -21,7 +21,6 @@
   "packageRules": [
     {
       "matchManagers": ["custom.jsonata"],
-      "rangeStrategy": "replace",
       "commitMessageTopic": "cog requirement {{depName}}",
       "commitMessageExtra": "to {{newValue}}"
     }
