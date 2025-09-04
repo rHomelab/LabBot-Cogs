@@ -20,10 +20,6 @@
   ],
   "packageRules": [
     {
-      "matchFileNames": ["requirements.txt"],
-      "enabled": false
-    },
-    {
       "matchManagers": ["custom.jsonata"],
       "rangeStrategy": "replace",
       "commitMessageTopic": "cog requirement {{depName}}",
