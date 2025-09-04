@@ -10,7 +10,7 @@ runs:
         PYVER=$(bash "$GITHUB_WORKSPACE/.github/find_latest_red_pyver.sh")
         echo "python-version=$PYVER" >> "$GITHUB_OUTPUT"
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ steps.find_pyver.outputs.python-version }}
     - name: Install cog dependencies
