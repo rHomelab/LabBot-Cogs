@@ -30,7 +30,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 
 echo "Installing dependencies..."
-pip install -r requirements.txt
+pip install -r requirements-dev.txt -r requirements.txt
 
 echo "Creating RedBot instance..."
 redbot-setup --instance-name "$INSTANCE_NAME" --no-prompt --data-path $DATA_PATH
