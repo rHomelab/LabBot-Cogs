@@ -2,5 +2,32 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
+  ],
+  "customManagers": [
+    {
+      "customType": "jsonata",
+      "description": "Update cog requirements in info.json files",
+      "fileFormat": "json",
+      "managerFilePatterns": [
+        "/(^|/)info\\.json$/"
+      ],
+      "matchStrings": [
+        "$exists(requirements) and $count(requirements) > 0 ? $filter(requirements, function($v) { $match($v, /^([\\w.-]+)(>=|<=|==|!=|~=|>|<)(.+)$/) }).{ \"depName\": $match($, /^([\\w.-]+)(>=|<=|==|!=|~=|>|<)(.+)$/).groups[0], \"currentValue\": $match($, /^([\\w.-]+)(>=|<=|==|!=|~=|>|<)(.+)$/).groups[2] } : []"
+      ],
+      "datasourceTemplate": "pypi",
+      "versioningTemplate": "pep440"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchFileNames": ["requirements.txt"],
+      "enabled": false
+    },
+    {
+      "matchManagers": ["custom.jsonata"],
+      "rangeStrategy": "replace",
+      "commitMessageTopic": "cog requirement {{depName}}",
+      "commitMessageExtra": "to {{newValue}}"
+    }
   ]
 }
