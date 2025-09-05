@@ -43,7 +43,7 @@ class CustomMsgCog(commands.Cog):
         It's best to use a message link when specifying which message to edit.
         Providing a message ID is likely to fail for older messages, as they won't be in cache.
         """
-        
+
         if message.author != ctx.me:
             return await ctx.send("You must specify a message that was sent by the bot.")
 
