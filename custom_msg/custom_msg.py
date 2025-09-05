@@ -16,6 +16,7 @@ class CustomMsgCog(commands.Cog):
 
     @msg_cmd.command(name="create", aliases=["send"])  # type: ignore
     async def msg_create(self, ctx: commands.GuildContext, specified_channel: Optional[discord.TextChannel] = None):
+        """Create a new message"""
         channel = ctx.channel
         if specified_channel is not None:
             channel = specified_channel
@@ -40,6 +41,7 @@ class CustomMsgCog(commands.Cog):
     @msg_cmd.command(name="edit")  # type: ignore
     async def msg_edit(self, ctx: commands.Context, message: discord.Message):
         """Edit a message sent by this cog
+
         It's best to use a message link when specifying which message to edit.
         Providing a message ID is likely to fail for older messages, as they won't be in cache.
         """
@@ -70,3 +72,4 @@ class CustomMsgCog(commands.Cog):
 
         await message.edit(**payload)
         await ctx.send("Message edited.")
+
