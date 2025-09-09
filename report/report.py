@@ -153,7 +153,8 @@ class ReportCog(commands.Cog):
                 f"Report command on cooldown for {ctx.author.name} ({ctx.author.id}) in guild "
                 f"{ctx.guild.name} ({ctx.guild.id}), ends in {error.retry_after:.1f}s"
             )
-            await self._send_cmd_error_response(ctx, error, f"You are on cooldown. Try again in <t:{error.retry_after}:R>")
+            retry_timestamp = int(error.retry_after + ctx.message.created_at.timestamp())
+            await self._send_cmd_error_response(ctx, error, f"You are on cooldown. Try again in <t:{retry_timestamp}:R>")
             return
 
         logger.error(f"Unexpected error occurred: {error}")
@@ -186,7 +187,8 @@ class ReportCog(commands.Cog):
                 f"Emergency command on cooldown for {ctx.author.name} ({ctx.author.id}) in guild "
                 f"{ctx.guild.name} ({ctx.guild.id}), ends in {error.retry_after:.1f}s"
             )
-            await self._send_cmd_error_response(ctx, error, f"You are on cooldown. Try again in <t:{error.retry_after}:R>")
+            retry_timestamp = int(error.retry_after + ctx.message.created_at.timestamp())
+            await self._send_cmd_error_response(ctx, error, f"You are on cooldown. Try again in <t:{retry_timestamp}:R>")
             return
 
         logger.error(f"Unexpected error occurred: {error}")
