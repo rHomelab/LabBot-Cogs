@@ -179,7 +179,7 @@ class ReportCog(commands.Cog):
         logger.debug(f"Emergency report content length: {len(message)} characters")
         await self.do_report(ctx.channel, ctx.message, message, True, ctx.interaction)
 
-    @cmd_report.error
+    @cmd_emergency.error
     async def on_cmd_emergency_error(self, ctx: commands.GuildContext, error):
         if isinstance(error, commands.CommandOnCooldown):
             logger.debug(
