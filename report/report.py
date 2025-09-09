@@ -153,17 +153,14 @@ class ReportCog(commands.Cog):
                 f"Report command on cooldown for {ctx.author.name} ({ctx.author.id}) in guild "
                 f"{ctx.guild.name} ({ctx.guild.id}), ends in {error.retry_after:.1f}s"
             )
-            if ctx.interaction is not None and not ctx.interaction.response.is_done():
-                await ctx.interaction.response.send_message(str(error), ephemeral=True)
-            else:
-                await ctx.message.delete()
-                await ctx.author.send(f"You are on cooldown. Try again in <t:{error.retry_after}:R>")
-        else:
-            logger.error(f"Unexpected error occurred: {error}")
-            try:
-                await ctx.bot.send_to_owners(error)
-            except Exception as e:
-                logger.error(f"Failed to send error to owners: {e}")
+            await self._send_cmd_error_response(ctx, error, f"You are on cooldown. Try again in <t:{error.retry_after}:R>")
+            return
+
+        logger.error(f"Unexpected error occurred: {error}")
+        try:
+            await ctx.bot.send_to_owners(error)
+        except Exception as e:
+            logger.error(f"Failed to send error to owners: {e}")
 
     @commands.hybrid_command("emergency")
     @commands.cooldown(1, 30.0, commands.BucketType.user)
@@ -189,17 +186,14 @@ class ReportCog(commands.Cog):
                 f"Emergency command on cooldown for {ctx.author.name} ({ctx.author.id}) in guild "
                 f"{ctx.guild.name} ({ctx.guild.id}), ends in {error.retry_after:.1f}s"
             )
-            if ctx.interaction is not None and not ctx.interaction.response.is_done():
-                await ctx.interaction.response.send_message(str(error), ephemeral=True)
-            else:
-                await ctx.message.delete()
-                await ctx.author.send(f"You are on cooldown. Try again in <t:{error.retry_after}:R>")
-        else:
-            logger.error(f"Unexpected error occurred: {error}")
-            try:
-                await ctx.bot.send_to_owners(error)
-            except Exception as e:
-                logger.error(f"Failed to send error to owners: {e}")
+            await self._send_cmd_error_response(ctx, error, f"You are on cooldown. Try again in <t:{error.retry_after}:R>")
+            return
+
+        logger.error(f"Unexpected error occurred: {error}")
+        try:
+            await ctx.bot.send_to_owners(error)
+        except Exception as e:
+            logger.error(f"Failed to send error to owners: {e}")
 
     async def get_log_channel(self, guild: discord.Guild) -> TextLikeChannel | None:
         """Gets the log channel for the guild"""
@@ -433,3 +427,23 @@ class ReportCog(commands.Cog):
             logger.info("Successfully notified guild owner about config error")
         except discord.Forbidden:
             logger.error("Failed to send config error notification to guild owner - no DM permissions")
+
+    async def _send_cmd_error_response(self, ctx: commands.GuildContext, error, response: str):
+        """
+        Sends a command error response to the user.
+
+        If the context has an unresponded interaction, sends an ephemeral error message.
+        Otherwise, deletes the original message and sends the response directly to the user.
+
+        Parameters:
+            ctx (commands.GuildContext): The command context containing guild information
+            error: The error object to be sent as a message
+            response (str): The response message to send to the user
+        Returns:
+            None
+        """
+        if ctx.interaction is not None and not ctx.interaction.response.is_done():
+            await ctx.interaction.response.send_message(str(error), ephemeral=True)
+        else:
+            await ctx.message.delete()
+            await ctx.author.send(response)
