@@ -377,7 +377,7 @@ class ReportCog(commands.Cog):
         )
 
         if isinstance(channel, TextLikeChannel):
-            last_msg = [msg async for msg in channel.history(limit=1, before=message.created_at)][0]  # noqa: RUF015
+            last_msg = await anext(channel.history(limit=1, before=message.created_at), None)
             embed.add_field(name="Context Region", value=last_msg.jump_url if last_msg else "No messages found")
         else:
             embed.add_field(name="Channel", value=message.channel.mention)  # type: ignore
