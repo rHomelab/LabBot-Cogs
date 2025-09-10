@@ -135,6 +135,8 @@ class ReportCog(commands.Cog):
     async def cmd_report(self, ctx: commands.GuildContext, *, message: str):
         """Send a report to the mods.
 
+        ⚠️ `message` is required.
+
         Example:
         - `[p]report <message>`
         """
@@ -148,6 +150,16 @@ class ReportCog(commands.Cog):
 
     @cmd_report.error
     async def on_cmd_report_error(self, ctx: commands.GuildContext, error):
+        if isinstance(error, commands.MissingRequiredArgument):
+            logger.debug(
+                f"Emergency command missing required argument for {ctx.author.name} ({ctx.author.id}) in guild "
+                f"{ctx.guild.name} ({ctx.guild.id})"
+            )
+            await self._send_cmd_error_response(
+                ctx, error, f"Missing required argument in report command: `{error.param.name}`."
+            )
+            return
+
         if isinstance(error, commands.CommandOnCooldown):
             logger.debug(
                 f"Report command on cooldown for {ctx.author.name} ({ctx.author.id}) in guild "
@@ -169,6 +181,8 @@ class ReportCog(commands.Cog):
     async def cmd_emergency(self, ctx: commands.GuildContext, *, message: str):
         """Pings the mods with a high-priority report.
 
+        ⚠️ `message` is required.
+
         Example:
         - `[p]emergency <message>`
         """
@@ -182,6 +196,16 @@ class ReportCog(commands.Cog):
 
     @cmd_emergency.error
     async def on_cmd_emergency_error(self, ctx: commands.GuildContext, error):
+        if isinstance(error, commands.MissingRequiredArgument):
+            logger.debug(
+                f"Emergency command missing required argument for {ctx.author.name} ({ctx.author.id}) in guild "
+                f"{ctx.guild.name} ({ctx.guild.id})"
+            )
+            await self._send_cmd_error_response(
+                ctx, error, f"Missing required argument in emergency command: `{error.param.name}`."
+            )
+            return
+
         if isinstance(error, commands.CommandOnCooldown):
             logger.debug(
                 f"Emergency command on cooldown for {ctx.author.name} ({ctx.author.id}) in guild "
