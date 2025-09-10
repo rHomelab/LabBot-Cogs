@@ -355,7 +355,7 @@ class ReportCog(commands.Cog):
             await interaction.response.send_message(embed=report_reply, ephemeral=True)
 
         # Else send a DM if DM confirmations are enabled
-        elif self.config.guild(channel.guild).confirmations():
+        elif await self.config.guild(channel.guild).confirmations():
             logger.debug("Sending confirmation via DM")
             try:
                 await message.author.send(embed=report_reply)
