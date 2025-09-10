@@ -135,6 +135,8 @@ class ReportCog(commands.Cog):
     async def cmd_report(self, ctx: commands.GuildContext, *, message: str):
         """Send a report to the mods.
 
+        ⚠️ `message` is required.
+
         Example:
         - `[p]report <message>`
         """
@@ -148,28 +150,38 @@ class ReportCog(commands.Cog):
 
     @cmd_report.error
     async def on_cmd_report_error(self, ctx: commands.GuildContext, error):
+        if isinstance(error, commands.MissingRequiredArgument):
+            logger.debug(
+                f"Emergency command missing required argument for {ctx.author.name} ({ctx.author.id}) in guild "
+                f"{ctx.guild.name} ({ctx.guild.id})"
+            )
+            await self._send_cmd_error_response(
+                ctx, error, f"Missing required argument in report command: `{error.param.name}`."
+            )
+            return
+
         if isinstance(error, commands.CommandOnCooldown):
             logger.debug(
                 f"Report command on cooldown for {ctx.author.name} ({ctx.author.id}) in guild "
                 f"{ctx.guild.name} ({ctx.guild.id}), ends in {error.retry_after:.1f}s"
             )
-            if ctx.interaction is not None and not ctx.interaction.response.is_done():
-                await ctx.interaction.response.send_message(str(error), ephemeral=True)
-            else:
-                await ctx.message.delete()
-                await ctx.author.send(f"You are on cooldown. Try again in <t:{error.retry_after}:R>")
-        else:
-            logger.error(f"Unexpected error occurred: {error}")
-            try:
-                await ctx.bot.send_to_owners(error)
-            except Exception as e:
-                logger.error(f"Failed to send error to owners: {e}")
+            retry_timestamp = int(error.retry_after + ctx.message.created_at.timestamp())
+            await self._send_cmd_error_response(ctx, error, f"You are on cooldown. Try again in <t:{retry_timestamp}:R>")
+            return
+
+        logger.error(f"Unexpected error occurred: {error}")
+        try:
+            await ctx.bot.send_to_owners(error)
+        except Exception as e:
+            logger.error(f"Failed to send error to owners: {e}")
 
     @commands.hybrid_command("emergency")
     @commands.cooldown(1, 30.0, commands.BucketType.user)
     @commands.guild_only()
     async def cmd_emergency(self, ctx: commands.GuildContext, *, message: str):
         """Pings the mods with a high-priority report.
+
+        ⚠️ `message` is required.
 
         Example:
         - `[p]emergency <message>`
@@ -182,24 +194,32 @@ class ReportCog(commands.Cog):
         logger.debug(f"Emergency report content length: {len(message)} characters")
         await self.do_report(ctx.channel, ctx.message, message, True, ctx.interaction)
 
-    @cmd_report.error
+    @cmd_emergency.error
     async def on_cmd_emergency_error(self, ctx: commands.GuildContext, error):
+        if isinstance(error, commands.MissingRequiredArgument):
+            logger.debug(
+                f"Emergency command missing required argument for {ctx.author.name} ({ctx.author.id}) in guild "
+                f"{ctx.guild.name} ({ctx.guild.id})"
+            )
+            await self._send_cmd_error_response(
+                ctx, error, f"Missing required argument in emergency command: `{error.param.name}`."
+            )
+            return
+
         if isinstance(error, commands.CommandOnCooldown):
             logger.debug(
                 f"Emergency command on cooldown for {ctx.author.name} ({ctx.author.id}) in guild "
                 f"{ctx.guild.name} ({ctx.guild.id}), ends in {error.retry_after:.1f}s"
             )
-            if ctx.interaction is not None and not ctx.interaction.response.is_done():
-                await ctx.interaction.response.send_message(str(error), ephemeral=True)
-            else:
-                await ctx.message.delete()
-                await ctx.author.send(f"You are on cooldown. Try again in <t:{error.retry_after}:R>")
-        else:
-            logger.error(f"Unexpected error occurred: {error}")
-            try:
-                await ctx.bot.send_to_owners(error)
-            except Exception as e:
-                logger.error(f"Failed to send error to owners: {e}")
+            retry_timestamp = int(error.retry_after + ctx.message.created_at.timestamp())
+            await self._send_cmd_error_response(ctx, error, f"You are on cooldown. Try again in <t:{retry_timestamp}:R>")
+            return
+
+        logger.error(f"Unexpected error occurred: {error}")
+        try:
+            await ctx.bot.send_to_owners(error)
+        except Exception as e:
+            logger.error(f"Failed to send error to owners: {e}")
 
     async def get_log_channel(self, guild: discord.Guild) -> TextLikeChannel | None:
         """Gets the log channel for the guild"""
@@ -285,7 +305,7 @@ class ReportCog(commands.Cog):
 
     async def do_report(
         self,
-        channel: "discord.guild.GuildChannel | discord.Thread",
+        channel: GuildChannelOrThread,
         message: discord.Message,
         report_body: str,
         emergency: bool,
@@ -335,7 +355,7 @@ class ReportCog(commands.Cog):
             await interaction.response.send_message(embed=report_reply, ephemeral=True)
 
         # Else send a DM if DM confirmations are enabled
-        elif self.config.guild(channel.guild).confirmations():
+        elif await self.config.guild(channel.guild).confirmations():
             logger.debug("Sending confirmation via DM")
             try:
                 await message.author.send(embed=report_reply)
@@ -357,10 +377,10 @@ class ReportCog(commands.Cog):
         )
 
         if isinstance(channel, TextLikeChannel):
-            last_msg = [msg async for msg in channel.history(limit=1, before=message.created_at)][0]  # noqa: RUF015
+            last_msg = await anext(channel.history(limit=1, before=message.created_at), None)
             embed.add_field(name="Context Region", value=last_msg.jump_url if last_msg else "No messages found")
         else:
-            embed.add_field(name="Channel", value=message.channel.mention)  # type: ignore
+            embed.add_field(name="Channel", value=channel.mention)
 
         embed.add_field(name="Report Content", value=escape(report_body or "<no message>"))
         return embed
@@ -398,9 +418,7 @@ class ReportCog(commands.Cog):
         except discord.Forbidden as exc:
             logger.error(f"Failed to notify {message.author.global_name} ({message.author.id}) about report truncation: {exc}")
 
-    async def notify_guild_owner_config_error(
-        self, channel: "discord.guild.GuildChannel | discord.Thread", message: discord.Message, report_body: str
-    ):
+    async def notify_guild_owner_config_error(self, channel: GuildChannelOrThread, message: discord.Message, report_body: str):
         """Notify guild owner about misconfigured report log channel."""
         if channel.guild.owner is None:
             logger.warning(
@@ -433,3 +451,23 @@ class ReportCog(commands.Cog):
             logger.info("Successfully notified guild owner about config error")
         except discord.Forbidden:
             logger.error("Failed to send config error notification to guild owner - no DM permissions")
+
+    async def _send_cmd_error_response(self, ctx: commands.GuildContext, error, response: str):
+        """
+        Sends a command error response to the user.
+
+        If the context has an unresponded interaction, sends an ephemeral error message.
+        Otherwise, deletes the original message and sends the response directly to the user.
+
+        Parameters:
+            ctx (commands.GuildContext): The command context containing guild information
+            error: The error object to be sent as a message
+            response (str): The response message to send to the user
+        Returns:
+            None
+        """
+        if ctx.interaction is not None and not ctx.interaction.response.is_done():
+            await ctx.interaction.response.send_message(str(error), ephemeral=True)
+        else:
+            await ctx.message.delete()
+            await ctx.author.send(response)
