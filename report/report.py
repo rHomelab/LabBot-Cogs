@@ -305,7 +305,7 @@ class ReportCog(commands.Cog):
 
     async def do_report(
         self,
-        channel: "discord.guild.GuildChannel | discord.Thread",
+        channel: GuildChannelOrThread,
         message: discord.Message,
         report_body: str,
         emergency: bool,
@@ -380,7 +380,7 @@ class ReportCog(commands.Cog):
             last_msg = await anext(channel.history(limit=1, before=message.created_at), None)
             embed.add_field(name="Context Region", value=last_msg.jump_url if last_msg else "No messages found")
         else:
-            embed.add_field(name="Channel", value=message.channel.mention)  # type: ignore
+            embed.add_field(name="Channel", value=channel.mention)
 
         embed.add_field(name="Report Content", value=escape(report_body or "<no message>"))
         return embed
@@ -418,9 +418,7 @@ class ReportCog(commands.Cog):
         except discord.Forbidden as exc:
             logger.error(f"Failed to notify {message.author.global_name} ({message.author.id}) about report truncation: {exc}")
 
-    async def notify_guild_owner_config_error(
-        self, channel: "discord.guild.GuildChannel | discord.Thread", message: discord.Message, report_body: str
-    ):
+    async def notify_guild_owner_config_error(self, channel: GuildChannelOrThread, message: discord.Message, report_body: str):
         """Notify guild owner about misconfigured report log channel."""
         if channel.guild.owner is None:
             logger.warning(
