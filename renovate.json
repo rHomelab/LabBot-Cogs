@@ -27,7 +27,7 @@
     {
       "matchManagers": ["custom.jsonata"],
       "commitMessageTopic": "cog requirement {{depName}}",
-      "commitMessageExtra": "to {{newValue}}"
+      "commitMessageExtra": "to {{{newValue}}}"
     }
   ]
 }
