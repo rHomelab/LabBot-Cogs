@@ -1,4 +1,4 @@
-aiofiles~=24.1.0
+aiofiles~=25.1.0
 chat_exporter~=2.8.1
 croniter~=6.0.0
 prometheus-client~=0.23.1
