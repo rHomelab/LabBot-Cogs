@@ -11,6 +11,6 @@
         "prom"
     ],
     "min_bot_version": "3.5.1",
-    "requirements": ["prometheus-client~=0.22.1"],
+    "requirements": ["prometheus-client~=0.23.1"],
     "install_msg": "Usage: `[p]prom_export`"
 }
