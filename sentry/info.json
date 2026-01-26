@@ -10,7 +10,7 @@
         "sentry"
     ],
     "requirements": [
-        "sentry-sdk~=2.49.0"
+        "sentry-sdk~=2.50.0"
     ],
     "install_msg": "Install: `[p]set api sentry dsn,https://fooo@bar.baz/9`",
     "min_bot_version": "3.5.1"
