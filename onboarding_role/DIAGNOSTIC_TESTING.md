@@ -2,7 +2,10 @@
 
 ## Changes Made
 
-This branch includes diagnostic improvements to help identify why the onboarding role assignment is not working.
+This branch includes diagnostic improvements to help identify why the onboarding role assignment is not working. NO FUNCTION HAS ACTUALLY CHANGED
+
+## Note
+I (naro) had to change the create dev bot shell for my local environment. the provided one was not working. 
 
 ### 1. New Diagnostic Command: `checkflag`
 

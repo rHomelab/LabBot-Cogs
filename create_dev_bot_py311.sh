@@ -35,6 +35,22 @@ if [ "$is_venv_sourced" = "True" ]; then
     fi
 fi
 
+# Check if venv or instance already exists
+if [ -d ".venv" ] || [ -d "$DATA_PATH" ]; then
+    echo "⚠️  Existing dev bot environment detected."
+    echo "This may be from a previous setup or using an incompatible Python version."
+    read -p "Do you want to clean up and start fresh? [y/N]: " CLEANUP
+    if [ "$CLEANUP" = "y" ]; then
+        echo "Cleaning up existing environment..."
+        rm -rf .venv "$DATA_PATH"
+        redbot-setup delete -y "$INSTANCE_NAME" 2>/dev/null || true
+        echo "Cleanup complete!"
+    else
+        echo "Keeping existing environment. Note: This may cause issues if it was created with a different Python version."
+    fi
+    echo
+fi
+
 echo "Creating and activating virtual environment with Python 3.11..."
 python3.11 -m venv .venv
 source .venv/bin/activate
@@ -43,7 +59,7 @@ echo "Installing dependencies..."
 pip install -r requirements-dev.txt -r requirements.txt
 
 echo "Creating RedBot instance..."
-redbot-setup --instance-name "$INSTANCE_NAME" --no-prompt --data-path $DATA_PATH
+redbot-setup --instance-name "$INSTANCE_NAME" --no-prompt --data-path $DATA_PATH --overwrite-existing-instance
 redbot "$INSTANCE_NAME" --edit --no-prompt --token "$TOKEN" --prefix "$PREFIX"
 
 echo
