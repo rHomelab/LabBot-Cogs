@@ -21,15 +21,17 @@ cd /Users/dustin/local-repos/LabBot-Cogs
 
 ### 1.2 Run the Dev Bot Setup Script
 ```bash
-./create_dev_bot.sh
+./create_dev_bot_py311.sh
 ```
+
+**Note:** This uses Python 3.11 because Red-DiscordBot requires Python 3.8.1 to 3.11 (Python 3.12+ is not yet supported).
 
 **You'll be prompted for:**
 - **Bot Token**: Paste your Discord bot token from the Developer Portal
 - **Bot Prefix**: Enter a prefix (default is `!`, you can use something like `?` or `dev!`)
 
 **What this does:**
-- Creates a Python virtual environment (`.venv`)
+- Creates a Python 3.11 virtual environment (`.venv`)
 - Installs all required dependencies
 - Sets up a Red-DiscordBot instance named `RedBot_dev_homelab`
 - Configures the bot with your token and prefix

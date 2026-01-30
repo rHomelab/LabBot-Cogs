@@ -5,8 +5,9 @@
 ### 1. Start the Dev Bot
 ```bash
 cd /Users/dustin/local-repos/LabBot-Cogs
-./create_dev_bot.sh
+./create_dev_bot_py311.sh
 # Enter your bot token and prefix when prompted
+# Note: Uses Python 3.11 (Red-DiscordBot requires Python 3.8-3.11)
 ```
 
 ### 2. Run the Bot
