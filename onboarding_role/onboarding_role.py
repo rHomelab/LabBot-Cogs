@@ -44,10 +44,29 @@ class OnboardingRole(commands.Cog):
             # Member is a bot
             return
 
+        # Enhanced logging for debugging
+        try:
+            before_onboarding = before.flags.completed_onboarding
+            after_onboarding = after.flags.completed_onboarding
+            
+            # Log any onboarding flag changes for debugging
+            if before_onboarding != after_onboarding:
+                log.debug(
+                    f"Onboarding flag changed for '{after.name}' (ID {after.id}): "
+                    f"{before_onboarding} -> {after_onboarding}"
+                )
+        except AttributeError as e:
+            log.error(
+                f"Failed to access completed_onboarding flag for '{after.name}' (ID {after.id}): {e}. "
+                "This may indicate the discord.py version doesn't support this flag or the bot lacks necessary intents."
+            )
+            return
+
         if before.flags.completed_onboarding == after.flags.completed_onboarding or not after.flags.completed_onboarding:
             # Onboarding state is not changed or onboarding is not complete
             return
 
+        log.info(f"User '{after.name}' (ID {after.id}) just completed onboarding, processing role assignment...")
         await self.process_onboarding_for_member(after)
 
     @commands.Cog.listener()
@@ -167,6 +186,101 @@ class OnboardingRole(commands.Cog):
             await ctx.send("✅ Processed onboarding for 1 member.")
         else:
             await ctx.send(f"✅ Processed onboarding for {processed_count} members.")
+
+    @onboarding_role.command("checkflag")
+    async def check_flag(self, ctx: commands.GuildContext, member: discord.Member = None):
+        """
+        Diagnostic command to check if the completed_onboarding flag is accessible.
+
+        This command will display:
+        - Whether the completed_onboarding attribute exists
+        - The current value of the flag for the specified member (or command author)
+        - All available flags on the member object
+        - Discord.py version information
+
+        Args:
+            member: The member to check. Defaults to the command author if not specified.
+        """
+        if member is None:
+            member = ctx.author
+
+        embed = discord.Embed(
+            title="🔍 Onboarding Flag Diagnostic",
+            colour=await ctx.embed_colour(),
+            description=f"Checking onboarding flag for {member.mention}"
+        )
+
+        # Check if the attribute exists
+        has_flags = hasattr(member, "flags")
+        embed.add_field(name="Has 'flags' attribute", value="✅ Yes" if has_flags else "❌ No", inline=False)
+
+        if has_flags:
+            has_completed_onboarding = hasattr(member.flags, "completed_onboarding")
+            embed.add_field(
+                name="Has 'completed_onboarding' flag",
+                value="✅ Yes" if has_completed_onboarding else "❌ No",
+                inline=False
+            )
+
+            if has_completed_onboarding:
+                try:
+                    flag_value = member.flags.completed_onboarding
+                    embed.add_field(
+                        name="Completed Onboarding Flag Value",
+                        value=f"{'✅ True' if flag_value else '❌ False'}",
+                        inline=False
+                    )
+                except Exception as e:
+                    embed.add_field(
+                        name="⚠️ Error Reading Flag",
+                        value=f"```{type(e).__name__}: {str(e)}```",
+                        inline=False
+                    )
+
+            # List all available flags
+            try:
+                all_flags = []
+                for attr in dir(member.flags):
+                    if not attr.startswith("_"):
+                        try:
+                            value = getattr(member.flags, attr)
+                            if isinstance(value, bool):
+                                all_flags.append(f"{attr}: {value}")
+                        except:
+                            pass
+                
+                if all_flags:
+                    flags_text = "\n".join(all_flags[:10])  # Limit to first 10 to avoid embed size issues
+                    if len(all_flags) > 10:
+                        flags_text += f"\n... and {len(all_flags) - 10} more"
+                    embed.add_field(
+                        name="Available Member Flags",
+                        value=f"```{flags_text}```",
+                        inline=False
+                    )
+            except Exception as e:
+                embed.add_field(
+                    name="⚠️ Error Listing Flags",
+                    value=f"```{type(e).__name__}: {str(e)}```",
+                    inline=False
+                )
+
+        # Add discord.py version info
+        embed.add_field(
+            name="Discord.py Version",
+            value=f"`{discord.__version__}`",
+            inline=False
+        )
+
+        # Add member info
+        embed.add_field(name="Member ID", value=f"`{member.id}`", inline=True)
+        embed.add_field(name="Is Bot", value="✅ Yes" if member.bot else "❌ No", inline=True)
+        embed.add_field(name="Joined Server", value=f"<t:{int(member.joined_at.timestamp())}:R>" if member.joined_at else "Unknown", inline=True)
+
+        try:
+            await ctx.send(embed=embed)
+        except discord.Forbidden:
+            await ctx.send("I need the `Embed links` permission to send the diagnostic information.")
 
     # Helpers
 
