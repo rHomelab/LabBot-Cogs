@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         id: setup_deps
         uses: ./.github/actions/setup
-      - uses: jakebailey/pyright-action@v2
+      - uses: jakebailey/pyright-action@v3
         with:
           python-version: ${{ steps.setup_deps.outputs.python-version }}
 
