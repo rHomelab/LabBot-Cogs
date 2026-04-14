@@ -169,11 +169,25 @@ class ReportCog(commands.Cog):
             await self._send_cmd_error_response(ctx, error, f"You are on cooldown. Try again in <t:{retry_timestamp}:R>")
             return
 
+        # Unexpected error - extract and log report content
         logger.error(f"Unexpected error occurred: {error}")
+
+        # Try to extract the report message from the command invocation
+        report_content = None
         try:
-            await ctx.bot.send_to_owners(error)
-        except Exception as e:
-            logger.error(f"Failed to send error to owners: {e}")
+            # For hybrid commands, the message parameter is passed as a keyword argument
+            if hasattr(ctx, "kwargs") and "message" in ctx.kwargs:
+                report_content = ctx.kwargs["message"]
+            # Fallback: try to extract from the message content
+            elif ctx.message and ctx.message.content:
+                # Remove the command prefix and command name to get the message
+                prefix_len = len(ctx.prefix) if ctx.prefix else 0
+                command_len = len(ctx.invoked_with) if ctx.invoked_with else 0
+                report_content = ctx.message.content[prefix_len + command_len :].strip()
+        except Exception as extract_error:
+            logger.warning(f"Failed to extract report content: {extract_error}")
+
+        await self._log_report_failure(ctx, report_content, error, "report")
 
     @commands.hybrid_command("emergency")
     @commands.cooldown(1, 30.0, commands.BucketType.user)
@@ -215,11 +229,25 @@ class ReportCog(commands.Cog):
             await self._send_cmd_error_response(ctx, error, f"You are on cooldown. Try again in <t:{retry_timestamp}:R>")
             return
 
+        # Unexpected error - extract and log report content
         logger.error(f"Unexpected error occurred: {error}")
+
+        # Try to extract the report message from the command invocation
+        report_content = None
         try:
-            await ctx.bot.send_to_owners(error)
-        except Exception as e:
-            logger.error(f"Failed to send error to owners: {e}")
+            # For hybrid commands, the message parameter is passed as a keyword argument
+            if hasattr(ctx, "kwargs") and "message" in ctx.kwargs:
+                report_content = ctx.kwargs["message"]
+            # Fallback: try to extract from the message content
+            elif ctx.message and ctx.message.content:
+                # Remove the command prefix and command name to get the message
+                prefix_len = len(ctx.prefix) if ctx.prefix else 0
+                command_len = len(ctx.invoked_with) if ctx.invoked_with else 0
+                report_content = ctx.message.content[prefix_len + command_len :].strip()
+        except Exception as extract_error:
+            logger.warning(f"Failed to extract report content: {extract_error}")
+
+        await self._log_report_failure(ctx, report_content, error, "emergency")
 
     async def get_log_channel(self, guild: discord.Guild) -> TextLikeChannel | None:
         """Gets the log channel for the guild"""
@@ -335,11 +363,17 @@ class ReportCog(commands.Cog):
         embed = await self.make_report_embed(channel, message, report_body, emergency)
 
         logger.info(f"Sending {report_type} report to log channel {log_channel.name} ({log_channel.id})")
-        if isinstance(channel, TextLikeChannel) and emergency:
-            await self.send_emergency_report(log_channel, embed)
-        else:
-            # Not an emergency or not a text-like channel (maybe can't retrieve members), just send the embed
-            await log_channel.send(embed=embed)
+        try:
+            if isinstance(channel, TextLikeChannel) and emergency:
+                await self.send_emergency_report(log_channel, embed)
+            else:
+                # Not an emergency or not a text-like channel (maybe can't retrieve members), just send the embed
+                await log_channel.send(embed=embed)
+        except Exception as send_error:
+            # Log the failure with full report content
+            await self._log_report_send_failure(channel, message, report_body, log_channel, send_error, report_type)
+            # Re-raise the exception so the user knows something went wrong
+            raise
 
         # Notify user if their report was truncated
         if was_truncated:
@@ -451,6 +485,114 @@ class ReportCog(commands.Cog):
             logger.info("Successfully notified guild owner about config error")
         except discord.Forbidden:
             logger.error("Failed to send config error notification to guild owner - no DM permissions")
+
+    async def _log_report_send_failure(  # noqa: PLR0913
+        self,
+        channel: GuildChannelOrThread,
+        message: discord.Message,
+        report_body: str,
+        log_channel: TextLikeChannel,
+        error: Exception,
+        report_type: str,
+    ):
+        """
+        Log failed report send with full context and notify bot owners.
+
+        Parameters:
+            channel (GuildChannelOrThread): The channel where the report originated
+            message (discord.Message): The original message
+            report_body (str): The report content
+            log_channel (TextLikeChannel): The log channel where send failed
+            error (Exception): The error that occurred
+            report_type (str): Type of report ("regular" or "emergency")
+        """
+        # Log to console with full context
+        logger.error(f"Failed to send {report_type} report to log channel {log_channel.name} ({log_channel.id}): {error}")
+        logger.error(f"Report content ({len(report_body)} chars): {report_body}")
+
+        # Prepare message for bot owners
+        owner_msg = (
+            f"⚠️ **Failed to Send {report_type.capitalize()} Report**\n\n"
+            f"**Reporter:** {message.author.mention} ({message.author.name}, {message.author.id})\n"
+            f"**Guild:** {channel.guild.name} ({channel.guild.id})\n"
+            f"**Channel:** #{channel.name} ({channel.id})\n"
+            f"**Log Channel:** {log_channel.name} ({log_channel.id})\n"
+            f"**Error:** {type(error).__name__}: {error}\n"
+        )
+
+        # Add report content if it fits
+        report_section = f"\n**Report Content:**\n{report_body}"
+        if len(owner_msg + report_section) <= MESSAGE_BODY_LIMIT:
+            owner_msg += report_section
+        else:
+            # Truncate to fit
+            max_report_length = MESSAGE_BODY_LIMIT - len(owner_msg) - len("\n**Report Content:**\n...")
+            if max_report_length > 0:
+                truncated = report_body[:max_report_length]
+                owner_msg += f"\n**Report Content:**\n{truncated}..."
+                logger.warning(f"Truncated report content for owner notification ({len(truncated)} chars)")
+
+        try:
+            await self.bot.send_to_owners(owner_msg)
+            logger.info("Successfully notified bot owners about failed report send")
+        except Exception as owner_error:
+            logger.error(f"Failed to send error notification to bot owners: {owner_error}")
+
+    async def _log_report_failure(
+        self, ctx: commands.GuildContext, report_content: str | None, error: Exception, report_type: str = "report"
+    ):
+        """
+        Log failed report with full context and notify bot owners.
+
+        Parameters:
+            ctx (commands.GuildContext): The command context
+            report_content (str | None): The report message content, if available
+            error (Exception): The error that occurred
+            report_type (str): Type of report ("report" or "emergency")
+        """
+        # Log to console with full context
+        logger.error(
+            f"Failed to process {report_type} from {ctx.author.name} ({ctx.author.id}) "
+            f"in guild {ctx.guild.name} ({ctx.guild.id}) #{ctx.channel.name} ({ctx.channel.id})"
+        )
+        logger.error(f"Error: {error}")
+
+        if report_content:
+            logger.error(f"Report content ({len(report_content)} chars): {report_content}")
+        else:
+            logger.error("Report content: <unavailable>")
+
+        # Prepare message for bot owners
+        base_msg = (
+            f"⚠️ **Failed {report_type.capitalize()} Report**\n\n"
+            f"**Reporter:** {ctx.author.mention} ({ctx.author.name}, {ctx.author.id})\n"
+            f"**Guild:** {ctx.guild.name} ({ctx.guild.id})\n"
+            f"**Channel:** #{ctx.channel.name} ({ctx.channel.id})\n"
+            f"**Error:** {type(error).__name__}: {error}\n"
+        )
+
+        # Add report content if available
+        if report_content:
+            report_section = f"\n**Report Content:**\n{report_content}"
+            # Check if the full message fits within Discord's limit
+            if len(base_msg + report_section) <= MESSAGE_BODY_LIMIT:
+                base_msg += report_section
+            else:
+                # Truncate report to fit
+                max_report_length = MESSAGE_BODY_LIMIT - len(base_msg) - len("\n**Report Content:**\n...")
+                if max_report_length > 0:
+                    truncated = report_content[:max_report_length]
+                    base_msg += f"\n**Report Content:**\n{truncated}..."
+                    logger.warning(f"Truncated report content for owner notification ({len(truncated)} chars)")
+        else:
+            base_msg += "\n**Report Content:** <unavailable>"
+
+        # Send to bot owners
+        try:
+            await ctx.bot.send_to_owners(base_msg)
+            logger.info("Successfully notified bot owners about failed report")
+        except Exception as e:
+            logger.error(f"Failed to send error notification to bot owners: {e}")
 
     async def _send_cmd_error_response(self, ctx: commands.GuildContext, error, response: str):
         """

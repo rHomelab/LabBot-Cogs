@@ -383,6 +383,16 @@ When a user triggers the emergency command, the bot will mention all online/idle
 * If no users in the log channel are online/idle, the cog will fall back to mentioning all non-bot users.
 * No number of users greather than the value of the `maxmentions` setting will be mentioned. The order of mentions is not guaranteed, so who is/isn't mentioned under this condition may be unpredictable.
 
+#### Error Handling & Logging
+
+The cog includes comprehensive error handling to ensure no reports are lost:
+
+* **Failed report delivery**: If a report fails to send to the log channel (e.g., due to permissions issues or Discord API outages), the full report content is logged to the console and sent to bot owners via DM.
+* **Command errors**: If an unexpected error occurs during report submission, the report content is preserved in logs and sent to bot owners for review.
+* **Privacy maintained**: Original report messages are still deleted for privacy, but the content is preserved in secure logs when failures occur.
+
+This ensures that even in edge cases like misconfigured channels or temporary service disruptions, no user reports are permanently lost.
+
 #### Configuration Commands
 
 - `[p]reports confirmation <true|false>` - Sets whether the bot will DM users a confirmation/copy of their report. Confirmations are always provided when the slash command is used.
