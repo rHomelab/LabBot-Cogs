@@ -315,6 +315,10 @@ class ReportCog(commands.Cog):
         report_type = "emergency" if emergency else "regular"
         logger.debug(f"Processing {report_type} report from {message.author.name} ({message.author.id})")
 
+        # Acknowledge the interaction immediately to avoid Discord's 3-second timeout
+        if interaction is not None and not interaction.response.is_done():
+            await interaction.response.defer(ephemeral=True)
+
         # Pre-emptively delete the message for privacy reasons
         if interaction is None:
             logger.debug("Deleting original report message for privacy")
@@ -350,9 +354,9 @@ class ReportCog(commands.Cog):
         report_reply = self.make_reporter_reply(channel.guild, channel, report_body, emergency)
 
         # Send interaction response if this is a slash command
-        if interaction is not None and not interaction.response.is_done():
-            logger.debug("Sending confirmation via interaction response")
-            await interaction.response.send_message(embed=report_reply, ephemeral=True)
+        if interaction is not None:
+            logger.debug("Sending confirmation via interaction followup")
+            await interaction.followup.send(embed=report_reply, ephemeral=True)
 
         # Else send a DM if DM confirmations are enabled
         elif await self.config.guild(channel.guild).confirmations():
@@ -409,7 +413,7 @@ class ReportCog(commands.Cog):
                 f"⚠️ Your report was truncated from {original_length} to {truncated_length} characters "
                 f"due to Discord's limits. The report was still sent successfully."
             )
-            if interaction is not None and not interaction.response.is_done():
+            if interaction is not None:
                 await interaction.followup.send(truncation_msg, ephemeral=True)
                 logger.debug("Truncation notification sent via interaction followup message")
             else:
