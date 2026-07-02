@@ -317,7 +317,7 @@ class ReportCog(commands.Cog):
 
         # Acknowledge the interaction immediately to avoid Discord's 3-second timeout
         if interaction is not None and not interaction.response.is_done():
-            await interaction.response.defer(ephemeral=True)
+            await interaction.response.defer(ephemeral=True, thinking=True)
 
         # Pre-emptively delete the message for privacy reasons
         if interaction is None:
