@@ -1,6 +1,6 @@
 {
     "author": [
-        "rHomelab"
+        "word"
     ],
     "short": "Detect known scam images and auto-ban posters",
     "description": "Detects known scam images (e.g. MrBeast giveaways) using perceptual hashing and automatically bans users who post them. Admins can manage the image hash database.",
