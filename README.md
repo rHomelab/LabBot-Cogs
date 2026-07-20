@@ -49,6 +49,7 @@ Cogs for the [Red-DiscordBot](https://github.com/Cog-Creators/Red-DiscordBot/)-b
       - [Welcome Logic](#welcome-logic)
       - [Commands](#commands)
     - [Roleinfo](#roleinfo)
+    - [ScamImages](#scamimages)
     - [Sentry](#sentry)
     - [Tags](#tags)
     - [Timeout](#timeout)
@@ -96,6 +97,7 @@ A massive thank you to [all who've helped with this project](https://github.com/
 - **[Report](#report):** Allows users to report issues.
 - **[role\_welcome](#role_welcome):** Sends a welcome message when a user is added to a role.
 - **[Roleinfo](#roleinfo):** Displays info on a role
+- **[ScamImages](#scamimages):** Detects known scam images and automatically bans users who post them.
 - **[Sentry](#sentry):** Send unhandled errors to sentry.
 - **[Tags](#tags):** Allow user-generated stored messages.
 - **[Timeout](#timeout):** Manage users' timeout status.
@@ -440,6 +442,19 @@ The specific logic used to decide when to welcome a user can be adjusted with th
 Allows you to view info on a role
 
 - `[p]roleinfo <role>`
+
+### ScamImages
+
+This cog automatically detects known scam images (e.g. MrBeast giveaway scams) using perceptual hashing and bans users who post them. Admins can manage the image hash database.
+
+All commands are admin-only.
+
+- `[p]scamimages add [url]` - Add an image to the database (by URL, attachment, or reply).
+- `[p]scamimages remove <index>` - Remove a hash by its index (see `list`).
+- `[p]scamimages list` - List all hashes in the database.
+- `[p]scamimages scan` - Manually scan an attached or replied-to image.
+- `[p]scamimages logchannel <channel>` - Set the channel for ban alert logging.
+- `[p]scamimages clear` - Clear the entire database (requires confirmation).
 
 ### Sentry
 
