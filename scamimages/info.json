@@ -1,0 +1,22 @@
+{
+    "author": [
+        "rHomelab"
+    ],
+    "short": "Detect known scam images and auto-ban posters",
+    "description": "Detects known scam images (e.g. MrBeast giveaways) using perceptual hashing and automatically bans users who post them. Admins can manage the image hash database.",
+    "disabled": false,
+    "name": "scamimages",
+    "requirements": [
+        "imagehash~=4.3.1",
+        "Pillow~=11.2.0"
+    ],
+    "tags": [
+        "anti-scam",
+        "images",
+        "moderation",
+        "prevention",
+        "scam"
+    ],
+    "install_msg": "Usage: `[p]scamimages`",
+    "min_bot_version": "3.5.1"
+}
