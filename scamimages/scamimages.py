@@ -1,9 +1,11 @@
 """discord red-bot scam image detection"""
 
+import asyncio
 import logging
 from io import BytesIO
 from typing import Optional
 
+import aiohttp
 import discord
 import imagehash
 from PIL import Image
@@ -15,6 +17,7 @@ log = logging.getLogger("red.rhomelab.scamimages")
 
 SIMILARITY_THRESHOLD = 10
 MAX_HASH_DISPLAY = 10
+REQUEST_TIMEOUT = aiohttp.ClientTimeout(total=15)
 
 
 class ScamImagesCog(commands.Cog):
@@ -23,13 +26,17 @@ class ScamImagesCog(commands.Cog):
     def __init__(self, bot: Red):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=988776655443322111)
+        self.session = aiohttp.ClientSession()
 
         default_guild_settings = {
             "hashes": [],
-            "logchannel": "",
+            "logchannel": 0,
         }
 
         self.config.register_guild(**default_guild_settings)
+
+    async def cog_unload(self):
+        await self.session.close()
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -96,7 +103,7 @@ class ScamImagesCog(commands.Cog):
 
         logchannel_id = await self.config.guild(message.guild).logchannel()
         if logchannel_id:
-            logchannel = message.guild.get_channel(int(logchannel_id))
+            logchannel = message.guild.get_channel(logchannel_id)
             if logchannel is not None:
                 try:
                     embed = discord.Embed(
@@ -116,11 +123,10 @@ class ScamImagesCog(commands.Cog):
                     pass
 
     async def _compute_phash_from_url(self, url: str) -> Optional[imagehash.ImageHash]:
-        async with self.bot.get_session() as session:
-            async with session.get(url) as response:
-                if response.status != 200:
-                    return None
-                image_data = await response.read()
+        async with self.session.get(url, timeout=REQUEST_TIMEOUT) as response:
+            if response.status != 200:
+                return None
+            image_data = await response.read()
 
         try:
             image = Image.open(BytesIO(image_data))
@@ -264,7 +270,7 @@ class ScamImagesCog(commands.Cog):
             await ctx.send("I do not have permission to send messages in that channel.")
             return
 
-        await self.config.guild(ctx.guild).logchannel.set(str(channel.id))
+        await self.config.guild(ctx.guild).logchannel.set(channel.id)
         await ctx.message.add_reaction("✅")
 
     @checks.admin()
@@ -356,7 +362,7 @@ class ScamImagesCog(commands.Cog):
 
         try:
             reaction, _ = await self.bot.wait_for("reaction_add", timeout=30.0, check=check)
-        except Exception:
+        except asyncio.TimeoutError:
             await confirm_msg.clear_reactions()
             await ctx.send("Timed out. Database was not cleared.")
             return
