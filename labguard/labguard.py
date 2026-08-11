@@ -37,7 +37,7 @@ exempt_group = app_commands.Group(
 
 
 class LabGuard(commands.Cog):
-    """Kicks users for posting in a restricted channel or acquiring a restricted role."""
+    """Kicks users for acquiring a restricted role; bans (with message purge) for posting in a restricted channel."""
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -47,10 +47,21 @@ class LabGuard(commands.Cog):
             log_channel=None,
             trigger_role=None,
             exempt_roles=[],
+            ban_purge_seconds=86400,
         )
 
+    async def _log(self, guild: discord.Guild, description: str, color: discord.Color):
+        log_channel_id = await self.config.guild(guild).log_channel()
+        if not log_channel_id:
+            return
+        log_channel = guild.get_channel(log_channel_id)
+        if log_channel:
+            try:
+                await log_channel.send(embed=discord.Embed(description=description, color=color))
+            except discord.HTTPException:
+                pass
+
     async def _kick(self, member: discord.Member, reason: str):
-        guild = member.guild
         try:
             await member.kick(reason=reason)
             result = f"Kicked {member} (`{member.id}`) — {reason}"
@@ -61,16 +72,20 @@ class LabGuard(commands.Cog):
         except discord.HTTPException as e:
             result = f"Failed to kick {member} (`{member.id}`) — {e}"
             color = discord.Color.orange()
+        await self._log(member.guild, result, color)
 
-        log_channel_id = await self.config.guild(guild).log_channel()
-        if not log_channel_id:
-            return
-        log_channel = guild.get_channel(log_channel_id)
-        if log_channel:
-            try:
-                await log_channel.send(embed=discord.Embed(description=result, color=color))
-            except discord.HTTPException:
-                pass
+    async def _ban(self, member: discord.Member, reason: str, purge_seconds: int):
+        try:
+            await member.ban(reason=reason, delete_message_seconds=purge_seconds)
+            result = f"Banned {member} (`{member.id}`) — {reason} (purged last {purge_seconds // 3600}h of messages)"
+            color = discord.Color.dark_red()
+        except discord.Forbidden:
+            result = f"Failed to ban {member} (`{member.id}`) — missing permissions"
+            color = discord.Color.orange()
+        except discord.HTTPException as e:
+            result = f"Failed to ban {member} (`{member.id}`) — {e}"
+            color = discord.Color.orange()
+        await self._log(member.guild, result, color)
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -84,7 +99,12 @@ class LabGuard(commands.Cog):
         author_role_ids = {r.id for r in message.author.roles}
         if author_role_ids.intersection(exempt_roles):
             return
-        await self._kick(message.author, f"Posted in restricted channel {message.channel.mention}")
+        purge_seconds = await guild_conf.ban_purge_seconds()
+        await self._ban(
+            message.author,
+            f"Posted in restricted channel {message.channel.mention}",
+            purge_seconds,
+        )
 
     @commands.Cog.listener()
     async def on_member_update(self, before: discord.Member, after: discord.Member):
@@ -116,9 +136,10 @@ class LabGuard(commands.Cog):
         embed.add_field(name="Trigger Role", value=trigger_role.mention if trigger_role else "Not set", inline=False)
         embed.add_field(name="Log Channel", value=log_channel.mention if log_channel else "Not set", inline=False)
         embed.add_field(name="Exempt Roles", value=", ".join(exempt_roles) if exempt_roles else "None", inline=False)
+        embed.add_field(name="Ban Purge Window", value=f"{conf['ban_purge_seconds'] // 3600}h", inline=False)
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-    @labguard_group.command(name="channel", description="Set the channel that triggers a kick on any message")
+    @labguard_group.command(name="channel", description="Set the channel that triggers a ban on any message")
     @app_commands.describe(channel="Channel to monitor")
     async def channel_cmd(self, interaction: discord.Interaction, channel: discord.TextChannel):
         await self.config.guild(interaction.guild).trigger_channel.set(channel.id)
@@ -135,6 +156,12 @@ class LabGuard(commands.Cog):
     async def logchannel_cmd(self, interaction: discord.Interaction, channel: discord.TextChannel):
         await self.config.guild(interaction.guild).log_channel.set(channel.id)
         await interaction.response.send_message(f"Log channel set to {channel.mention}", ephemeral=True)
+
+    @labguard_group.command(name="purgewindow", description="Set how many hours of messages to purge on channel-trigger bans")
+    @app_commands.describe(hours="Hours of message history to delete (1-168, Discord's cap)")
+    async def purgewindow_cmd(self, interaction: discord.Interaction, hours: app_commands.Range[int, 1, 168]):
+        await self.config.guild(interaction.guild).ban_purge_seconds.set(hours * 3600)
+        await interaction.response.send_message(f"Ban purge window set to {hours}h", ephemeral=True)
 
     @labguard_group.command(name="disable", description="Clear the trigger channel or trigger role")
     @app_commands.describe(target="Which trigger to disable")
