@@ -2,9 +2,8 @@ from typing import Literal
 
 import discord
 from discord import app_commands
-from redbot.core import commands, Config
+from redbot.core import Config, commands
 from redbot.core.bot import Red
-
 
 # Replace with your Discord user ID. This user always passes the permission check.
 # Only used in the event that an emergency change is needed.
