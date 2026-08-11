@@ -30,6 +30,7 @@ Cogs for the [Red-DiscordBot](https://github.com/Cog-Creators/Red-DiscordBot/)-b
     - [IsItReadOnlyFriday](#isitreadonlyfriday)
     - [Jail](#jail)
     - [LaTeX](#latex)
+    - [LabGuard](#labguard)
     - [Letters](#letters)
     - [Markov](#markov)
       - [User commands](#user-commands)
@@ -255,6 +256,13 @@ careful running this in public channels)
 This cog allows users to display complex mathematical information using LaTeX renderings.
 
 `[p]latex <latex statement>`
+
+### LabGuard
+
+This cog automatically kicks users for posting in a specific channel, or after acquiring a specific role.  
+Used to help fight spam bots and bot accounts.
+
+`/labguard <settings>`
 
 ### Letters
 
