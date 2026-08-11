@@ -15,7 +15,7 @@ class LabGuardGroup(app_commands.Group):
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user.id == OWNER_OVERRIDE_ID:
             return True
-        if interaction.user.guild_permissions.manage_guild:
+        if isinstance(interaction.user, discord.Member) and interaction.user.guild_permissions.manage_guild:
             return True
         await interaction.response.send_message(
             "You do not have permission to use this command.", ephemeral=True
@@ -55,7 +55,7 @@ class LabGuard(commands.Cog):
         if not log_channel_id:
             return
         log_channel = guild.get_channel(log_channel_id)
-        if log_channel:
+        if isinstance(log_channel, (discord.TextChannel, discord.Thread)):
             try:
                 await log_channel.send(embed=discord.Embed(description=description, color=color))
             except discord.HTTPException:
@@ -91,6 +91,8 @@ class LabGuard(commands.Cog):
     async def on_message(self, message: discord.Message):
         if not message.guild or message.author.bot:
             return
+        if not isinstance(message.author, discord.Member):
+            return
         guild_conf = self.config.guild(message.guild)
         trigger_channel = await guild_conf.trigger_channel()
         if not trigger_channel or message.channel.id != trigger_channel:
@@ -102,7 +104,7 @@ class LabGuard(commands.Cog):
         purge_seconds = await guild_conf.ban_purge_seconds()
         await self._ban(
             message.author,
-            f"Posted in restricted channel {message.channel.mention}",
+            f"Posted in restricted channel <#{message.channel.id}>",
             purge_seconds,
         )
 
@@ -124,6 +126,7 @@ class LabGuard(commands.Cog):
 
     @labguard_group.command(name="settings", description="View current LabGuard configuration")
     async def settings_cmd(self, interaction: discord.Interaction):
+        assert interaction.guild is not None
         conf = await self.config.guild(interaction.guild).all()
         trigger_channel = interaction.guild.get_channel(conf["trigger_channel"]) if conf["trigger_channel"] else None
         log_channel = interaction.guild.get_channel(conf["log_channel"]) if conf["log_channel"] else None
@@ -142,30 +145,35 @@ class LabGuard(commands.Cog):
     @labguard_group.command(name="channel", description="Set the channel that triggers a ban on any message")
     @app_commands.describe(channel="Channel to monitor")
     async def channel_cmd(self, interaction: discord.Interaction, channel: discord.TextChannel):
+        assert interaction.guild is not None
         await self.config.guild(interaction.guild).trigger_channel.set(channel.id)
         await interaction.response.send_message(f"Trigger channel set to {channel.mention}", ephemeral=True)
 
     @labguard_group.command(name="role", description="Set the role that triggers a kick when acquired")
     @app_commands.describe(role="Role to monitor")
     async def role_cmd(self, interaction: discord.Interaction, role: discord.Role):
+        assert interaction.guild is not None
         await self.config.guild(interaction.guild).trigger_role.set(role.id)
         await interaction.response.send_message(f"Trigger role set to {role.mention}", ephemeral=True)
 
     @labguard_group.command(name="logchannel", description="Set the channel where kick logs are posted")
     @app_commands.describe(channel="Channel to post kick logs in")
     async def logchannel_cmd(self, interaction: discord.Interaction, channel: discord.TextChannel):
+        assert interaction.guild is not None
         await self.config.guild(interaction.guild).log_channel.set(channel.id)
         await interaction.response.send_message(f"Log channel set to {channel.mention}", ephemeral=True)
 
     @labguard_group.command(name="purgewindow", description="Set how many hours of messages to purge on channel-trigger bans")
     @app_commands.describe(hours="Hours of message history to delete (1-168, Discord's cap)")
     async def purgewindow_cmd(self, interaction: discord.Interaction, hours: app_commands.Range[int, 1, 168]):
+        assert interaction.guild is not None
         await self.config.guild(interaction.guild).ban_purge_seconds.set(hours * 3600)
         await interaction.response.send_message(f"Ban purge window set to {hours}h", ephemeral=True)
 
     @labguard_group.command(name="disable", description="Clear the trigger channel or trigger role")
     @app_commands.describe(target="Which trigger to disable")
     async def disable_cmd(self, interaction: discord.Interaction, target: Literal["channel", "role"]):
+        assert interaction.guild is not None
         if target == "channel":
             await self.config.guild(interaction.guild).trigger_channel.set(None)
         else:
@@ -175,6 +183,7 @@ class LabGuard(commands.Cog):
     @exempt_group.command(name="add", description="Exempt a role from the channel trigger")
     @app_commands.describe(role="Role to exempt")
     async def exempt_add(self, interaction: discord.Interaction, role: discord.Role):
+        assert interaction.guild is not None
         async with self.config.guild(interaction.guild).exempt_roles() as roles:
             if role.id not in roles:
                 roles.append(role.id)
@@ -183,6 +192,7 @@ class LabGuard(commands.Cog):
     @exempt_group.command(name="remove", description="Remove a role's exemption from the channel trigger")
     @app_commands.describe(role="Role to remove exemption from")
     async def exempt_remove(self, interaction: discord.Interaction, role: discord.Role):
+        assert interaction.guild is not None
         async with self.config.guild(interaction.guild).exempt_roles() as roles:
             if role.id in roles:
                 roles.remove(role.id)
