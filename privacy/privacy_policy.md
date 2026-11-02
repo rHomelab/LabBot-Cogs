@@ -32,7 +32,7 @@ This policy explains what data the bot accesses through the Discord API, why, ho
 
 ### Message content
 
-LabBot uses Discord's Message Content intent to: scan messages for known phishing/scam links and remove them; enforce per-channel content rules (length, required/forbidden media, account/guild age); respond to configured keyword triggers; and process prefix commands. Message content is processed in real time and is **not** retained to build profiles. When a message is deleted, our moderation tooling may log its content to a moderator-only channel in Discord so moderators can review it for abuse, spam, or ban evasion. It is not stored outside Discord and is not used to profile you. Other than that, the only content we keep is content you deliberately save (e.g. tags). We do **not** use message content to train machine-learning or AI models.
+LabBot uses Discord's Message Content intent to: scan messages for known phishing/scam links and remove them; enforce per-channel content rules (length, required/forbidden media, account/guild age); respond to configured keyword triggers; and process prefix commands. Message content is processed in real time and is **not** retained to build profiles. When a message is deleted, our moderation tooling may log its content to a moderator-only channel in Discord so moderators can review it for abuse, spam, or ban evasion. It is not stored outside Discord and is not used to profile you. We do not otherwise retain message content. We do **not** use message content to train machine-learning or AI models.
 
 ### Presence & activity
 
