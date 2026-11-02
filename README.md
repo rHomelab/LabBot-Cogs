@@ -408,9 +408,6 @@ When a user triggers the emergency command, the bot will mention all online/idle
 > [!TIP]
 > The `report` and `emergency` commands are also implemented as slash commands.
 
-> [!TIP]
-> The `report` and `emergency` commands are also implemented as slash commands.
-
 ### role\_welcome
 
 Sends a welcome message when a user is added to a role.
