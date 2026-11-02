@@ -1,0 +1,16 @@
+{
+    "author": [
+        "tigattack"
+    ],
+    "short": "Display the bot's privacy policy.",
+    "description": "Serves the bot's privacy policy, viewable in Discord via the `[p]privacy` command or `/privacy` slash command. Edit `privacy/privacy_policy.md` in LabBot-Cogs to update the policy text.",
+    "disabled": false,
+    "name": "privacy",
+    "tags": [
+        "info",
+        "privacy"
+    ],
+    "install_msg": "Usage: `[p]privacy` or `/privacy`. Edit `privacy/privacy_policy.md` in LabBot-Cogs to update the policy text.",
+    "min_bot_version": "3.5.1",
+    "end_user_data_statement": "This cog does not store any data about users. It only displays a static, pre-written privacy policy document."
+}
