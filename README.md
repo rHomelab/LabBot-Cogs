@@ -39,6 +39,7 @@ Cogs for the [Red-DiscordBot](https://github.com/Cog-Creators/Red-DiscordBot/)-b
     - [onboarding\_role](#onboarding_role)
     - [Penis](#penis)
     - [Phishingdetection](#phishingdetection)
+    - [Privacy](#privacy)
     - [prometheus\_exporter](#prometheus_exporter)
     - [Purge](#purge)
     - [Quotes](#quotes)
@@ -89,6 +90,7 @@ A massive thank you to [all who've helped with this project](https://github.com/
 - **[onboarding\_role](#onboarding_role):** Apply a role to users who complete onboarding.
 - **[Penis](#penis):** Allows users to check the size of their penis.
 - **[Phishingdetection](#phishingdetection):**
+- **[Privacy](#privacy):** Displays the bot's privacy policy.
 - **[prometheus\_exporter](#prometheus_exporter):** Exposes a HTTP endpoint for exporting guild metrics in Prometheus format.
 - **[Purge](#purge):** This will purge users based on criteria.
 - **[Quotes](#quotes):** Allows users to quote other users' messages in a quotes channel.
@@ -339,6 +341,13 @@ This cog allows users to check the size of their penis.
 ### Phishingdetection
 
 This cog automatically deletes any messages containing suspected phishing/scam links. This information is sourced from [phish.sinking.yachts](https://phish.sinking.yachts/)
+
+### Privacy
+
+This cog displays the bot's privacy policy, read from a markdown file embedded in the cog ([`privacy/privacy_policy.md`](privacy/privacy_policy.md)). Edit that file to update the policy.
+
+- `[p]privacy` - Display the privacy policy as a paginated embed.
+- `/privacy` - Same as above, as a slash command.
 
 ### Purge
 
