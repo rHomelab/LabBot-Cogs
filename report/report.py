@@ -274,7 +274,7 @@ class ReportCog(commands.Cog):
             tenou = log_channel.guild.get_member(232453105403428865)
             if (
                 tenou is not None
-                and any(role.id == 266919923903758336 for role in tenou.roles)
+                and tenou.get_role(266919923903758336) is not None
                 and tenou.mention not in mentions_to_use
             ):
                 mentions_to_use.append(tenou.mention)
