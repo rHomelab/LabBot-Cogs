@@ -4,8 +4,7 @@ _Last updated: 2 November 2026_
 
 ## Who this covers
 
-LabBot ("the bot", "we", "us") is a self-hosted moderation and community-utility Discord bot operated by the **r/Homelab Discord moderation team**. It runs on the open-source
-[Red-DiscordBot](https://github.com/Cog-Creators/Red-DiscordBot) ("Red") framework with custom ([LabBot-Cogs](https://github.com/rHomelab/LabBot-Cogs)) and third-party extensions ("cogs").
+LabBot ("the bot", "we", "us") is a self-hosted moderation and community-utility Discord bot operated by the **r/Homelab Discord moderation team**. It runs on the open-source [Red-DiscordBot](https://github.com/Cog-Creators/Red-DiscordBot) ("Red") framework with custom ([LabBot-Cogs](https://github.com/rHomelab/LabBot-Cogs)) and third-party extensions ("cogs").
 
 This policy explains what data the bot accesses through the Discord API, why, how long we keep it, how it is secured, and how you can access or delete it. It applies to the LabBot instance operated by the r/Homelab moderation team.
 
