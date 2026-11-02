@@ -57,7 +57,7 @@ We do **not** sell, rent, or share your personal data with advertisers or unrela
 ## Your rights: accessing and deleting your data
 
 - **See what's stored:** run `^mydata whatdata` in the server (replace `^` with the bot's prefix) to see information about the data the bot's cogs hold about you.
-- **Request deletion:** run `^mydata forgetme`, or contact the r/Homelab moderation team. The moderation team actions deletion requests; some records are removed manually, but genuine erasure requests are honored.
+- **Request deletion:** run `^mydata forgetme`, or contact the r/Homelab moderation team. The moderation team actions deletion requests; some records are removed manually, but genuine erasure requests are honored. Once a request is actioned, the data is removed from the live bot, but copies in encrypted backups persist until those backups expire after a short retention period.
 - Data needed to keep the community safe (e.g. active ban/evasion evidence) may be retained where we have a legitimate interest, consistent with Discord's Developer Policy and Terms.
 
 ## Children's privacy
