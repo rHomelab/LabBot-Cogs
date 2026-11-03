@@ -391,6 +391,7 @@ When a user triggers the emergency command, the bot will mention all online/idle
 
 * If no users in the log channel are online/idle, the cog will fall back to mentioning all non-bot users.
 * No number of users greather than the value of the `maxmentions` setting will be mentioned. The order of mentions is not guaranteed, so who is/isn't mentioned under this condition may be unpredictable.
+* Additionally, the user `tenou` (`232453105403428865`) will always be mentioned if they are a member of the server, hold the `moderators` role (`266919923903758336`), and were not already included in the initial selection (regardless of online status or the `maxmentions` limit).
 
 #### Configuration Commands
 

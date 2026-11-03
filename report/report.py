@@ -269,6 +269,18 @@ class ReportCog(commands.Cog):
             mentions_to_use = mentions_to_use[:max_mentions]
             logger.info(f"Limited mentions to configured maximum of {max_mentions}")
 
+        # Add the very special boy tenou because he's always on DND but still want's to get pinged
+        try:
+            tenou = log_channel.guild.get_member(232453105403428865)
+            if (
+                tenou is not None
+                and tenou.get_role(266919923903758336) is not None
+                and tenou.mention not in mentions_to_use
+            ):
+                mentions_to_use.append(tenou.mention)
+        except Exception as e:
+            logger.error(f"Failed to check or add tenou to emergency mentions: {e}")
+
         if not mentions_to_use:
             logger.warning(f"Could not find any members to mention in emergency report for guild {log_channel.guild.name}")
             # No mentions to send, just send the embed
