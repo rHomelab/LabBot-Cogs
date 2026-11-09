@@ -1,0 +1,11 @@
+{
+    "author": ["Ramstik"],
+    "min_bot_version": "3.5.0",
+    "description": "Kicks users for posting in a restricted channel or acquiring a restricted role.",
+    "short": "Auto-kick on restricted channel post or role grant.",
+    "hidden": false,
+    "disabled": false,
+    "install_msg": "LabGuard loaded. Use /labguard settings to configure.",
+    "end_user_data_statement": "This cog stores channel and role IDs per guild for configuration purposes only. No user message content is stored.",
+    "tags": ["moderation", "security", "kick"]
+}
