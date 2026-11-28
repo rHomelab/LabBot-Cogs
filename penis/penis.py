@@ -86,7 +86,7 @@ class Penis(commands.Cog):
         for page in pagify(msg):
             await ctx.send(page)
 
-    @commands.command() # pyright: ignore[reportArgumentType]
+    @commands.command()
     @commands.guild_only()
     @commands.admin_or_permissions(manage_guild=True)
     async def penis_state(self, ctx) :
