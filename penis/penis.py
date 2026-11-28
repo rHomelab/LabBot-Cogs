@@ -37,7 +37,11 @@ class Penis(commands.Cog):
         dongs = sorted(dongs.items(), key=lambda x: x[1])
 
         for user, dong in dongs:
-            if len(dong) <= SMALL_DONG_CONST:
+            is_mod = any("mod" in role.name.lower() for role in user.roles)
+            
+            if is_mod:
+                msg += "**{}'s size:**\n{}\nwoah, now that's NOT a dong!\n".format(user.display_name, dong)
+            elif len(dong) <= SMALL_DONG_CONST:
                 msg += "**{}'s size:**\n{}\nlol small\n".format(user.display_name, dong)
             elif len(dong) <= BIG_DONG_CONST:
                 msg += "**{}'s size:**\n{}\n".format(user.display_name, dong)
